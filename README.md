@@ -22,3 +22,8 @@ Slay the Spire 2 BetterDefect mod: restored old Defect cards and dynamic odds.
 
 - 最新本地整合包来自 C:\Users\yummn\Downloads\杀戮尖塔2MOD\可安装-已测试v103。
 - 旧版本仅作留档；通常建议使用最新版本。
+
+## v0.5.9 卡图资源说明
+
+最新版 release asset 内含 Data/Portraits/*.png，供 CardBeautify v0.4.7 读取 BetterDefect 还原的一代机器人卡面。
+
