@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.6.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.15): limits the disable button, grey disabled mask, and dynamic-odds text strictly to the encyclopedia/card-library screen, and cleans old UI from reused card nodes outside the library.
+- [v0.6.16](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.16): restores the starter-deck tweak that replaces one Defect Strike with Ball Lightning, while keeping the v0.6.15 encyclopedia-only UI cleanup.
 
 ## History
 
@@ -25,10 +25,12 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.9): temporarily removed the in-game disable/enable option and disabled-card counter HUD.
 - [v0.6.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.13): restored the card-library disable/enable UI on mobile, fixed Chinese dynamic-odds text, restored the disabled-card grey mask, and showed a compact top segmented disabled-card counter HUD.
 - [v0.6.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.14): kept the disabled-card counter HUD visible only inside the encyclopedia/card-library screen and hid it on the main menu, loading, combat, shop, and other non-library screens. Verified on Android v103 via ADB screenshots.
+- [v0.6.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.15): limited the disable button, grey disabled mask, and dynamic-odds text strictly to the encyclopedia/card-library screen, and cleaned old UI from reused card nodes outside the library.
 
-## v0.6.15 feature summary
+## v0.6.16 feature summary
 
 - Restores 26 old Defect cards to the Defect card pool and card library.
+- Defect starter deck replacement is back: one starting `StrikeDefect` is replaced by `BallLightning`, with a duplicate guard so the patch will not replace multiple Strikes if it runs again.
 - Cross-run dynamic odds for Defect cards only: selected cards gain weight, exactly three-card Defect skip/reroll rewards subtract a total group weight, and each rarity is handled independently.
 - Encyclopedia/card-library UI shows `动态出率：x.xx` in Chinese without mojibake.
 - In the encyclopedia/card-library only, Defect cards have a mobile-sized `禁用出率` / `启用出率` button; disabled cards are excluded from reward replacement, show `0.00x（已禁用）`, and get a grey aligned mask.
@@ -39,4 +41,4 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.6.15.zip` from Releases, unzip it, and copy the `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.6.16.zip` from Releases, unzip it, and copy the `BetterDefect` folder into the game's `mods` folder.
