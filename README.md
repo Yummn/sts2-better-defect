@@ -1,4 +1,4 @@
-﻿# BetterDefect
+# BetterDefect
 
 Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, and the Fission orb visual fix.
 
@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): Android-safe follow-up for encyclopedia-only controls. Keeps the no-global-card-refresh-hook performance design, gates the disable button/grey mask/dynamic-odds text to the real encyclopedia `NCardLibraryGrid`, and cleans touched card nodes once when leaving the encyclopedia so in-run/shop deck views do not inherit BetterDefect UI.
+- [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): Android frame-pacing optimization pass. Keeps the v0.6.21 feature set, then caches restored-card portrait path checks, restored-card type detection, dynamic-odds card keys, PowerCmd/orb reflection, and encyclopedia UI label/style reflection so draw/play frames avoid repeated ResourceLoader.Exists/reflection/UI restyling work.
 
 ## History
 
@@ -32,7 +32,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.19): Android FPS/performance pass; removes the global `NCard.UpdateVisuals` UI hook, makes the UI event-driven from the card library grid, disables HUD polling, and adds small lookup caches.
 - [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): keeps the Android-safe no-global-card-hook design, verifies controls against the actual `NCardLibrary` ancestor, and performs one-shot cleanup on card-library close so in-run/shop deck views stay clean.
 
-## v0.6.21 feature summary
+## v0.6.22 feature summary
 
 - Restores 26 old Defect cards to the Defect card pool and card library.
 - Defect starter deck replacement is back: one starting `StrikeDefect` is replaced by `BallLightning`, with a duplicate guard so the patch will not replace multiple Strikes if it runs again.
@@ -42,7 +42,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - Encyclopedia/card-library UI shows `动态出率：x.xx` in Chinese without mojibake.
 - In the encyclopedia/card-library only, Defect cards have a mobile-sized `禁用出率` / `启用出率` button; disabled cards are excluded from reward replacement, show `0.00x（已禁用）`, and get a grey aligned mask.
 - Non-encyclopedia card views remove BetterDefect's disable button, grey mask, and dynamic-odds text. v0.6.18 also removes the old broad `CardLibrary` namespace/name fallback and explicitly excludes `NCardPileScreen`, deck, draw pile, discard pile, exhaust pile and shop deck views.
-- v0.6.21 keeps the v0.6.19 no-global `NCard.UpdateVisuals` design. Encyclopedia controls are updated only by card-library/grid events, with stricter `NCardLibrary` ancestor verification and a one-shot cleanup when the card library closes.
+- v0.6.22 keeps the v0.6.19 no-global `NCard.UpdateVisuals` design and the v0.6.21 strict `NCardLibrary` verification, while adding extra mobile caches for card art path checks, restored-card type checks, dynamic-odds card keys, PowerCmd/orb reflection and encyclopedia label/style work.
 - v0.6.21 keeps HUD polling disabled; the HUD is shown/hidden by card-library events instead.
 - The top segmented disabled-card counter shows 0-25 in blue and 26-35 in red, and remains visible only inside the encyclopedia/card-library screen.
 - `Data/Portraits/*.png` is included for CardBeautify's restored old Defect art.
@@ -51,4 +51,4 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.6.21.zip` from Releases, unzip it, and copy the `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.6.22.zip` from Releases, unzip it, and copy the `BetterDefect` folder into the game's `mods` folder.
