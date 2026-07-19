@@ -1,12 +1,12 @@
 # BetterDefect
 
-Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, and the Fission orb visual fix.
+Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 35-point historical card-version upgrade system, and the Fission orb visual fix.
 
 Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
 
-- [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): Android frame-pacing optimization pass. Keeps the v0.6.21 feature set, then caches restored-card portrait path checks, restored-card type detection, dynamic-odds card keys, PowerCmd/orb reflection, and encyclopedia UI label/style reflection so draw/play frames avoid repeated ResourceLoader.Exists/reflection/UI restyling work.
+- [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds 14 encyclopedia-only historical card-version switches. Each enabled switch costs one of the same 35 persistent points used by card disabling. The CardBeautify-sized button sits directly above the card-art button, is green when enabled and red when disabled, and the segmented HUD reports disabled/upgraded counts separately.
 
 ## History
 
@@ -31,8 +31,19 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.18](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.18): strictly gates card controls to the concrete `NCardLibrary` screen and excludes in-run/shop deck and pile inspection screens.
 - [v0.6.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.19): Android FPS/performance pass; removes the global `NCard.UpdateVisuals` UI hook, makes the UI event-driven from the card library grid, disables HUD polling, and adds small lookup caches.
 - [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): keeps the Android-safe no-global-card-hook design, verifies controls against the actual `NCardLibrary` ancestor, and performs one-shot cleanup on card-library close so in-run/shop deck views stay clean.
+- [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): caches restored-card portrait checks, card-type/key lookups, gameplay reflection and encyclopedia UI work to reduce Android frame spikes.
 
-## v0.6.22 feature summary
+## v0.7.0 historical card-version system
+
+- The feature is available only in the encyclopedia card library and only for the 14 listed Defect cards.
+- Card disabling and historical-version switches share a persistent 35-point budget. One disabled card or one enabled historical switch costs one point.
+- The top hand-painted segmented bar shows `disabled X · upgraded Y`; 0-25 points are blue and 26-35 points are red.
+- Version switches, disabled states, card-art choices and dynamic odds survive restarts and DLL replacement.
+- These are global historical balance-version switches. Normal per-copy smithing upgrades still work independently.
+- Version targets: Hotfix + -> v0.99; Rocket Punch base v0.99 / switch v0.100; Voltaic -> v0.99; Hyperbeam -> v0.109; Shatter base v0.108 / switch v0.105; Tesla Coil -> v0.105; Uproar -> v0.105; Fusion -> v0.106; Synthesis -> v0.106; Compact base v0.108 / switch v0.99; Momentum Strike -> v0.108; Scrape -> v0.108; Sunder -> v0.109; Trash to Treasure base v0.109 / switch v0.99.
+- The v0.7.0 card-library refresh rebuilds the base game's cached upgraded preview, so switching `View Upgrades` immediately reflects the selected historical version instead of showing a stale card clone.
+
+## Core feature summary
 
 - Restores 26 old Defect cards to the Defect card pool and card library.
 - Defect starter deck replacement is back: one starting `StrikeDefect` is replaced by `BallLightning`, with a duplicate guard so the patch will not replace multiple Strikes if it runs again.
@@ -51,4 +62,4 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.6.22.zip` from Releases, unzip it, and copy the `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.7.0.zip` for mobile v103 or `BetterDefect-v0.7.0-PC-v107.1.zip` for PC v107.1, unzip it, and copy the included `BetterDefect` folder into the game's `mods` folder.
