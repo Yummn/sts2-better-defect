@@ -1,0 +1,21 @@
+BetterDefect v0.8.2 binary audit
+Timestamp: 2026-07-19T23:10:51+08:00
+Mode: offline build/decompile/token verification plus Android live-load verification
+
+PC v107.1
+  DLL: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.offline-build\pc-v0.8.2-mods\BetterDefect\BetterDefect.dll
+  Size: 157184 bytes
+  SHA256: CC2F4338728C95712CBDF2DDE2B14B63C0C899E4E9153A66391D470E5A4C6659
+  Compile: 0 errors (12 nullable warnings)
+  Decompiled guard: DisableUnsafeAndroidSetterDetour = false; Prepare() returns true
+
+Mobile v103
+  DLL: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.offline-build\v103-v0.8.2-mods\BetterDefect\BetterDefect.dll
+  Size: 157184 bytes
+  SHA256: 7B42AFA1FE35D2D91915427F9839CF7856ADA8F548005CEE97DB6DE8C902C960
+  Compile: 0 errors (12 nullable warnings)
+  Decompiled guard: DisableUnsafeAndroidSetterDetour = true; Prepare() returns false
+
+Offline source/behavior audit: 67 passed, 0 failed
+Android live result: BetterDefect v0.8.2 initialized; Stage 14 complete; encyclopedia 114 cards; state 34/35 points (25 disabled + 9 historical upgrades)
+Result: PASS

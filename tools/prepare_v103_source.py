@@ -52,6 +52,14 @@ def main() -> int:
     )
     cards_path.write_text(cards, encoding="utf-8")
 
+    ui_path = target / "BetterDefectCode" / "DynamicOddsUi.cs"
+    ui = ui_path.read_text(encoding="utf-8")
+    source_flag = "private const bool DisableUnsafeAndroidSetterDetour = false;"
+    mobile_flag = "private const bool DisableUnsafeAndroidSetterDetour = true;"
+    if source_flag not in ui:
+        raise RuntimeError("Android setter-detour build flag marker is missing")
+    ui_path.write_text(ui.replace(source_flag, mobile_flag, 1), encoding="utf-8")
+
     print(target)
     return 0
 

@@ -1198,6 +1198,18 @@ internal static class BdDynamicOddsCardLibraryUpgradePreviewPatch
 [HarmonyPatch(typeof(NCard), "set_Model")]
 internal static class BdDynamicOddsCardModelSetPatch
 {
+    // Harmony/MonoMod on the v103 Android ARM64 runtime can segfault while
+    // detouring NCard.Model's setter. The encyclopedia already has concrete
+    // NCardLibraryGrid refresh hooks, while the remaining Reload/UpdateVisuals
+    // scope guards still remove leaked controls from reused card nodes.
+    // Keep the setter hook on PC, but do not generate this unsafe detour on
+    // Android.
+    // The v103 source-preparation helper flips this compile-time constant to
+    // true. This is more reliable than runtime OS detection because the
+    // bundled Android .NET runtime reports an unknown platform.
+    private const bool DisableUnsafeAndroidSetterDetour = false;
+    private static bool Prepare() => !DisableUnsafeAndroidSetterDetour;
+
     private static void Postfix(NCard __instance)
     {
         BdDynamicOddsCardUi.EnforceCardUiScope(__instance);

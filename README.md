@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): description/effect consistency audit. Rocket Punch, Tesla Coil, Fuel, Scrape, Fission and Core Surge now describe the behavior selected by their normal and historical-version switches. Amplify now really expires at the end of the current player turn and consumes stacks through the native card-play-count hook. PC v107.1 and Android v103 builds both pass compilation, decompilation and 66/66 offline checks.
+- [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): Android v103 startup guard. The mobile build skips the unsafe `NCard.Model` setter detour while the PC build keeps it; all v0.8.1 description/effect fixes remain. REDMI K80 Pro live verification reached Stage 14 and showed 114 Defect cards plus saved odds/disable/version UI state. Both builds pass compilation/decompilation and 67/67 offline checks.
 
 ## History
 
@@ -35,6 +35,15 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds the 35-point historical card-version upgrade system; its first archive used a Windows backslash directory record and is superseded by v0.7.1 for Android settings-page importing.
 - [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
 - [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): audits and fixes restored-card behavior routes, including Electrodynamics, Recycle, Lock-On and Static Discharge.
+- [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): fixes description/effect consistency for Rocket Punch, Tesla Coil, Fuel, Scrape, Fission, Core Surge and Amplify.
+
+## v0.8.2 Android startup guard
+
+- Android v103 compiles out the Harmony detour for `NCard.Model`'s setter; the encyclopedia continues to use concrete `NCardLibraryGrid` refresh hooks.
+- PC v107.1 retains the setter hook.
+- All v0.8.1 description/effect consistency fixes are retained.
+- Offline audit: 67/67. Both targets compile with 0 errors and were decompiled to confirm the platform-specific `Prepare()` result.
+- Android v0.103.2 live verification reached startup Stage 14 and showed 114 Defect cards, dynamic odds, disable controls/grey mask, art controls, historical-version controls and the segmented 35-point HUD.
 
 ## v0.8.1 description/effect consistency audit
 
@@ -91,6 +100,6 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.8.1.zip` for mobile v103 or `BetterDefect-v0.8.1-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.8.2.zip` for mobile v103 or `BetterDefect-v0.8.2-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

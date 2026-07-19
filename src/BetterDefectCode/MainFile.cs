@@ -34,7 +34,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.1: all restored and historical-version card descriptions are synchronized with their active behavior; Rocket Punch, Tesla Coil, Fuel/Compact, Scrape and Fission use version/upgrade-correct text; Amplify now expires at the end of the player turn; v0.8.0 restored-card behavior fixes retained; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.8.2: v0.8.1 description/effect consistency fixes retained; Android skips the unsafe NCard.Model setter detour; PC keeps the setter hook; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()

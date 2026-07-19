@@ -37,6 +37,10 @@ def class_body(source: str, class_name: str) -> str:
     raise AssertionError(f"unclosed class: {class_name}")
 
 
+def read(relative_path: str) -> str:
+    return (PROJECT / relative_path).read_text(encoding="utf-8")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path)
@@ -168,14 +172,17 @@ def main() -> int:
     check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
     check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
     check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
-    check("manifest is v0.8.1", '"version":  "0.8.1"' in manifest)
+    ui = read("BetterDefectCode/DynamicOddsUi.cs")
+    helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
+    check("Android skips unsafe NCard.Model setter detour", "DisableUnsafeAndroidSetterDetour = false" in ui and "DisableUnsafeAndroidSetterDetour = true" in helper)
+    check("manifest is v0.8.2", '"version":  "0.8.2"' in manifest)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.1 offline audit",
+        "BetterDefect v0.8.2 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
