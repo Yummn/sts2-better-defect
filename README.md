@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): Android importer packaging hotfix. Keeps all v0.7.0 gameplay/UI changes, but rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
+- [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): restored-card behavior audit. Electrodynamics now sends both passive and evoked Lightning to every enemy; Recycle restores card selection and X-cost refunds; Lock-On uses the correct 1.5x multiplier and enemy-turn duration; Static Discharge only reacts to unblocked attack damage. PC v107.1 and Android v103 builds both pass compilation and compiled-IL audits.
 
 ## History
 
@@ -33,6 +33,16 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): keeps the Android-safe no-global-card-hook design, verifies controls against the actual `NCardLibrary` ancestor, and performs one-shot cleanup on card-library close so in-run/shop deck views stay clean.
 - [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): caches restored-card portrait checks, card-type/key lookups, gameplay reflection and encyclopedia UI work to reduce Android frame spikes.
 - [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds the 35-point historical card-version upgrade system; its first archive used a Windows backslash directory record and is superseded by v0.7.1 for Android settings-page importing.
+- [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
+
+## v0.8.0 restored-card audit
+
+- Electrodynamics patches Lightning's shared `ApplyLightningDamage` method, so end-turn passive triggers and evokes both use all hittable opponents.
+- Recycle uses the native hand-selection flow and refunds an X-cost card using the player's current remaining energy.
+- Lock-On returns `1.5m` as a multiplier and ticks down once per enemy turn rather than once per orb hit.
+- Static Discharge filters out poison, orb/relic damage and other HP-loss effects.
+- The offline regression suite checks all 26 restored registrations, the defining values/effect routes of all 22 recreated cards, and all 14 historical-version mappings.
+- Current PC and v103 DLLs were separately compiled and decompiled. See `docs/reports/` for the 59/59 source audit and compiled-IL evidence.
 
 ## v0.7.1 Android importer fix
 
@@ -70,4 +80,6 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.7.1.zip` for mobile v103 or `BetterDefect-v0.7.1-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.8.0.zip` for mobile v103 or `BetterDefect-v0.8.0-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+
+The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

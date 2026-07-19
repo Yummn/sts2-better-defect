@@ -1,0 +1,112 @@
+﻿using System.Collections.Generic;
+
+using System;
+using System.Linq;
+using MegaCrit.Sts2.Core.Localization;
+
+namespace BetterDefect;
+
+internal static class BdLocalization
+{
+    private static readonly Dictionary<string, string> Map = new()
+    {
+        ["cards/BD_RECURSION.title"] = "递归",
+        ["cards/BD_RECURSION.description"] = "[gold]激发[/gold]下一个充能球，然后重新充能同类型充能球。",
+        ["cards/BD_STEAM_BARRIER.title"] = "蒸汽护壁",
+        ["cards/BD_STEAM_BARRIER.description"] = "获得 {Block:diff()} 点[gold]格挡[/gold]。\n本场战斗中此牌格挡值减少 1。",
+        ["cards/BD_STREAMLINE.title"] = "精简改良",
+        ["cards/BD_STREAMLINE.description"] = "造成 {Damage:diff()} 点伤害。\n本场战斗中每次打出后费用减少 1。",
+        ["cards/BD_AGGREGATE.title"] = "汇集",
+        ["cards/BD_AGGREGATE.description"] = "抽牌堆中每有 {Divisor:diff()} 张牌，获得 1 点[gold]能量[/gold]。",
+        ["cards/BD_AUTO_SHIELDS.title"] = "自动护盾",
+        ["cards/BD_AUTO_SHIELDS.description"] = "如果你没有[gold]格挡[/gold]，获得 {Block:diff()} 点[gold]格挡[/gold]。",
+        ["cards/BD_BLIZZARD.title"] = "暴雪",
+        ["cards/BD_BLIZZARD.description"] = "本场战斗每充能过 1 个[gold]冰霜[/gold]，对所有敌人造成 {Damage:diff()} 点伤害。",
+        ["cards/BD_BULLSEYE.title"] = "瞄准靶心",
+        ["cards/BD_BULLSEYE.description"] = "造成 {Damage:diff()} 点伤害。给予 {LockOn:diff()} 层[gold]锁定[/gold]。",
+        ["cards/BD_CONSUME.title"] = "耗尽",
+        ["cards/BD_CONSUME.description"] = "获得 {Focus:diff()} 点[gold]集中[/gold]。失去 1 个充能球栏位。",
+        ["cards/BD_DOOM_AND_GLOOM.title"] = "愁云惨淡",
+        ["cards/BD_DOOM_AND_GLOOM.description"] = "对所有敌人造成 {Damage:diff()} 点伤害。\n[gold]充能[/gold] 1 个[gold]黑暗[/gold]。",
+        ["cards/BD_FORCE_FIELD.title"] = "力场",
+        ["cards/BD_FORCE_FIELD.description"] = "获得 {Block:diff()} 点[gold]格挡[/gold]。\n本场战斗每打出 1 张能力牌，费用减少 1。",
+        ["cards/BD_HEATSINKS.title"] = "散热片",
+        ["cards/BD_HEATSINKS.description"] = "每当你打出一张能力牌，抽 {Draw:diff()} 张牌。",
+        ["cards/BD_MELTER.title"] = "熔化",
+        ["cards/BD_MELTER.description"] = "移除敌人的所有[gold]格挡[/gold]。\n造成 {Damage:diff()} 点伤害。",
+        ["cards/BD_RECYCLE.title"] = "回收",
+        ["cards/BD_RECYCLE.description"] = "选择并[gold]消耗[/gold] 1 张手牌，获得等同其费用的[gold]能量[/gold]。X 费牌按当前 X 值计算。",
+        ["cards/BD_REINFORCED_BODY.title"] = "硬化机体",
+        ["cards/BD_REINFORCED_BODY.description"] = "获得 {Block:diff()} 点[gold]格挡[/gold] X 次。",
+        ["cards/BD_REPROGRAM.title"] = "重编程",
+        ["cards/BD_REPROGRAM.description"] = "失去 {Focus:diff()} 点[gold]集中[/gold]。\n获得 {StrengthPower:diff()} 点[gold]力量[/gold]和 {DexterityPower:diff()} 点[gold]敏捷[/gold]。",
+        ["cards/BD_SELF_REPAIR.title"] = "自我修复",
+        ["cards/BD_SELF_REPAIR.description"] = "战斗结束时回复 {Heal:diff()} 点生命。",
+        ["cards/BD_STATIC_DISCHARGE.title"] = "静电释放",
+        ["cards/BD_STATIC_DISCHARGE.description"] = "每当你受到未被格挡的攻击伤害，[gold]充能[/gold] {Amount:diff()} 个[gold]闪电[/gold]。",
+        ["cards/BD_AMPLIFY.title"] = "增幅",
+        ["cards/BD_AMPLIFY.description"] = "本回合下 {Amount:diff()} 张能力牌打出两次。",
+        ["cards/BD_CORE_SURGE.title"] = "核心电涌",
+        ["cards/BD_CORE_SURGE.description"] = "造成 {Damage:diff()} 点伤害。获得 1 层[gold]人工制品[/gold]。\n[gold]消耗[/gold]。",
+        ["cards/BD_ELECTRODYNAMICS.title"] = "电动力学",
+        ["cards/BD_ELECTRODYNAMICS.description"] = "[gold]闪电[/gold]命中所有敌人。\n[gold]充能[/gold] {Amount:diff()} 个[gold]闪电[/gold]。",
+        ["cards/BD_FISSION.title"] = "裂变",
+        ["cards/BD_FISSION.description"] = "移除所有充能球。每移除 1 个，获得 1 点[gold]能量[/gold]并抽 1 张牌。\n升级后改为先[gold]激发[/gold]所有充能球。\n[gold]消耗[/gold]。",
+        ["cards/BD_THUNDER_STRIKE.title"] = "雷霆打击",
+        ["cards/BD_THUNDER_STRIKE.description"] = "本场战斗每充能过 1 个[gold]闪电[/gold]，对随机敌人造成 {Damage:diff()} 点伤害。",
+
+        ["powers/BD_HEATSINKS_POWER.title"] = "散热片",
+        ["powers/BD_HEATSINKS_POWER.description"] = "每当你打出能力牌，抽 {Amount} 张牌。",
+        ["powers/BD_SELF_REPAIR_POWER.title"] = "自我修复",
+        ["powers/BD_SELF_REPAIR_POWER.description"] = "战斗结束时回复 {Amount} 点生命。",
+        ["powers/BD_STATIC_DISCHARGE_POWER.title"] = "静电释放",
+        ["powers/BD_STATIC_DISCHARGE_POWER.description"] = "每当你受到未被格挡的攻击伤害，充能 {Amount} 个闪电。",
+        ["powers/BD_AMPLIFY_POWER.title"] = "增幅",
+        ["powers/BD_AMPLIFY_POWER.description"] = "下 {Amount} 张能力牌会额外打出 1 次。",
+        ["powers/BD_ELECTRODYNAMICS_POWER.title"] = "电动力学",
+        ["powers/BD_ELECTRODYNAMICS_POWER.description"] = "闪电充能球的被动与激发伤害会命中所有敌人。",
+        ["powers/BD_LOCK_ON_POWER.title"] = "锁定",
+        ["powers/BD_LOCK_ON_POWER.description"] = "受到的充能球伤害提高 50%。每个敌人回合结束时减少 1 层。剩余 {Amount} 层。",
+    };
+
+    public static bool TryGetRaw(string table, string key, out string raw) => Map.TryGetValue(table + "/" + key, out raw!);
+
+    private static readonly Dictionary<string, string> CardsTable =
+        Map.Where(kv => kv.Key.StartsWith("cards/", StringComparison.Ordinal))
+           .ToDictionary(kv => kv.Key.Substring("cards/".Length), kv => kv.Value);
+
+    private static readonly Dictionary<string, string> PowersTable =
+        Map.Where(kv => kv.Key.StartsWith("powers/", StringComparison.Ordinal))
+           .ToDictionary(kv => kv.Key.Substring("powers/".Length), kv => kv.Value);
+
+    public static void MergeIntoLocManager()
+    {
+        try
+        {
+            var manager = LocManager.Instance;
+            if (manager == null) return;
+
+            MergeTable(manager, "cards", CardsTable);
+            MergeTable(manager, "powers", PowersTable);
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] failed to merge localization into LocManager: {ex}");
+        }
+    }
+
+    private static void MergeTable(LocManager manager, string tableName, Dictionary<string, string> entries)
+    {
+        if (entries.Count == 0) return;
+
+        try
+        {
+            manager.GetTable(tableName).MergeWith(entries);
+            MainFile.Logger.Info($"[BetterDefect] merged {entries.Count} {tableName} localization entries into LocManager.");
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] failed to merge {tableName} localization entries: {ex.Message}");
+        }
+    }
+}

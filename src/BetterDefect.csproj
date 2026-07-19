@@ -1,0 +1,46 @@
+﻿<Project Sdk="Godot.NET.Sdk/4.5.1" InitialTargets="CheckDependencyPaths">
+  <Import Project=".\Sts2PathDiscovery.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>BetterDefect</RootNamespace>
+    <AssemblyName>BetterDefect</AssemblyName>
+    <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+    <PathMap>$(AppOutputBase)=.\</PathMap>
+    <GodotDisabledSourceGenerators>GodotPluginsInitializer</GodotDisabledSourceGenerators>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(Sts2DataDir)')">
+    <Reference Include="0Harmony"><HintPath>$(Sts2DataDir)/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="sts2"><HintPath>$(Sts2DataDir)/sts2.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="BetterDefectCode\**\*.cs" />
+    <None Include="BetterDefect.json" />
+    <None Include="BetterDefect.DynamicOdds.cfg" />
+    <None Include="project.godot" />
+    <BetterDefectPortrait Include="BetterDefectData\Portraits\*.png" />
+  </ItemGroup>
+
+  <Target Name="CheckDependencyPaths">
+    <Error Text="Slay the Spire 2 data not found at path '$(Sts2DataDir)'." Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')" />
+  </Target>
+
+  <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build" Condition="Exists('$(Sts2Path)')">
+    <Message Text="Copying BetterDefect.dll, .pdb, manifest, config and portraits to $(ModsPath)BetterDefect/" Importance="high" />
+    <MakeDir Directories="$(ModsPath)BetterDefect/" />
+    <MakeDir Directories="$(ModsPath)BetterDefect/Data/Portraits/" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)BetterDefect/" />
+    <Copy SourceFiles="BetterDefect.json" DestinationFolder="$(ModsPath)BetterDefect/" />
+    <Copy SourceFiles="BetterDefect.DynamicOdds.cfg" DestinationFolder="$(ModsPath)BetterDefect/" />
+    <Copy SourceFiles="@(BetterDefectPortrait)" DestinationFolder="$(ModsPath)BetterDefect/Data/Portraits/" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsPath)BetterDefect/" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+  </Target>
+</Project>
+

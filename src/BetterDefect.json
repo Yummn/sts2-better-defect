@@ -1,0 +1,14 @@
+﻿{
+    "id":  "BetterDefect",
+    "name":  "更好的故障机器人 / Better Defect",
+    "author":  "Codex",
+    "description":  "v103/vPC compatible full build: restores 26 old Defect cards, keeps cross-run strict zero-sum rarity-local dynamic odds and per-card disabled-state persistence, fixes Fission orb visuals, restores the starter Strike -> Ball Lightning replacement, no BaseLib. Encyclopedia-only card disabling and 14 historical card-version upgrades share a persistent 35-point budget. v0.8.0 audits the restored StS1 card effects and fixes Electrodynamics for both passive and evoked Lightning against all enemies, restores Recycle's hand selection and X-cost refund, corrects Lock-On's 1.5x multiplier and enemy-turn duration, and limits Static Discharge to unblocked attack damage.",
+    "version":  "0.8.0",
+    "min_game_version":  "0.103.2",
+    "has_pck":  false,
+    "has_dll":  true,
+    "dependencies":  [
+
+                     ],
+    "affects_gameplay":  true
+}

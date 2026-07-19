@@ -1,0 +1,24 @@
+﻿BetterDefect v0.8.0 compiled-IL audit
+Mode: decompile built DLLs only; Steam/game not launched
+
+PC current build:
+  Build: success (0 errors)
+  Lightning common-path patch: ApplyLightningDamage present
+  Recycle selector: CardSelectCmd.FromHand present
+  Recycle X refund: PlayerCombatState.Energy present
+  Lock-On multiplier: return 1.5m present
+  Lock-On duration hook: AfterSideTurnEnd + TickDownDuration present
+  Static Discharge attack filter: ValueProp.Unblockable present
+  SHA256: 67D1B417E8577E5573F78D257543F6F3F9627EAD67B68B674970F97B3930D787
+
+Android/v0.103.2 build:
+  Build: success (0 errors)
+  Lightning common-path patch: ApplyLightningDamage present
+  Recycle selector: CardSelectCmd.FromHand present
+  Recycle X refund: PlayerCombatState.Energy present
+  Lock-On multiplier: return 1.5m present
+  Lock-On duration hook: AfterTurnEnd + TickDownDuration present
+  Static Discharge attack filter: ValueProp.Unblockable present
+  SHA256: 4AD8869A2CFFC2D3D73B53283FE34B35A8BD47997E947845CE5E36914433BDBE
+
+Result: PASS
