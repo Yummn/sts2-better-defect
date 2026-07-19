@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds 14 encyclopedia-only historical card-version switches. Each enabled switch costs one of the same 35 persistent points used by card disabling. The CardBeautify-sized button sits directly above the card-art button, is green when enabled and red when disabled, and the segmented HUD reports disabled/upgraded counts separately.
+- [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): Android importer packaging hotfix. Keeps all v0.7.0 gameplay/UI changes, but rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
 
 ## History
 
@@ -32,6 +32,14 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.19): Android FPS/performance pass; removes the global `NCard.UpdateVisuals` UI hook, makes the UI event-driven from the card library grid, disables HUD polling, and adds small lookup caches.
 - [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): keeps the Android-safe no-global-card-hook design, verifies controls against the actual `NCardLibrary` ancestor, and performs one-shot cleanup on card-library close so in-run/shop deck views stay clean.
 - [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): caches restored-card portrait checks, card-type/key lookups, gameplay reflection and encyclopedia UI work to reduce Android frame spikes.
+- [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds the 35-point historical card-version upgrade system; its first archive used a Windows backslash directory record and is superseded by v0.7.1 for Android settings-page importing.
+
+## v0.7.1 Android importer fix
+
+- The Android v103 settings importer normalizes `\\` to `/`, but checks `ZipEntry.isDirectory()` on the original entry name.
+- The v0.7.0 PowerShell archive contained `BetterDefect\\Data\\` as a directory entry. Android did not recognize that original backslash entry as a directory and attempted to open `mods/BetterDefect/Data/` as a file, producing the import failure.
+- v0.7.1 contains only file entries, all with standard forward-slash paths. An importer-equivalent extraction simulation now succeeds.
+- If v0.7.0 already failed once, remove the partial BetterDefect entry/folder in the settings page before importing v0.7.1.
 
 ## v0.7.0 historical card-version system
 
@@ -62,4 +70,4 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.7.0.zip` for mobile v103 or `BetterDefect-v0.7.0-PC-v107.1.zip` for PC v107.1, unzip it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.7.1.zip` for mobile v103 or `BetterDefect-v0.7.1-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
