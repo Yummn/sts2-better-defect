@@ -32,8 +32,9 @@ public partial class MainFile : Node
             Logger.Info($"[BetterDefect] patched {type.FullName}");
         }
         BdDynamicOdds.InitializeStorage();
+        BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.0: expanded old Defect cards + cross-run dynamic reward odds enabled; disabling cards and historical card-version upgrades share a persistent 35-point encyclopedia budget; restored-card audit fixes Electrodynamics passive/evoke all-enemy targeting, Recycle selection/X-cost refunds, Lock-On multiplier/duration, and Static Discharge attack filtering; Hotfix v0.99 correctly removes Exhaust; historical-version controls use stable IDs and survive encyclopedia repaint/search/filter changes; Defect starter deck replaces one Strike with Ball Lightning; Android performance caches retained; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.8.1: all restored and historical-version card descriptions are synchronized with their active behavior; Rocket Punch, Tesla Coil, Fuel/Compact, Scrape and Fission use version/upgrade-correct text; Amplify now expires at the end of the player turn; v0.8.0 restored-card behavior fixes retained; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()

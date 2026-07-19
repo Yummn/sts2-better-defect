@@ -591,11 +591,17 @@ public sealed class BdAmplifyPower : PowerModel
             return playCount + 1;
         return playCount;
     }
-    public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
+    public override Task AfterModifyingCardPlayCount(CardModel card)
     {
-        if (Amount > 0 && cardPlay.Card.Owner?.Creature == Owner && cardPlay.Card.Type == CardType.Power && cardPlay.Card is not BdAmplify)
-            return Bd.ModifyPowerAmount(context, this, -1, Owner, cardPlay.Card);
+        if (Amount > 0 && card.Owner?.Creature == Owner && card.Type == CardType.Power && card is not BdAmplify)
+            return PowerCmd.Decrement(this);
         return Task.CompletedTask;
+    }
+
+    public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)
+    {
+        if (side == Owner.Side)
+            await PowerCmd.Remove(this);
     }
 }
 

@@ -3,6 +3,8 @@
 using System;
 using System.Linq;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
 
 namespace BetterDefect;
 
@@ -47,11 +49,11 @@ internal static class BdLocalization
         ["cards/BD_AMPLIFY.title"] = "增幅",
         ["cards/BD_AMPLIFY.description"] = "本回合下 {Amount:diff()} 张能力牌打出两次。",
         ["cards/BD_CORE_SURGE.title"] = "核心电涌",
-        ["cards/BD_CORE_SURGE.description"] = "造成 {Damage:diff()} 点伤害。获得 1 层[gold]人工制品[/gold]。\n[gold]消耗[/gold]。",
+        ["cards/BD_CORE_SURGE.description"] = "造成 {Damage:diff()} 点伤害。\n获得 1 层[gold]人工制品[/gold]。",
         ["cards/BD_ELECTRODYNAMICS.title"] = "电动力学",
         ["cards/BD_ELECTRODYNAMICS.description"] = "[gold]闪电[/gold]命中所有敌人。\n[gold]充能[/gold] {Amount:diff()} 个[gold]闪电[/gold]。",
         ["cards/BD_FISSION.title"] = "裂变",
-        ["cards/BD_FISSION.description"] = "移除所有充能球。每移除 1 个，获得 1 点[gold]能量[/gold]并抽 1 张牌。\n升级后改为先[gold]激发[/gold]所有充能球。\n[gold]消耗[/gold]。",
+        ["cards/BD_FISSION.description"] = "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}\n每处理 1 个充能球，获得 1 点[gold]能量[/gold]并抽 1 张牌。",
         ["cards/BD_THUNDER_STRIKE.title"] = "雷霆打击",
         ["cards/BD_THUNDER_STRIKE.description"] = "本场战斗每充能过 1 个[gold]闪电[/gold]，对随机敌人造成 {Damage:diff()} 点伤害。",
 
@@ -62,7 +64,7 @@ internal static class BdLocalization
         ["powers/BD_STATIC_DISCHARGE_POWER.title"] = "静电释放",
         ["powers/BD_STATIC_DISCHARGE_POWER.description"] = "每当你受到未被格挡的攻击伤害，充能 {Amount} 个闪电。",
         ["powers/BD_AMPLIFY_POWER.title"] = "增幅",
-        ["powers/BD_AMPLIFY_POWER.description"] = "下 {Amount} 张能力牌会额外打出 1 次。",
+        ["powers/BD_AMPLIFY_POWER.description"] = "本回合下 {Amount} 张能力牌会额外打出 1 次。",
         ["powers/BD_ELECTRODYNAMICS_POWER.title"] = "电动力学",
         ["powers/BD_ELECTRODYNAMICS_POWER.description"] = "闪电充能球的被动与激发伤害会命中所有敌人。",
         ["powers/BD_LOCK_ON_POWER.title"] = "锁定",
@@ -88,11 +90,67 @@ internal static class BdLocalization
 
             MergeTable(manager, "cards", CardsTable);
             MergeTable(manager, "powers", PowersTable);
+            RefreshVersionSensitiveCardDescriptions(manager);
         }
         catch (Exception ex)
         {
             MainFile.Logger.Warn($"[BetterDefect] failed to merge localization into LocManager: {ex}");
         }
+    }
+
+    /// <summary>
+    /// Several v107 localization templates describe the current PC behavior,
+    /// while BetterDefect can deliberately switch those cards back to an older
+    /// implementation. Keep the visible card text on the same global version
+    /// switch as the actual card code.
+    /// </summary>
+    public static void RefreshVersionSensitiveCardDescriptions()
+    {
+        try
+        {
+            var manager = LocManager.Instance;
+            if (manager != null)
+                RefreshVersionSensitiveCardDescriptions(manager);
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] failed to refresh version-sensitive descriptions: {ex.Message}");
+        }
+    }
+
+    private static void RefreshVersionSensitiveCardDescriptions(LocManager manager)
+    {
+        var rocketV100 = IsVersionEnabled<RocketPunch>();
+        var teslaV105 = IsVersionEnabled<TeslaCoil>();
+        var compactV099 = IsVersionEnabled<Compact>();
+        var scrapeV108 = IsVersionEnabled<Scrape>();
+
+        var descriptions = new Dictionary<string, string>
+        {
+            ["ROCKET_PUNCH.description"] = rocketV100
+                ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能将在下一次打出前降为0{energyPrefix:energyIcons(1)}。"
+                : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能降为0{energyPrefix:energyIcons(1)}，直到打出或当前回合结束。",
+
+            ["TESLA_COIL.description"] = teslaV105
+                ? "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动{IfUpgraded:show:两次|一次}。"
+                : "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动一次。",
+
+            ["FUEL.description"] = compactV099
+                ? "获得{Energy:energyIcons()}。\n抽{Cards:diff()}张牌。"
+                : "获得{Energy:energyIcons()}。",
+
+            ["SCRAPE.description"] = scrapeV108
+                ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按当前最终耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌。"
+                : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按卡牌自身耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌；由全局效果暂时降为0费的牌仍会被丢弃。",
+        };
+
+        manager.GetTable("cards").MergeWith(descriptions);
+    }
+
+    private static bool IsVersionEnabled<T>() where T : CardModel
+    {
+        try { return BdCardVersionUpgrades.IsVersionEnabled(ModelDb.Card<T>()); }
+        catch { return false; }
     }
 
     private static void MergeTable(LocManager manager, string tableName, Dictionary<string, string> entries)

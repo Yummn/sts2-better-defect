@@ -108,6 +108,7 @@ internal static class BdCardVersionUpgrades
         {
             foreach (var card in ModelDb.AllCards)
                 ApplyToModel(card);
+            BdLocalization.RefreshVersionSensitiveCardDescriptions();
             MainFile.Logger.Info($"[BetterDefect] card-version baselines applied; upgrades={BdDynamicOdds.GetVersionUpgradeCount()}, points={BdDynamicOdds.GetUsedCardPointCount()}/{BdDynamicOdds.MaxCardPointBudget}.");
         }
         catch (Exception ex)
@@ -128,6 +129,7 @@ internal static class BdCardVersionUpgrades
                 foreach (var fuel in ModelDb.AllCards.OfType<Fuel>())
                     ApplyToModel(fuel);
             }
+            BdLocalization.RefreshVersionSensitiveCardDescriptions();
         }
         catch { }
     }

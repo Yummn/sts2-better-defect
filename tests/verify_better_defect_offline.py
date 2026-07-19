@@ -127,7 +127,7 @@ def main() -> int:
     power_specs = {
         "BdHeatsinksPower": ("AfterCardPlayed", "CardType.Power", "CardPileCmd.Draw"),
         "BdSelfRepairPower": ("AfterCombatVictory", "CreatureCmd.Heal"),
-        "BdAmplifyPower": ("ModifyCardPlayCount", "playCount + 1", "AfterCardPlayed", "-1"),
+        "BdAmplifyPower": ("ModifyCardPlayCount", "playCount + 1", "AfterModifyingCardPlayCount", "PowerCmd.Decrement", "AfterSideTurnEnd", "PowerCmd.Remove"),
     }
     for class_name, tokens in power_specs.items():
         body = class_body(cards, class_name)
@@ -161,14 +161,21 @@ def main() -> int:
 
     check("Recycle localization describes selection", "选择并[gold]消耗[/gold] 1 张手牌" in localization)
     check("Electrodynamics localization covers passive and evoke", "被动与激发伤害会命中所有敌人" in localization)
-    check("manifest is v0.8.0", '"version":  "0.8.0"' in manifest)
+    check("Fission description switches remove/evoke with normal upgrade", "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}" in localization)
+    check("Core Surge and Fission rely on the real Exhaust keyword text", '["cards/BD_CORE_SURGE.description"]' in localization and '["cards/BD_FISSION.description"]' in localization and "\\n[gold]消耗[/gold]。" not in localization)
+    check("Rocket Punch description follows its historical behavior switch", 'rocketV100' in localization and "直到打出或当前回合结束" in localization)
+    check("Tesla Coil description follows its historical behavior switch", 'teslaV105' in localization and "被动一次" in localization and "IfUpgraded:show:两次|一次" in localization)
+    check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
+    check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
+    check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
+    check("manifest is v0.8.1", '"version":  "0.8.1"' in manifest)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.0 offline audit",
+        "BetterDefect v0.8.1 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

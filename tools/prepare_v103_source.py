@@ -46,6 +46,10 @@ def main() -> int:
         "public override Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)",
         "public override Task AfterTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)",
     )
+    cards = cards.replace(
+        "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)",
+        "public override async Task AfterTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)",
+    )
     cards_path.write_text(cards, encoding="utf-8")
 
     print(target)

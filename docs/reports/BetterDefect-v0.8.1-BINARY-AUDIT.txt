@@ -1,0 +1,31 @@
+BetterDefect v0.8.1 binary audit
+Timestamp: 2026-07-19T19:41:49+08:00
+Mode: offline build/decompile/token verification; game was not launched
+
+PC v107.1
+  DLL: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.offline-build\pc-v0.8.1-mods\BetterDefect\BetterDefect.dll
+  Size: 157696 bytes
+  SHA256: 4DA490D113D82F1E4711C44749830452438B2DB60F44EA9B5B119D30DC49121C
+  Compile: 0 errors (12 nullable warnings)
+  Hook signature: AfterSideTurnEnd present; v103 AfterTurnEnd adaptation absent
+
+Mobile v103
+  DLL: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.offline-build\v103-v0.8.1-mods\BetterDefect\BetterDefect.dll
+  Size: 157696 bytes
+  SHA256: DF3484EDA5E1A33088D8091F9C9BF90C4AFDD807AEB440AE3E66F952C5540C64
+  Compile: 0 errors (12 nullable warnings)
+  Hook signature: AfterTurnEnd present; PC AfterSideTurnEnd signature adapted out
+
+Verified in both decompiled binaries
+  ROCKET_PUNCH.description
+  TESLA_COIL.description
+  FUEL.description
+  SCRAPE.description
+  ???????????
+  ?????????
+  AfterModifyingCardPlayCount
+  PowerCmd.Remove(this)
+  v0.8.1
+
+Offline source/behavior audit: 66 passed, 0 failed
+Result: PASS

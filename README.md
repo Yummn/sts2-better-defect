@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): restored-card behavior audit. Electrodynamics now sends both passive and evoked Lightning to every enemy; Recycle restores card selection and X-cost refunds; Lock-On uses the correct 1.5x multiplier and enemy-turn duration; Static Discharge only reacts to unblocked attack damage. PC v107.1 and Android v103 builds both pass compilation and compiled-IL audits.
+- [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): description/effect consistency audit. Rocket Punch, Tesla Coil, Fuel, Scrape, Fission and Core Surge now describe the behavior selected by their normal and historical-version switches. Amplify now really expires at the end of the current player turn and consumes stacks through the native card-play-count hook. PC v107.1 and Android v103 builds both pass compilation, decompilation and 66/66 offline checks.
 
 ## History
 
@@ -34,6 +34,17 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): caches restored-card portrait checks, card-type/key lookups, gameplay reflection and encyclopedia UI work to reduce Android frame spikes.
 - [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds the 35-point historical card-version upgrade system; its first archive used a Windows backslash directory record and is superseded by v0.7.1 for Android settings-page importing.
 - [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
+- [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): audits and fixes restored-card behavior routes, including Electrodynamics, Recycle, Lock-On and Static Discharge.
+
+## v0.8.1 description/effect consistency audit
+
+- Rocket Punch text distinguishes the base “until played or this turn ends” behavior from the v0.100 “until played” behavior.
+- Tesla Coil only previews two Lightning triggers when the v0.105 historical switch and normal card upgrade are both active.
+- Fuel hides its draw line under Compact's v0.108 behavior and restores the 1/2-card line under the v0.99 switch.
+- Scrape explains whether it checks the card-local energy cost or the current final energy cost.
+- Fission shows only the current remove/evoke behavior; Fission and Core Surge no longer duplicate the engine-generated Exhaust line.
+- Amplify is removed at player-turn end and consumes one stack via `AfterModifyingCardPlayCount`, matching its “this turn” description.
+- The offline regression suite now contains 66 checks. Both target DLLs were separately compiled and decompiled; see `docs/reports/`.
 
 ## v0.8.0 restored-card audit
 
@@ -80,6 +91,6 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.8.0.zip` for mobile v103 or `BetterDefect-v0.8.0-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.8.1.zip` for mobile v103 or `BetterDefect-v0.8.1-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.
