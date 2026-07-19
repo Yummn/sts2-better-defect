@@ -107,6 +107,29 @@ internal static class BdDynamicOddsCardUi
             BdDynamicOddsStatsHud.ShowForLibrary();
     }
 
+    internal static void ApplyLibraryRowForGrid(
+        NCardLibraryGrid grid,
+        IEnumerable<NGridCardHolder>? row)
+    {
+        if (row == null)
+            return;
+
+        // NCardLibraryGrid is also reused by the in-run master-deck screen.
+        // The old AssignCardsToRow hook trusted the concrete grid type and
+        // therefore injected encyclopedia-only controls into the run.  The
+        // card nodes themselves may still be between parents while a row is
+        // assigned, but the grid is already attached to its real owner, so use
+        // the grid ancestry as the authoritative scope check.
+        if (!IsCardLibraryContext(grid))
+        {
+            CleanupLibraryRow(row);
+            BdDynamicOddsStatsHud.HideIfOutsideLibrary(grid);
+            return;
+        }
+
+        ApplyLibraryRow(row, assumeVerifiedLibrary: true);
+    }
+
     internal static void CleanupIfTouchedOutsideLibrary(NCard cardNode)
     {
         try
@@ -315,7 +338,7 @@ internal static class BdDynamicOddsCardUi
                 {
                     MainFile.Logger.Info($"[BetterDefect] dynamic odds toggle clicked on {SafeId(cardNode.Model)}.");
                     if (cardNode.Model != null)
-                        ApplyLibraryCardUi(cardNode, assumeLibrary: true);
+                        ApplyLibraryCardUi(cardNode);
                     BdDynamicOddsStatsHud.RefreshFrom(cardNode);
                 }
         }
@@ -445,7 +468,7 @@ internal static class BdDynamicOddsCardUi
                 BdCardVersionUpgrades.ApplyToModel(cardNode.Model);
                 if (cardNode.IsNodeReady())
                     cardNode.UpdateVisuals(cardNode.DisplayingPile, CardPreviewMode.Normal);
-                ApplyLibraryCardUi(cardNode, assumeLibrary: true);
+                ApplyLibraryCardUi(cardNode);
             }
             catch { }
         }
@@ -465,20 +488,20 @@ internal static class BdDynamicOddsCardUi
             if (cardNode == null)
                 return;
 
-            // SetIsPreviewingUpgrade replaces NCard.Model and UpdateVisuals
-            // removes injected children. Restore the controls only after that
-            // replacement is complete. This method is patched only on the
-            // card-library-specific holder type, so the controls remain out of
-            // combat, shop and deck-view screens.
+            // SetIsPreviewingUpgrade is defined on the generic NGridCardHolder
+            // and is also called by the in-run deck view. The old hook trusted
+            // the holder type and re-injected encyclopedia controls after the
+            // row-scope cleanup had already removed them. Re-check the actual
+            // ancestry on every deferred pass instead.
             Callable.From(() =>
             {
                 if (!GodotObject.IsInstanceValid(holder) || holder.CardNode == null)
                     return;
-                ApplyLibraryCardUi(holder.CardNode, assumeLibrary: true);
+                ApplyLibraryCardUi(holder.CardNode);
                 Callable.From(() =>
                 {
                     if (GodotObject.IsInstanceValid(holder) && holder.CardNode != null)
-                        ApplyLibraryCardUi(holder.CardNode, assumeLibrary: true);
+                        ApplyLibraryCardUi(holder.CardNode);
                 }).CallDeferred();
             }).CallDeferred();
         }
@@ -535,7 +558,7 @@ internal static class BdDynamicOddsCardUi
                 BdCardVersionUpgrades.ApplyToModel(cardNode.Model);
                 if (cardNode.IsNodeReady())
                     cardNode.UpdateVisuals(cardNode.DisplayingPile, CardPreviewMode.Normal);
-                ApplyLibraryCardUi(cardNode, assumeLibrary: true);
+                ApplyLibraryCardUi(cardNode);
             }
 
             foreach (var child in root.GetChildren())
@@ -712,6 +735,20 @@ internal static class BdDynamicOddsCardUi
             }
         }
         catch { }
+    }
+
+    private static void CleanupLibraryRow(IEnumerable<NGridCardHolder> row)
+    {
+        foreach (var holder in row)
+        {
+            try
+            {
+                var cardNode = holder?.CardNode;
+                if (cardNode != null && HasBetterDefectUiArtifact(cardNode))
+                    RemoveBetterDefectUi(cardNode);
+            }
+            catch { }
+        }
     }
 
     private static void MarkBetterDefectUiTouched(NCard cardNode)
@@ -1163,15 +1200,13 @@ internal static class BdDynamicOddsCardLibraryFinalFilterPatch
 [HarmonyPatch(typeof(NCardLibraryGrid), "AssignCardsToRow")]
 internal static class BdDynamicOddsCardLibraryGridAssignPatch
 {
-    private static void Postfix(List<NGridCardHolder> row)
+    private static void Postfix(NCardLibraryGrid __instance, List<NGridCardHolder> row)
     {
-        // This patch only runs for NCardLibraryGrid. During search/filter
-        // rebuilds the freshly assigned NCard nodes are not always parented
-        // under NCardLibrary yet, so ancestry detection can transiently fail
-        // and strip the buttons again. Trust the concrete grid type here so
-        // every matching card receives its controls on the first refresh.
+        // NCardLibraryGrid is shared by the encyclopedia and the in-run master
+        // deck. Validate the owning grid on every pass; only the card nodes can
+        // be temporarily unparented during assignment.
         var assignedHolders = row.ToArray();
-        BdDynamicOddsCardUi.ApplyLibraryRow(assignedHolders, assumeVerifiedLibrary: true);
+        BdDynamicOddsCardUi.ApplyLibraryRowForGrid(__instance, assignedHolders);
 
         // NCard.UpdateVisuals can still run after AssignCardsToRow while the
         // holder is between parents and remove controls as an anti-leak guard.
@@ -1179,9 +1214,14 @@ internal static class BdDynamicOddsCardLibraryGridAssignPatch
         // when the row is guaranteed to be attached to the encyclopedia.
         Callable.From(() =>
         {
-            BdDynamicOddsCardUi.ApplyLibraryRow(assignedHolders, assumeVerifiedLibrary: true);
+            if (!GodotObject.IsInstanceValid(__instance))
+                return;
+            BdDynamicOddsCardUi.ApplyLibraryRowForGrid(__instance, assignedHolders);
             Callable.From(() =>
-                BdDynamicOddsCardUi.ApplyLibraryRow(assignedHolders, assumeVerifiedLibrary: true)).CallDeferred();
+            {
+                if (GodotObject.IsInstanceValid(__instance))
+                    BdDynamicOddsCardUi.ApplyLibraryRowForGrid(__instance, assignedHolders);
+            }).CallDeferred();
         }).CallDeferred();
     }
 }

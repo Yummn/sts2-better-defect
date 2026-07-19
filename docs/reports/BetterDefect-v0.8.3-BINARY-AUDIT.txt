@@ -1,0 +1,17 @@
+BetterDefect v0.8.3 binary/package audit
+Timestamp: 2026-07-20T00:54:38+08:00
+
+PC v107.1 build: 0 errors, 12 nullable warnings
+Mobile v0.103.2 build: 0 errors, 12 nullable warnings
+Offline regression: 69 passed, 0 failed
+
+PC DLL SHA256: 32C80B811322923958C6B90D6A42ADBCF162DC7A90F49F82E82131C34CC2ACC2
+Mobile DLL SHA256: AB313540CB951C0E822BE2CAD2314B15CD6E6D7B236D107DD1C0C9866EFF0DF5
+Device DLL SHA256: AB313540CB951C0E822BE2CAD2314B15CD6E6D7B236D107DD1C0C9866EFF0DF5
+Device/mobile DLL match: True
+Mobile ZIP SHA256: 33D6A17509503B4DBFE9FB50574501BDA63C06B3C1806A2E7CD7A26E0C144500
+PC ZIP SHA256: 7289D81AFADF46AE611B162F79747442E4CE184EF57F8B439E90131217FFDD16
+
+ZIP audit: 30 file entries each; forward-slash paths only; no directory entries; manifest version 0.8.3.
+Compiled scope audit: row assignment calls ApplyLibraryRowForGrid; generic upgrade-preview refresh rechecks actual library context; Android setter Prepare() is false.
+Live audit: encyclopedia controls present, then in-run NDeckViewScreen shows no disable/upgrade buttons, dynamic-odds text, or disabled overlay.

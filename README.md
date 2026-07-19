@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): Android v103 startup guard. The mobile build skips the unsafe `NCard.Model` setter detour while the PC build keeps it; all v0.8.1 description/effect fixes remain. REDMI K80 Pro live verification reached Stage 14 and showed 114 Defect cards plus saved odds/disable/version UI state. Both builds pass compilation/decompilation and 67/67 offline checks.
+- [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen. Both the shared card-grid row hook and the generic upgrade-preview refresh now verify a real visible `NCardLibrary` owner before injecting controls. Android v0.103.2 was live-tested by opening the encyclopedia first and then the current run deck; encyclopedia controls remained available while the run deck stayed clean. Both targets compile with 0 errors and pass 69/69 offline checks.
 
 ## History
 
@@ -36,6 +36,15 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
 - [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): audits and fixes restored-card behavior routes, including Electrodynamics, Recycle, Lock-On and Static Discharge.
 - [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): fixes description/effect consistency for Rocket Punch, Tesla Coil, Fuel, Scrape, Fission, Core Surge and Amplify.
+- [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): adds the Android v103 startup guard while retaining all v0.8.1 fixes.
+
+## v0.8.3 in-run deck UI scope fix
+
+- Fixes the disable/enable button, historical-version button, dynamic-odds text and disabled grey mask appearing in the in-run master-deck view.
+- The in-run `NDeckViewScreen` and the encyclopedia share `NCardLibraryGrid`; the row-assignment hook now validates the owning screen instead of trusting the grid type alone.
+- The generic `NGridCardHolder.SetIsPreviewingUpgrade` refresh no longer re-injects library controls after a non-library cleanup.
+- Android v0.103.2 live test opened the Defect encyclopedia first, confirmed all library controls, then continued the current run and confirmed the master deck contained no BetterDefect controls.
+- Offline audit: 69/69. PC v107.1 and mobile v103 compile with 0 errors.
 
 ## v0.8.2 Android startup guard
 
@@ -100,6 +109,6 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.8.2.zip` for mobile v103 or `BetterDefect-v0.8.2-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.8.3.zip` for mobile v103 or `BetterDefect-v0.8.3-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

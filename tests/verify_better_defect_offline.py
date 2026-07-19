@@ -175,14 +175,33 @@ def main() -> int:
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
     helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
     check("Android skips unsafe NCard.Model setter detour", "DisableUnsafeAndroidSetterDetour = false" in ui and "DisableUnsafeAndroidSetterDetour = true" in helper)
-    check("manifest is v0.8.2", '"version":  "0.8.2"' in manifest)
+    assign_patch = class_body(ui, "BdDynamicOddsCardLibraryGridAssignPatch")
+    preview_refresh = re.search(
+        r"internal static void ReapplyAfterUpgradePreviewRefresh\(NGridCardHolder holder\)(?P<body>.*?)\n    }",
+        ui,
+        re.S,
+    )
+    preview_body = preview_refresh.group("body") if preview_refresh else ""
+    check(
+        "library-grid row assignment validates the owning screen",
+        "ApplyLibraryRowForGrid(__instance, assignedHolders)" in assign_patch
+        and "ApplyLibraryRow(assignedHolders, assumeVerifiedLibrary: true)" not in assign_patch
+        and "if (!IsCardLibraryContext(grid))" in ui,
+    )
+    check(
+        "generic upgrade-preview refresh cannot re-inject run-deck controls",
+        "ApplyLibraryCardUi(holder.CardNode);" in preview_body
+        and "assumeLibrary: true" not in preview_body
+        and '"DeckView"' in ui,
+    )
+    check("manifest is v0.8.3", '"version":  "0.8.3"' in manifest)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.2 offline audit",
+        "BetterDefect v0.8.3 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
