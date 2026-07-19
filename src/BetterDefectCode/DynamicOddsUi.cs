@@ -63,7 +63,7 @@ internal static class BdDynamicOddsCardUi
                 foreach (var row in rows)
                     ApplyLibraryRow(row, assumeVerifiedLibrary: true);
             }
-            BdDynamicOddsStatsHud.ShowForLibrary();
+            BdDynamicOddsStatsHud.ShowForLibrary(grid);
         }
         catch (Exception ex)
         {
@@ -76,6 +76,7 @@ internal static class BdDynamicOddsCardUi
         if (row == null) return;
 
         var appliedAny = false;
+        NCard? statsContext = null;
         foreach (var holder in row)
         {
             try
@@ -99,12 +100,13 @@ internal static class BdDynamicOddsCardUi
 
                 ApplyLibraryCardUi(cardNode, assumeLibrary: true);
                 appliedAny = true;
+                statsContext ??= cardNode;
             }
             catch { }
         }
 
-        if (appliedAny)
-            BdDynamicOddsStatsHud.ShowForLibrary();
+        if (appliedAny && statsContext is not null)
+            BdDynamicOddsStatsHud.ShowForLibrary(statsContext);
     }
 
     internal static void ApplyLibraryRowForGrid(
@@ -179,7 +181,7 @@ internal static class BdDynamicOddsCardUi
             AppendDynamicOddsLine(cardNode, card);
             EnsureDisableToggle(cardNode, card, assumeLibrary);
             EnsureVersionUpgradeToggle(cardNode, card, assumeLibrary);
-            BdDynamicOddsStatsHud.ShowForLibrary();
+            BdDynamicOddsStatsHud.ShowForLibrary(cardNode);
         }
         catch (Exception ex)
         {
@@ -1147,7 +1149,7 @@ internal static class BdDynamicOddsCardLibraryOpenedPatch
     {
         try
         {
-            BdDynamicOddsStatsHud.ShowForLibrary();
+            BdDynamicOddsStatsHud.SyncLibraryVisibility(__instance);
             var grid = BdDynamicOddsCardUi.GetLibraryGrid(__instance);
             if (grid != null)
                 BdDynamicOddsCardUi.ApplyLibraryGrid(grid);
@@ -1171,10 +1173,23 @@ internal static class BdDynamicOddsCardLibraryFilterPatch
 [HarmonyPatch(typeof(NCardLibrary), nameof(NCardLibrary.OnSubmenuClosed))]
 internal static class BdDynamicOddsCardLibraryClosedPatch
 {
-    private static void Postfix()
+    private static void Postfix(NCardLibrary __instance)
     {
         BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();
         BdDynamicOddsStatsHud.Hide();
+    }
+}
+
+[HarmonyPatch(typeof(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu), "OnScreenVisibilityChange")]
+internal static class BdDynamicOddsCardLibraryVisibilityPatch
+{
+    private static void Postfix(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu __instance)
+    {
+        // OnSubmenuOpened/Closed only fire for stack push/pop. Opening card
+        // details hides the library and returning shows it again without either
+        // callback, which caused both the leaked bar and the missing-bar bug.
+        if (__instance is NCardLibrary library)
+            BdDynamicOddsStatsHud.SyncLibraryVisibility(library);
     }
 }
 

@@ -1,0 +1,17 @@
+BetterDefect v0.8.4 binary/package audit
+Timestamp: 2026-07-20T01:23:00+08:00
+
+PC v107.1 build: 0 errors, 12 nullable warnings
+Mobile v0.103.2 build: 0 errors, 12 nullable warnings
+Offline regression: 72 passed, 0 failed
+
+PC DLL SHA256: D9F054864C9FA2BE1E5AF9FC2C6F966F30E07409360BF6CA6B15454BBC9DDABD
+Mobile DLL SHA256: 679267A51CC9598B7CD12DD8E5D8CE1930356CEFD9E9BEC47A1B6D01692873D1
+Device DLL SHA256: 679267A51CC9598B7CD12DD8E5D8CE1930356CEFD9E9BEC47A1B6D01692873D1
+Device/mobile DLL match: True
+Mobile ZIP SHA256: AFFFA5F15CCFF05E1DCEC05B1B05F0751ED8C572489F46FDDD882068C2BCF9B9
+PC ZIP SHA256: 64B4F69267240C7310FD76739ECD445E7C7700D6225BE403B232833A397AE8CE
+
+ZIP audit: 30 file entries each; forward-slash paths only; no directory entries; manifest version 0.8.4.
+HUD scope audit: HUD binds to the exact visible NCardLibrary, follows NSubmenu visibility changes, and performs no global scene-tree visibility scan.
+Live audit: HUD hidden on main menu and compendium landing page, visible in card library, hidden after leaving, and visible again after re-entry.

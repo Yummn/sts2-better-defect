@@ -194,14 +194,34 @@ def main() -> int:
         and "assumeLibrary: true" not in preview_body
         and '"DeckView"' in ui,
     )
-    check("manifest is v0.8.3", '"version":  "0.8.3"' in manifest)
+    hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
+    visibility_patch = class_body(ui, "BdDynamicOddsCardLibraryVisibilityPatch")
+    check(
+        "HUD follows NSubmenu visibility transitions",
+        'HarmonyPatch(typeof(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu), "OnScreenVisibilityChange")' in ui
+        and "__instance is NCardLibrary library" in visibility_patch
+        and "SyncLibraryVisibility(library)" in visibility_patch,
+    )
+    check(
+        "HUD is bound to the exact visible card library",
+        "private static NCardLibrary? _activeLibrary;" in hud
+        and "library.IsInsideTree() && library.Visible && library.IsVisibleInTree()" in hud
+        and "ShowForLibrary(Node context)" in hud,
+    )
+    check(
+        "HUD no longer uses global scene-tree visibility guesses",
+        "ShouldShowFromTree" not in hud
+        and "ShouldForceHideFromTree" not in hud
+        and "HasRecentStatsContext" not in hud,
+    )
+    check("manifest is v0.8.4", '"version":  "0.8.4"' in manifest)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.3 offline audit",
+        "BetterDefect v0.8.4 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

@@ -34,7 +34,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.2: v0.8.1 description/effect consistency fixes retained; Android skips the unsafe NCard.Model setter detour; PC keeps the setter hook; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.8.4: card-point HUD is bound to the exact visible NCardLibrary and follows submenu visibility changes; Android skips the unsafe NCard.Model setter detour; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()

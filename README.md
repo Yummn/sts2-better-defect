@@ -6,7 +6,7 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Latest
 
-- [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen. Both the shared card-grid row hook and the generic upgrade-preview refresh now verify a real visible `NCardLibrary` owner before injecting controls. Android v0.103.2 was live-tested by opening the encyclopedia first and then the current run deck; encyclopedia controls remained available while the run deck stayed clean. Both targets compile with 0 errors and pass 69/69 offline checks.
+- [v0.8.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.4): fixes the 35-point HUD leaking outside the card library and occasionally failing to return. The HUD is now bound to the exact visible `NCardLibrary`, follows submenu visibility changes, and no longer guesses its state through global scene-tree scans. Android v0.103.2 live testing confirmed hidden on the main menu/compendium landing page, visible in the card library, hidden after leaving, and visible again after re-entry. Both targets compile with 0 errors and pass 72/72 offline checks.
 
 ## History
 
@@ -37,6 +37,16 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): audits and fixes restored-card behavior routes, including Electrodynamics, Recycle, Lock-On and Static Discharge.
 - [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): fixes description/effect consistency for Rocket Punch, Tesla Coil, Fuel, Scrape, Fission, Core Surge and Amplify.
 - [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): adds the Android v103 startup guard while retaining all v0.8.1 fixes.
+- [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen.
+
+## v0.8.4 card-library HUD lifecycle fix
+
+- Binds the segmented 35-point HUD to the exact `NCardLibrary` instance that requested it.
+- Follows `NSubmenu.OnScreenVisibilityChange`, so temporarily hidden libraries cannot leave the HUD above another screen and re-shown libraries restore it immediately.
+- Removes global scene-tree name/visibility scans and validates only the bound library, reducing extra Android traversal work.
+- Refreshes the title when disabled/upgraded counts change even if their combined point total stays the same.
+- Android v0.103.2 live test: main menu hidden, compendium landing page hidden, card library visible, leaving hidden, re-entry visible again.
+- Offline audit: 72/72. PC v107.1 and mobile v103 compile with 0 errors.
 
 ## v0.8.3 in-run deck UI scope fix
 
@@ -95,13 +105,13 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - Restores 26 old Defect cards to the Defect card pool and card library.
 - Defect starter deck replacement is back: one starting `StrikeDefect` is replaced by `BallLightning`, with a duplicate guard so the patch will not replace multiple Strikes if it runs again.
 - Mobile draw/play hot path optimized: outside the encyclopedia/card-library screen, `NCard.UpdateVisuals` no longer runs Defect-card pool checks, reflection-based description cleanup, dynamic-odds text injection, disable button creation, or grey-mask work.
-- The disabled-card counter HUD no longer performs periodic full scene-tree scans while it is hidden; entering the encyclopedia still shows it through card-library `NCard.UpdateVisuals` refresh.
+- The segmented point HUD is bound to the exact visible `NCardLibrary`; it follows submenu visibility events and never performs global scene-tree visibility scans.
 - Cross-run dynamic odds for Defect cards only: selected cards gain weight, exactly three-card Defect skip/reroll rewards subtract a total group weight, and each rarity is handled independently.
 - Encyclopedia/card-library UI shows `动态出率：x.xx` in Chinese without mojibake.
 - In the encyclopedia/card-library only, Defect cards have a mobile-sized `禁用出率` / `启用出率` button; disabled cards are excluded from reward replacement, show `0.00x（已禁用）`, and get a grey aligned mask.
 - Non-encyclopedia card views remove BetterDefect's disable button, grey mask, and dynamic-odds text. v0.6.18 also removes the old broad `CardLibrary` namespace/name fallback and explicitly excludes `NCardPileScreen`, deck, draw pile, discard pile, exhaust pile and shop deck views.
 - v0.6.22 keeps the v0.6.19 no-global `NCard.UpdateVisuals` design and the v0.6.21 strict `NCardLibrary` verification, while adding extra mobile caches for card art path checks, restored-card type checks, dynamic-odds card keys, PowerCmd/orb reflection and encyclopedia label/style work.
-- v0.6.21 keeps HUD polling disabled; the HUD is shown/hidden by card-library events instead.
+- The HUD performs a low-frequency direct validity check only while visible, against its already-bound `NCardLibrary` instance.
 - The top segmented disabled-card counter shows 0-25 in blue and 26-35 in red, and remains visible only inside the encyclopedia/card-library screen.
 - `Data/Portraits/*.png` is included for CardBeautify's restored old Defect art.
 - Defect-card type checks and restored old-card list generation are cached to reduce repeated reflection/model lookups on Android.
@@ -109,6 +119,6 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 
 ## Install
 
-Download `BetterDefect-v0.8.3.zip` for mobile v103 or `BetterDefect-v0.8.3-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.8.4.zip` for mobile v103 or `BetterDefect-v0.8.4-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

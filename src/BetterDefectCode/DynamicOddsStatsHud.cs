@@ -13,7 +13,7 @@ internal static partial class BdDynamicOddsStatsHud
 
     private static CanvasLayer? _layer;
     private static DisableStatsHud? _hud;
-    private static ulong _lastStatsContextMsec;
+    private static NCardLibrary? _activeLibrary;
     private static bool _loggedInstalled;
     private static bool _loggedAttachDeferred;
     private static bool _loggedVisible;
@@ -89,32 +89,67 @@ internal static partial class BdDynamicOddsStatsHud
 
     public static void RefreshFrom(NCard cardNode)
     {
-        EnsureInstalled();
-        if (_hud is null || !GodotObject.IsInstanceValid(_hud))
-            return;
-
-        if (IsStatsContext(cardNode))
-        {
-            _lastStatsContextMsec = Time.GetTicksMsec();
-            ShowAndRefresh();
-        }
+        ShowForLibrary(cardNode);
     }
 
-    public static void ShowForLibrary()
+    public static void ShowForLibrary(Node context)
     {
+        var library = FindCardLibraryAncestor(context);
+        if (library is null || !IsLibraryActuallyVisible(library))
+        {
+            HideIfActiveLibraryIsGone();
+            return;
+        }
+
         EnsureInstalled();
         if (_hud is null || !GodotObject.IsInstanceValid(_hud))
             return;
 
-        try { _lastStatsContextMsec = Time.GetTicksMsec(); } catch { }
+        _activeLibrary = library;
         ShowAndRefresh();
+    }
+
+    public static void SyncLibraryVisibility(NCardLibrary library)
+    {
+        try
+        {
+            if (!GodotObject.IsInstanceValid(library) || !IsLibraryActuallyVisible(library))
+            {
+                if (_activeLibrary is null ||
+                    !GodotObject.IsInstanceValid(_activeLibrary) ||
+                    ReferenceEquals(_activeLibrary, library))
+                    Hide();
+                return;
+            }
+
+            EnsureInstalled();
+            if (_hud is null || !GodotObject.IsInstanceValid(_hud))
+                return;
+
+            _activeLibrary = library;
+            ShowAndRefresh();
+
+            // The HUD/layer can still be waiting for Android's deferred
+            // add_child when the submenu first becomes visible. Reassert the
+            // state after attachment without relying on card rows being built.
+            Callable.From(() =>
+            {
+                if (GodotObject.IsInstanceValid(library) && IsLibraryActuallyVisible(library))
+                {
+                    _activeLibrary = library;
+                    EnsureInstalled();
+                    ShowAndRefresh();
+                }
+            }).CallDeferred();
+        }
+        catch { }
     }
 
     public static void Hide()
     {
         try
         {
-            _lastStatsContextMsec = 0;
+            _activeLibrary = null;
             if (_hud is not null && GodotObject.IsInstanceValid(_hud))
             {
                 _hud.Visible = false;
@@ -128,11 +163,17 @@ internal static partial class BdDynamicOddsStatsHud
     {
         try
         {
-            if (_hud is null || !GodotObject.IsInstanceValid(_hud) || !_hud.Visible)
+            // Generic card-grid callbacks can fire for a hidden run-deck grid
+            // while the encyclopedia is active. Never let such an unrelated
+            // node hide a valid library HUD; validate the bound library itself.
+            var library = FindCardLibraryAncestor(node);
+            if (library is not null && IsLibraryActuallyVisible(library))
+            {
+                ShowForLibrary(library);
                 return;
+            }
 
-            if (!IsStatsContext(node))
-                Hide();
+            HideIfActiveLibraryIsGone();
         }
         catch { }
     }
@@ -156,153 +197,40 @@ internal static partial class BdDynamicOddsStatsHud
         }
     }
 
-    private static bool HasRecentStatsContext()
+    private static void HideIfActiveLibraryIsGone()
     {
-        if (_lastStatsContextMsec == 0)
-            return false;
-
         try
         {
-            return Time.GetTicksMsec() - _lastStatsContextMsec <= 800UL;
+            if (_activeLibrary is null ||
+                !GodotObject.IsInstanceValid(_activeLibrary) ||
+                !IsLibraryActuallyVisible(_activeLibrary))
+                Hide();
         }
-        catch
-        {
-            return false;
-        }
+        catch { Hide(); }
     }
 
-    private static bool ShouldForceHideFromTree()
+    private static NCardLibrary? FindCardLibraryAncestor(Node node)
+    {
+        for (var current = node; current != null; current = current.GetParent())
+        {
+            if (current is NCardLibrary library)
+                return library;
+        }
+
+        return null;
+    }
+
+    private static bool IsLibraryActuallyVisible(NCardLibrary library)
     {
         try
         {
-            var tree = Engine.GetMainLoop() as SceneTree;
-            var root = tree?.Root;
-            if (root is null)
-                return false;
-
-            return HasVisibleNodeName(root, 0, 14, "NCombat", "CombatRoom", "RewardScreen", "Merchant", "ShopScreen");
+            // NSubmenu.Visible is the authoritative stack state. A library can
+            // remain alive in the scene tree while a card-detail or another
+            // submenu is above it, which is why the old global tree scan leaked
+            // the progress bar outside the encyclopedia.
+            return library.IsInsideTree() && library.Visible && library.IsVisibleInTree();
         }
         catch { return false; }
-    }
-
-    private static bool ShouldShowFromTree()
-    {
-        try
-        {
-            var tree = Engine.GetMainLoop() as SceneTree;
-            var root = tree?.Root;
-            if (root is null)
-                return false;
-
-            return HasVisibleCardLibrary(root, 0, 48);
-        }
-        catch { return false; }
-    }
-
-    private static bool IsStatsContext(Node node)
-    {
-        if (HasAncestorName(node, "NCombat", "CombatRoom", "Reward", "Merchant", "Shop"))
-            return false;
-        if (HasCardLibraryAncestor(node))
-            return true;
-        return false;
-    }
-
-    private static bool HasCardLibraryAncestor(Node node)
-    {
-        for (var n = node; n != null; n = n.GetParent())
-        {
-            if (n is NCardLibrary)
-                return true;
-        }
-        return false;
-    }
-
-    private static bool HasAncestorName(Node node, params string[] needles)
-    {
-        for (var n = node; n != null; n = n.GetParent())
-        {
-            var typeName = n.GetType().FullName ?? n.GetType().Name;
-            var nodeName = n.Name.ToString();
-            if (ContainsAny(typeName, needles) || ContainsAny(nodeName, needles))
-                return true;
-        }
-        return false;
-    }
-
-    private static bool HasVisibleCardLibrary(Node node, int depth, int maxDepth)
-    {
-        if (depth > maxDepth)
-            return false;
-
-        try
-        {
-            if (node is CanvasItem item && !item.IsVisibleInTree())
-                return false;
-        }
-        catch { }
-
-        if (node is NCardLibrary)
-            return true;
-
-        var childCount = node.GetChildCount();
-        for (var i = 0; i < childCount; i++)
-        {
-            if (HasVisibleCardLibrary(node.GetChild(i), depth + 1, maxDepth))
-                return true;
-        }
-        return false;
-    }
-
-    private static bool HasVisibleNodeName(Node node, int depth, int maxDepth, params string[] needles)
-    {
-        if (depth > maxDepth)
-            return false;
-
-        try
-        {
-            if (node is CanvasItem item && !item.IsVisibleInTree())
-                return false;
-        }
-        catch { }
-
-        var typeName = node.GetType().FullName ?? node.GetType().Name;
-        var nodeName = node.Name.ToString();
-        if (ContainsAny(typeName, needles) || ContainsAny(nodeName, needles))
-            return true;
-
-        var childCount = node.GetChildCount();
-        for (var i = 0; i < childCount; i++)
-        {
-            if (HasVisibleNodeName(node.GetChild(i), depth + 1, maxDepth, needles))
-                return true;
-        }
-        return false;
-    }
-
-    private static bool ContainsAny(string value, params string[] needles)
-    {
-        return needles.Any(needle => value.Contains(needle, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static bool IsLargeVisibleCard(NCard cardNode)
-    {
-        try
-        {
-            var rect = cardNode.GetGlobalRect();
-            if (rect.Size.X >= 230f && rect.Size.Y >= 320f)
-                return true;
-        }
-        catch { }
-
-        try
-        {
-            if (cardNode.Scale.X >= 0.85f && cardNode.Scale.Y >= 0.85f)
-                return true;
-        }
-        catch { }
-
-        return false;
     }
 
     private sealed partial class DisableStatsHud : PanelContainer
@@ -313,6 +241,8 @@ internal static partial class BdDynamicOddsStatsHud
         private Label? _counter;
         private double _scanTimer;
         private int _lastClampedCount = -1;
+        private int _lastDisabledCount = -1;
+        private int _lastUpgradeCount = -1;
 
         public void Build()
         {
@@ -397,11 +327,9 @@ internal static partial class BdDynamicOddsStatsHud
 
         public override void _Process(double delta)
         {
-            // The HUD is normally driven by NCardLibrary open/close, but some
-            // mobile flows do not deliver the close callback before combat is
-            // restored.  Scan only while the HUD is already visible, and only a
-            // few times per second, so combat/draw/play frames do not pay the
-            // old always-on Android tree-walk cost.
+            // Validate only the exact NCardLibrary instance that made the HUD
+            // visible. This avoids global scene-tree scans and guarantees that
+            // a library hidden under another submenu cannot keep the bar alive.
             if (!Visible)
             {
                 SetProcess(false);
@@ -414,29 +342,27 @@ internal static partial class BdDynamicOddsStatsHud
 
             _scanTimer = 0;
 
-            if (ShouldForceHideFromTree())
+            if (_activeLibrary is null ||
+                !GodotObject.IsInstanceValid(_activeLibrary) ||
+                !IsLibraryActuallyVisible(_activeLibrary))
             {
-                Visible = false;
-                SetProcess(false);
+                Hide();
                 return;
             }
 
-            var inCardLibrary = HasRecentStatsContext() || ShouldShowFromTree();
-            if (inCardLibrary)
-                ShowAndRefresh();
-            else
-            {
-                Visible = false;
-                SetProcess(false);
-            }
+            ShowAndRefresh();
         }
 
         public void Refresh(int usedPointCount, int disabledCount, int upgradeCount)
         {
             var clamped = Math.Clamp(usedPointCount, 0, MaxPoints);
-            if (_lastClampedCount == clamped)
+            if (_lastClampedCount == clamped &&
+                _lastDisabledCount == disabledCount &&
+                _lastUpgradeCount == upgradeCount)
                 return;
             _lastClampedCount = clamped;
+            _lastDisabledCount = disabledCount;
+            _lastUpgradeCount = upgradeCount;
 
             var danger = clamped > BlueLimit;
 
