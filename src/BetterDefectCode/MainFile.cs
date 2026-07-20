@@ -66,7 +66,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.6: Android startup hooks further reduced by merging duplicate ModelDb initialization; complete localization, Pool/Rarity, reward/UI and upgrade behavior remains enabled; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.8.7: fixed Android v103 Shatter targeting without a PC-only ICombatState type reference; complete localization, Pool/Rarity, reward/UI and upgrade behavior remains enabled; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()

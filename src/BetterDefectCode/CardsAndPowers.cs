@@ -33,10 +33,157 @@ internal static class Bd
     private static readonly Dictionary<Type, MethodInfo> ApplyPowerWithContextByType = new();
     private static readonly Dictionary<Type, MethodInfo> ApplyPowerWithoutContextByType = new();
     private static readonly Dictionary<Type, (MethodInfo? Method, object? Arg)> OrbVisualUpdateByManagerType = new();
+    private static readonly Dictionary<Type, PropertyInfo?> CombatStatePropertyByType = new();
+    private static readonly Dictionary<Type, PropertyInfo?> HittableEnemiesPropertyByType = new();
+    private static readonly Dictionary<Type, MethodInfo?> OpponentsMethodByType = new();
+    private static readonly Dictionary<(Type AttackType, Type StateType), MethodInfo?> TargetAllOpponentsByType = new();
     private static MethodInfo? ModifyPowerWithContext;
     private static MethodInfo? ModifyPowerWithoutContext;
 
-    public static IReadOnlyList<Creature> Enemies(CardModel card) => card.CombatState?.HittableEnemies ?? Array.Empty<Creature>();
+    /// <summary>
+    /// Resolve combat state through reflection. PC v107 exposes ICombatState,
+    /// while Android v103 exposes the concrete CombatState class. A direct
+    /// CardModel.CombatState call compiled against v107 leaves an ICombatState
+    /// token in the mod DLL and throws TypeLoadException on v103.
+    /// </summary>
+    public static object? CombatState(CardModel card)
+    {
+        try
+        {
+            var state = CombatStateFrom(card);
+            if (state != null) return state;
+            return card.Owner?.Creature is { } creature ? CombatStateFrom(creature) : null;
+        }
+        catch (Exception ex)
+        {
+            BetterDefect.MainFile.Logger.Warn($"[BetterDefect] failed to resolve cross-version combat state: {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static object? CombatStateFrom(object source)
+    {
+        var sourceType = source.GetType();
+        PropertyInfo? property;
+        lock (ReflectionCacheLock)
+        {
+            if (!CombatStatePropertyByType.TryGetValue(sourceType, out property))
+            {
+                property = AccessTools.Property(sourceType, "CombatState");
+                CombatStatePropertyByType[sourceType] = property;
+            }
+        }
+        return property?.GetValue(source);
+    }
+
+    public static IReadOnlyList<Creature> Enemies(CardModel card)
+    {
+        try
+        {
+            var state = CombatState(card);
+            if (state == null) return Array.Empty<Creature>();
+
+            var stateType = state.GetType();
+            PropertyInfo? property;
+            lock (ReflectionCacheLock)
+            {
+                if (!HittableEnemiesPropertyByType.TryGetValue(stateType, out property))
+                {
+                    property = AccessTools.Property(stateType, "HittableEnemies");
+                    HittableEnemiesPropertyByType[stateType] = property;
+                }
+            }
+
+            return property?.GetValue(state) switch
+            {
+                IReadOnlyList<Creature> list => list,
+                IEnumerable<Creature> sequence => sequence.ToList(),
+                _ => Array.Empty<Creature>()
+            };
+        }
+        catch (Exception ex)
+        {
+            BetterDefect.MainFile.Logger.Warn($"[BetterDefect] failed to resolve cross-version enemies: {ex.GetType().Name}: {ex.Message}");
+            return Array.Empty<Creature>();
+        }
+    }
+
+    public static IReadOnlyList<Creature> Opponents(Creature creature)
+    {
+        try
+        {
+            var state = CombatStateFrom(creature);
+            if (state == null) return Array.Empty<Creature>();
+
+            var stateType = state.GetType();
+            MethodInfo? method;
+            lock (ReflectionCacheLock)
+            {
+                if (!OpponentsMethodByType.TryGetValue(stateType, out method))
+                {
+                    method = stateType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                        .FirstOrDefault(candidate =>
+                        {
+                            if (!string.Equals(candidate.Name, "GetOpponentsOf", StringComparison.Ordinal)) return false;
+                            var parameters = candidate.GetParameters();
+                            return parameters.Length == 1 && parameters[0].ParameterType.IsAssignableFrom(creature.GetType());
+                        });
+                    OpponentsMethodByType[stateType] = method;
+                }
+            }
+
+            return method?.Invoke(state, new object[] { creature }) switch
+            {
+                IReadOnlyList<Creature> list => list,
+                IEnumerable<Creature> sequence => sequence.ToList(),
+                _ => Array.Empty<Creature>()
+            };
+        }
+        catch (Exception ex)
+        {
+            BetterDefect.MainFile.Logger.Warn($"[BetterDefect] failed to resolve cross-version opponents: {ex.GetType().Name}: {ex.Message}");
+            return Array.Empty<Creature>();
+        }
+    }
+
+    /// <summary>
+    /// Calls AttackCommand.TargetingAllOpponents without embedding either the
+    /// v107 ICombatState or v103 CombatState parameter type in BetterDefect.dll.
+    /// </summary>
+    public static bool TryTargetAllOpponents(object attackCommand, CardModel card)
+    {
+        try
+        {
+            var state = CombatState(card);
+            if (state == null) return false;
+
+            var key = (attackCommand.GetType(), state.GetType());
+            MethodInfo? method;
+            lock (ReflectionCacheLock)
+            {
+                if (!TargetAllOpponentsByType.TryGetValue(key, out method))
+                {
+                    method = key.Item1.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                        .FirstOrDefault(candidate =>
+                        {
+                            if (!string.Equals(candidate.Name, "TargetingAllOpponents", StringComparison.Ordinal)) return false;
+                            var parameters = candidate.GetParameters();
+                            return parameters.Length == 1 && parameters[0].ParameterType.IsAssignableFrom(key.Item2);
+                        });
+                    TargetAllOpponentsByType[key] = method;
+                }
+            }
+
+            if (method == null) return false;
+            method.Invoke(attackCommand, new[] { state });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            BetterDefect.MainFile.Logger.Warn($"[BetterDefect] failed to target all opponents across game versions: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
     public static Creature? RandomEnemy(CardModel card)
     {
         var enemies = Enemies(card);
@@ -665,7 +812,7 @@ internal static class BdElectrodynamicsLightningTargetPatch
         decimal value,
         PlayerChoiceContext choiceContext)
     {
-        var targets = orb.CombatState.GetOpponentsOf(orb.Owner.Creature)
+        var targets = Bd.Opponents(orb.Owner.Creature)
             .Where(enemy => enemy.IsHittable)
             .ToList();
         if (targets.Count == 0)

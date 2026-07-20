@@ -122,7 +122,7 @@ def main() -> int:
     electro_power = class_body(cards, "BdElectrodynamicsPower")
     electro_patch = class_body(cards, "BdElectrodynamicsLightningTargetPatch")
     check("Electrodynamics no longer adds damage only after evoke", "AfterOrbEvoked" not in electro_power)
-    check("Electrodynamics patches Lightning passive and evoke common path", "ApplyLightningDamage" in electro_patch and "GetOpponentsOf" in electro_patch and "CreatureCmd.Damage" in electro_patch)
+    check("Electrodynamics patches Lightning passive and evoke common path", "ApplyLightningDamage" in electro_patch and "Bd.Opponents" in electro_patch and "CreatureCmd.Damage" in electro_patch)
 
     lock_on = class_body(cards, "BdLockOnPower")
     check("Lock-On returns multiplier 1.5 instead of multiplied damage", "return 1.5m;" in lock_on and "amount * 1.5m" not in lock_on)
@@ -214,14 +214,20 @@ def main() -> int:
         and "ShouldForceHideFromTree" not in hud
         and "HasRecentStatsContext" not in hud,
     )
-    check("manifest is v0.8.6", '"version":  "0.8.6"' in manifest)
+    check("manifest is v0.8.7", '"version":  "0.8.7"' in manifest)
+    check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
+    check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
+    check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
+    check("source contains no direct model CombatState access", "card.CombatState" not in cards and "orb.CombatState" not in cards)
+    check("Shatter uses cross-version all-opponent targeting", "Cards.Bd.TryTargetAllOpponents(attack, card)" in versions)
+    check("Shatter no longer directly targets card.CombatState", ".TargetingAllOpponents(card.CombatState)" not in versions)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.6 offline audit",
+        "BetterDefect v0.8.7 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

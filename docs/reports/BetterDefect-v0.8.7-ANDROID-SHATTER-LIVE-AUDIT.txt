@@ -1,0 +1,11 @@
+﻿BetterDefect v0.8.7 Android v103 live Shatter test
+Timestamp: 2026-07-20T13:07:14.2430546+08:00
+PID: 24208
+Crash buffer after play:
+Selected game log:
+[INFO] Player 1 playing card SHATTER (no target)
+[INFO] [AttackProfile] Execute start: source=SHATTER attacker=Creature 故障机器人 single_target=False multi_target=True hit_count=1
+[INFO] [AttackProfile] Damage start: source=SHATTER dealer=Creature 故障机器人 targets=1 amount=11 props=Move
+[INFO] [AttackProfile] Execute done: source=SHATTER total=292ms results=1
+[INFO] [AttackProfile] Damage start: source=<none> dealer=Creature 故障机器人 targets=1 amount=8 props=Unpowered
+[INFO] [AttackProfile] Damage start: source=<none> dealer=Creature 故障机器人 targets=1 amount=8 props=Unpowered

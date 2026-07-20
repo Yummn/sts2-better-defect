@@ -6,9 +6,11 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
-- [v0.8.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.6): fixes intermittent Android ARM64 startup aborts by merging duplicate `ModelDb.Init` detours while retaining all 26 restored cards, strict zero-sum dynamic odds, disabling, the 35-point historical upgrade system and localization. The final Android binary passed 71/71 offline checks and 5/5 repeated cold starts; the encyclopedia showed 114 Defect cards with all controls.
+- [v0.8.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.7): fixes `Shatter / 打碎` on Android v103 by removing the PC-only `ICombatState` metadata dependency from all-opponent targeting. The mobile build passed 76/76 offline checks, contains zero `ICombatState` type references, and was live-tested on v0.103.2: Shatter dealt its 11 damage, evoked Lightning twice for 8+8, completed normally, and produced no crash.
 
 ## History
+
+- [v0.8.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.6): merged duplicate `ModelDb.Init` detours to reduce intermittent Android ARM64 startup aborts.
 
 - [v0.2.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.2.1)
 - [v0.3.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.3.0)
@@ -40,6 +42,14 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 - [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen.
 - [v0.8.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.4): fixes the encyclopedia HUD lifecycle.
 - [v0.8.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.5): consolidates Android Pool/Rarity and card-version detours and removes unsafe redundant hooks.
+
+## v0.8.7 Android Shatter fix
+
+- Replaces Shatter's direct PC `AttackCommand.TargetingAllOpponents(ICombatState)` call with a runtime adapter that accepts Android v103's concrete `CombatState` signature and current PC builds' interface signature.
+- Uses the same cross-version opponent lookup for Electrodynamics' all-target Lightning behavior.
+- Keeps the v0.105 historical Shatter effect: 11 damage to all enemies, then evokes every orb twice.
+- REDMI K80 Pro / Android v0.103.2 live test: `SHATTER` played successfully, multi-target attack completed, one Lightning orb evoked twice for 8+8, process remained alive, and the crash buffer stayed empty.
+- Offline audit: 76/76. Compiled DLL audit: zero `MegaCrit.Sts2.Core.Combat.ICombatState` type references.
 
 ## v0.8.6 Android startup stability
 

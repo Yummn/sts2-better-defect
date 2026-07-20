@@ -556,10 +556,24 @@ internal static class BdCardVersionShatterPlayPatch
 
     private static async Task Play(Shatter card, PlayerChoiceContext choiceContext)
     {
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card)
-            .TargetingAllOpponents(card.CombatState)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
+        var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card);
+        if (Cards.Bd.TryTargetAllOpponents(attack, card))
+        {
+            await attack.WithHitFx("vfx/vfx_attack_slash").Execute(choiceContext);
+        }
+        else
+        {
+            // Defensive fallback for an unknown future AttackCommand signature.
+            // Use one stable single-target command per living opponent rather
+            // than leaving the card action faulted and stuck in the play area.
+            foreach (var target in Cards.Bd.Enemies(card).ToList())
+            {
+                await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card)
+                    .Targeting(target)
+                    .WithHitFx("vfx/vfx_attack_slash")
+                    .Execute(choiceContext);
+            }
+        }
         var orbCount = card.Owner.PlayerCombatState.OrbQueue.Orbs.Count;
         for (var i = 0; i < orbCount; i++)
         {
