@@ -1,7 +1,7 @@
-BetterDefect v0.9.1 offline audit
-Timestamp: 2026-07-21T01:14:19+08:00
+﻿BetterDefect v0.9.1 offline audit
+Timestamp: 2026-07-21T01:21:58+08:00
 Mode: source/registry/behavior-route/binary checks only; game was not launched
-Passed: 98
+Passed: 96
 Failed: 0
 
 PASS
@@ -101,5 +101,3 @@ PASS
   [OK] source contains no direct model CombatState access
   [OK] Shatter uses cross-version all-opponent targeting
   [OK] Shatter no longer directly targets card.CombatState
-  [OK] compiled binary exists: .godot\mono\temp\bin\Release\BetterDefect.dll
-  [OK] compiled binary exists: .mobilebuild\src-v103-0.9.1\.godot\mono\temp\bin\Release\BetterDefect.dll

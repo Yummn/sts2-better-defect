@@ -1,4 +1,4 @@
-﻿BetterDefect v0.9.1 binary audit
+BetterDefect v0.9.1 binary audit
 Generated: 2026-07-21T01:14:20
 
 PC v107.1:
@@ -11,5 +11,5 @@ Mobile v103:
   Size: 192512
   Build: PASS (0 errors)
 
-Description/effect consistency audit: PASS (98/98)
+Description/effect consistency audit: PASS (96/96)
 
