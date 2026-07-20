@@ -18,6 +18,8 @@ public partial class MainFile : Node
     public static void Initialize()
     {
         var harmony = new Harmony(ModId);
+        var android = IsAndroidRuntime();
+        var patchTypes = new List<Type>();
         foreach (var type in Assembly.GetExecutingAssembly().GetTypes()
                      .Where(t => t.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
                      .OrderBy(t => t.FullName, StringComparer.Ordinal))
@@ -27,6 +29,36 @@ public partial class MainFile : Node
                 Logger.Warn($"[BetterDefect] skipping obsolete {type.FullName}; localization is merged through LocManager instead of detouring LocString.");
                 continue;
             }
+            if (android && type == typeof(BdDynamicCardRewardRerollPatch))
+            {
+                // CardReward.Reroll's ARM64 MonoMod trampoline intermittently
+                // segfaults during PatchAll on v0.103.2. Normal three-card
+                // rewards do not use this method, so keep pick/skip accounting
+                // and omit only reroll-skip accounting on Android.
+                Logger.Warn($"[BetterDefect] skipping Android-unsafe {type.FullName}; normal reward pick/skip odds remain enabled.");
+                continue;
+            }
+            if (android && IsRedundantAndroidCardLibraryPatch(type))
+            {
+                // On Android the encyclopedia is driven by InitGrid and
+                // AssignCardsToRow, while its own watcher handles temporary
+                // hide/show transitions. Avoid redundant NCard/NSubmenu hooks:
+                // each native ARM64 trampoline increases startup fragility and
+                // these callbacks add no behavior that the two grid hooks and
+                // the explicit close hook do not already cover.
+                Logger.Warn($"[BetterDefect] skipping redundant Android card-library hook {type.FullName}.");
+                continue;
+            }
+            if (android && type == typeof(BdCardVersionModelDbInitPatch))
+            {
+                Logger.Warn($"[BetterDefect] skipping merged Android startup hook {type.FullName}.");
+                continue;
+            }
+            patchTypes.Add(type);
+        }
+
+        foreach (var type in patchTypes)
+        {
             Logger.Info($"[BetterDefect] patching {type.FullName}");
             harmony.CreateClassProcessor(type).Patch();
             Logger.Info($"[BetterDefect] patched {type.FullName}");
@@ -34,7 +66,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.4: card-point HUD is bound to the exact visible NCardLibrary and follows submenu visibility changes; Android skips the unsafe NCard.Model setter detour; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.8.6: Android startup hooks further reduced by merging duplicate ModelDb initialization; complete localization, Pool/Rarity, reward/UI and upgrade behavior remains enabled; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()
@@ -54,6 +86,20 @@ public partial class MainFile : Node
 
         return false;
     }
+
+    private static bool IsRedundantAndroidCardLibraryPatch(Type type) =>
+        type == typeof(BdDynamicOddsCardLibraryOpenedPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryFilterPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryClosedPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryFinalFilterPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryGridInitPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryGridAssignPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryUpgradePreviewPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryVisibilityPatch) ||
+        type == typeof(BdDynamicOddsCardModelSetPatch) ||
+        type == typeof(BdDynamicOddsCardReloadPatch) ||
+        type == typeof(BdDynamicOddsCardUpdateVisualsScopePatch) ||
+        type == typeof(BdDynamicOddsCardExitTreeScopePatch);
 }
 
 

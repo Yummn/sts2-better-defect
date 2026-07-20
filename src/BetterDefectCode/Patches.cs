@@ -67,7 +67,11 @@ internal static class BetterDefectPortraitCache
 [HarmonyPatch(typeof(ModelDb), nameof(ModelDb.Init))]
 internal static class BetterDefectModelDbInitPatch
 {
-    private static void Postfix() => OldDefectCards.EnsureInjected();
+    private static void Postfix()
+    {
+        OldDefectCards.EnsureInjected();
+        BdCardVersionUpgrades.RefreshAllCanonicalModels();
+    }
 }
 
 [HarmonyPatch(typeof(CardPoolModel), nameof(CardPoolModel.GetUnlockedCards))]
@@ -107,12 +111,9 @@ internal static class DefectCardPoolGenerateAllCardsPatch
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(CardModel), "get_Pool")]
 internal static class OldDefectCardPoolPatch
 {
-    private static IEnumerable<System.Reflection.MethodBase> TargetMethods() =>
-        OldDefectCards.Types.Select(t => AccessTools.PropertyGetter(t, nameof(CardModel.Pool))).Where(m => m != null).Distinct()!;
-
     private static bool Prefix(CardModel __instance, ref CardPoolModel __result)
     {
         if (OldDefectCards.IsRestored(__instance))
@@ -128,12 +129,9 @@ internal static class OldDefectCardPoolPatch
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(CardModel), "get_Rarity")]
 internal static class OldDefectCardRarityPatch
 {
-    private static IEnumerable<System.Reflection.MethodBase> TargetMethods() =>
-        OldDefectCards.Types.Select(t => AccessTools.PropertyGetter(t, nameof(CardModel.Rarity))).Where(m => m != null).Distinct()!;
-
     private static void Postfix(CardModel __instance, ref CardRarity __result)
     {
         if (OldDefectCards.TryGetRarity(__instance, out var rarity)) __result = rarity;

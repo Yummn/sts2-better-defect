@@ -2,11 +2,11 @@
 
 Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 35-point historical card-version upgrade system, and the Fission orb visual fix.
 
-Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
+Compatibility: Android v103 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
 
-- [v0.8.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.4): fixes the 35-point HUD leaking outside the card library and occasionally failing to return. The HUD is now bound to the exact visible `NCardLibrary`, follows submenu visibility changes, and no longer guesses its state through global scene-tree scans. Android v0.103.2 live testing confirmed hidden on the main menu/compendium landing page, visible in the card library, hidden after leaving, and visible again after re-entry. Both targets compile with 0 errors and pass 72/72 offline checks.
+- [v0.8.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.6): fixes intermittent Android ARM64 startup aborts by merging duplicate `ModelDb.Init` detours while retaining all 26 restored cards, strict zero-sum dynamic odds, disabling, the 35-point historical upgrade system and localization. The final Android binary passed 71/71 offline checks and 5/5 repeated cold starts; the encyclopedia showed 114 Defect cards with all controls.
 
 ## History
 
@@ -38,6 +38,16 @@ Compatibility: mobile v103 and PC v107 series. Download from GitHub Releases; ea
 - [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): fixes description/effect consistency for Rocket Punch, Tesla Coil, Fuel, Scrape, Fission, Core Surge and Amplify.
 - [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): adds the Android v103 startup guard while retaining all v0.8.1 fixes.
 - [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen.
+- [v0.8.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.4): fixes the encyclopedia HUD lifecycle.
+- [v0.8.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.5): consolidates Android Pool/Rarity and card-version detours and removes unsafe redundant hooks.
+
+## v0.8.6 Android startup stability
+
+- Merges the two `ModelDb.Init` postfixes into one native detour.
+- Keeps the required localization initialization hook, avoiding missing `BD_*` card text on v103.
+- Works with CardBeautify v0.4.9 and 败者食尘 v0.2.4, which also reduce Android startup detours.
+- Final REDMI K80 Pro / v0.103.2 verification: 5/5 cold starts, 0 SIGABRT/SIGSEGV, 26/26 restored models, 114 Defect cards, no `LocException`.
+- Offline regression audit: 71/71.
 
 ## v0.8.4 card-library HUD lifecycle fix
 

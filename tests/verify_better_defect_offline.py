@@ -214,14 +214,14 @@ def main() -> int:
         and "ShouldForceHideFromTree" not in hud
         and "HasRecentStatsContext" not in hud,
     )
-    check("manifest is v0.8.4", '"version":  "0.8.4"' in manifest)
+    check("manifest is v0.8.6", '"version":  "0.8.6"' in manifest)
 
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.4 offline audit",
+        "BetterDefect v0.8.6 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

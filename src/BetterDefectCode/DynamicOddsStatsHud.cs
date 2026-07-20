@@ -13,6 +13,7 @@ internal static partial class BdDynamicOddsStatsHud
 
     private static CanvasLayer? _layer;
     private static DisableStatsHud? _hud;
+    private static LibraryWatcher? _watcher;
     private static NCardLibrary? _activeLibrary;
     private static bool _loggedInstalled;
     private static bool _loggedAttachDeferred;
@@ -22,7 +23,8 @@ internal static partial class BdDynamicOddsStatsHud
     {
         try
         {
-            if (_hud is not null && GodotObject.IsInstanceValid(_hud) && _hud.IsInsideTree())
+            if (_hud is not null && GodotObject.IsInstanceValid(_hud) && _hud.IsInsideTree() &&
+                _watcher is not null && GodotObject.IsInstanceValid(_watcher) && _watcher.IsInsideTree())
                 return;
 
             var tree = Engine.GetMainLoop() as SceneTree;
@@ -45,7 +47,9 @@ internal static partial class BdDynamicOddsStatsHud
             {
                 _layer = existingLayer;
                 _hud = existingLayer.GetNodeOrNull<DisableStatsHud>(HudName);
-                if (_hud is not null && GodotObject.IsInstanceValid(_hud) && _hud.IsInsideTree())
+                _watcher = existingLayer.GetNodeOrNull<LibraryWatcher>("BetterDefectLibraryWatcher");
+                if (_hud is not null && GodotObject.IsInstanceValid(_hud) && _hud.IsInsideTree() &&
+                    _watcher is not null && GodotObject.IsInstanceValid(_watcher) && _watcher.IsInsideTree())
                     return;
             }
 
@@ -68,6 +72,15 @@ internal static partial class BdDynamicOddsStatsHud
                 _layer.AddChild(_hud);
             else
                 _layer.CallDeferred("add_child", _hud);
+
+            _watcher ??= new LibraryWatcher { Name = "BetterDefectLibraryWatcher" };
+            if (_watcher.GetParent() is null)
+            {
+                if (_layer.IsInsideTree())
+                    _layer.AddChild(_watcher);
+                else
+                    _layer.CallDeferred("add_child", _watcher);
+            }
             _hud.Refresh(BdDynamicOdds.GetUsedCardPointCount(), BdDynamicOdds.GetDisabledCardCount(), BdDynamicOdds.GetVersionUpgradeCount());
 
             if (!_loggedInstalled)
@@ -115,10 +128,25 @@ internal static partial class BdDynamicOddsStatsHud
         {
             if (!GodotObject.IsInstanceValid(library) || !IsLibraryActuallyVisible(library))
             {
-                if (_activeLibrary is null ||
-                    !GodotObject.IsInstanceValid(_activeLibrary) ||
+                if (_activeLibrary is not null &&
+                    GodotObject.IsInstanceValid(_activeLibrary) &&
                     ReferenceEquals(_activeLibrary, library))
+                {
+                    // Card details temporarily hide the encyclopedia without
+                    // closing it. Keep watching this exact library so the HUD
+                    // can restore itself when the player returns. The explicit
+                    // OnSubmenuClosed hook still calls Hide() for a real exit.
+                    if (_hud is not null && GodotObject.IsInstanceValid(_hud))
+                    {
+                        _hud.Visible = false;
+                        _hud.SetProcess(true);
+                    }
+                }
+                else if (_activeLibrary is null ||
+                         !GodotObject.IsInstanceValid(_activeLibrary))
+                {
                     Hide();
+                }
                 return;
             }
 
@@ -233,6 +261,72 @@ internal static partial class BdDynamicOddsStatsHud
         catch { return false; }
     }
 
+    private sealed partial class LibraryWatcher : Node
+    {
+        private NCardLibrary? _library;
+        private double _timer;
+        private bool _wasVisible;
+
+        public override void _Ready()
+        {
+            ProcessMode = ProcessModeEnum.Always;
+            SetProcess(true);
+        }
+
+        public override void _Process(double delta)
+        {
+            _timer += delta;
+            if (_timer < 0.45)
+                return;
+            _timer = 0;
+
+            try
+            {
+                if (_library is null || !GodotObject.IsInstanceValid(_library) || !_library.IsInsideTree())
+                    _library = FindLibrary();
+
+                var visible = _library is not null && IsLibraryActuallyVisible(_library);
+                if (!visible)
+                {
+                    if (_wasVisible)
+                        Hide();
+                    _wasVisible = false;
+                    return;
+                }
+
+                _wasVisible = true;
+                var grid = BdDynamicOddsCardUi.GetLibraryGrid(_library!);
+                if (grid is not null)
+                    BdDynamicOddsCardUi.ApplyLibraryGrid(grid);
+                else
+                    SyncLibraryVisibility(_library!);
+            }
+            catch { }
+        }
+
+        private static NCardLibrary? FindLibrary()
+        {
+            try
+            {
+                if (Engine.GetMainLoop() is not SceneTree tree || tree.Root is null)
+                    return null;
+
+                var stack = new Stack<Node>();
+                stack.Push(tree.CurrentScene ?? tree.Root);
+                while (stack.Count > 0)
+                {
+                    var node = stack.Pop();
+                    if (node is NCardLibrary library)
+                        return library;
+                    foreach (var child in node.GetChildren())
+                        stack.Push(child);
+                }
+            }
+            catch { }
+            return null;
+        }
+    }
+
     private sealed partial class DisableStatsHud : PanelContainer
     {
         private readonly List<Panel> _segments = [];
@@ -328,13 +422,10 @@ internal static partial class BdDynamicOddsStatsHud
         public override void _Process(double delta)
         {
             // Validate only the exact NCardLibrary instance that made the HUD
-            // visible. This avoids global scene-tree scans and guarantees that
-            // a library hidden under another submenu cannot keep the bar alive.
-            if (!Visible)
-            {
-                SetProcess(false);
-                return;
-            }
+            // active. This avoids global scene-tree scans. Continue processing
+            // while card details temporarily hide the library, so returning to
+            // the encyclopedia restores the HUD without an Android-unsafe
+            // NSubmenu.OnScreenVisibilityChange detour.
 
             _scanTimer += delta;
             if (_scanTimer < 0.35)
@@ -343,10 +434,15 @@ internal static partial class BdDynamicOddsStatsHud
             _scanTimer = 0;
 
             if (_activeLibrary is null ||
-                !GodotObject.IsInstanceValid(_activeLibrary) ||
-                !IsLibraryActuallyVisible(_activeLibrary))
+                !GodotObject.IsInstanceValid(_activeLibrary))
             {
                 Hide();
+                return;
+            }
+
+            if (!IsLibraryActuallyVisible(_activeLibrary))
+            {
+                Visible = false;
                 return;
             }
 

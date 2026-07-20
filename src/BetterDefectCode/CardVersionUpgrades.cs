@@ -494,19 +494,16 @@ internal static class BdCardVersionDowngradePatch
     private static void Postfix(CardModel __instance) => BdCardVersionUpgrades.ApplyToModel(__instance);
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(CardModel), nameof(CardModel.UpgradeInternal))]
 internal static class BdCardVersionNormalUpgradePatch
 {
-    private static IEnumerable<MethodBase> TargetMethods() =>
-        BdCardVersionUpgrades.UpgradeMethodTypes
-            .Select(t => AccessTools.DeclaredMethod(t, "OnUpgrade"))
-            .Where(m => m != null)!;
-
-    private static bool Prefix(CardModel __instance)
-    {
-        BdCardVersionUpgrades.ApplyNormalUpgrade(__instance);
-        return false;
-    }
+    // One base upgrade pipeline hook replaces fifteen per-card OnUpgrade
+    // detours. Let the game perform its normal upgrade first, then normalize
+    // the final values to the selected historical version. Besides producing
+    // the same result, this greatly reduces ARM64 MonoMod trampoline pressure
+    // during Android startup.
+    private static void Postfix(CardModel __instance) =>
+        BdCardVersionUpgrades.ApplyToModel(__instance);
 }
 
 [HarmonyPatch]

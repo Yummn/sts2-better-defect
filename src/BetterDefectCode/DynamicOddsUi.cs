@@ -1183,6 +1183,12 @@ internal static class BdDynamicOddsCardLibraryClosedPatch
 [HarmonyPatch(typeof(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu), "OnScreenVisibilityChange")]
 internal static class BdDynamicOddsCardLibraryVisibilityPatch
 {
+    // MonoMod's ARM64 detour for this virtual NSubmenu method terminates the
+    // v0.103.2 Android process during Harmony.PatchAll. Mobile builds disable
+    // it and rely on DisableStatsHud's 350 ms exact-library watcher instead.
+    private const bool DisableUnsafeAndroidVisibilityDetour = false;
+    private static bool Prepare() => !DisableUnsafeAndroidVisibilityDetour;
+
     private static void Postfix(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu __instance)
     {
         // OnSubmenuOpened/Closed only fire for stack push/pop. Opening card
