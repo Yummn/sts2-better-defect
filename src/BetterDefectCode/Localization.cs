@@ -124,6 +124,18 @@ internal static class BdLocalization
         var teslaV105 = IsVersionEnabled<TeslaCoil>();
         var compactV099 = IsVersionEnabled<Compact>();
         var scrapeV108 = IsVersionEnabled<Scrape>();
+        var barrageCustom = IsVersionEnabled<Barrage>();
+        var beamCellCustom = IsVersionEnabled<BeamCell>();
+        var chargeBatteryCustom = IsVersionEnabled<ChargeBattery>();
+        var coldSnapCustom = IsVersionEnabled<ColdSnap>();
+        var goForTheEyesCustom = IsVersionEnabled<GoForTheEyes>();
+        var gunkUpCustom = IsVersionEnabled<GunkUp>();
+        var leapCustom = IsVersionEnabled<Leap>();
+        var lightningRodCustom = IsVersionEnabled<LightningRod>();
+        var sweepingBeamCustom = IsVersionEnabled<SweepingBeam>();
+        var uproarCustom = IsVersionEnabled<Uproar>();
+        var recursionCustom = IsVersionEnabled<Cards.BdRecursion>();
+        var streamlineCustom = IsVersionEnabled<Cards.BdStreamline>();
 
         var descriptions = new Dictionary<string, string>
         {
@@ -142,6 +154,54 @@ internal static class BdLocalization
             ["SCRAPE.description"] = scrapeV108
                 ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按当前最终耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌。"
                 : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按卡牌自身耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌；由全局效果暂时降为0费的牌仍会被丢弃。",
+
+            ["BARRAGE.description"] = barrageCustom
+                ? "触发你的所有充能球的被动{IfUpgraded:show:两次|一次}。"
+                : "当前每有一个[gold]充能球[/gold]，造成{Damage:diff()}点伤害。{InCombat:\n（命中{CalculatedHits:diff()}次）|}",
+
+            ["BEAM_CELL.description"] = beamCellCustom
+                ? "给予{VulnerablePower:diff()}层[gold]锁定[/gold]。"
+                : "造成{Damage:diff()}点伤害。\n给予{VulnerablePower:diff()}层[gold]易伤[/gold]。",
+
+            ["CHARGE_BATTERY.description"] = chargeBatteryCustom
+                ? "获得{Block:diff()}点[gold]格挡[/gold]。\n在下个回合获得{Energy:energyIcons()}并抽1张牌。"
+                : "获得{Block:diff()}点[gold]格挡[/gold]。\n在下个回合获得{Energy:energyIcons()}。",
+
+            ["COLD_SNAP.description"] = coldSnapCustom
+                ? "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]2个[gold]冰霜[/gold]充能球。"
+                : "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。",
+
+            ["GO_FOR_THE_EYES.description"] = goForTheEyesCustom
+                ? "造成{Damage:diff()}点伤害。\n给予{WeakPower:diff()}层[gold]虚弱[/gold]。"
+                : "造成{Damage:diff()}点伤害。\n如果敌人的意图是攻击，则给予{WeakPower:diff()}层[gold]虚弱[/gold]。",
+
+            ["GUNK_UP.description"] = gunkUpCustom
+                ? "造成{Damage:diff()}点伤害{Repeat:diff()}次。\n在你的[gold]手牌[/gold]中加入一张[gold]黏液[/gold]。"
+                : "造成{Damage:diff()}点伤害{Repeat:diff()}次。\n在你的[gold]弃牌堆[/gold]中加入一张[gold]黏液[/gold]。",
+
+            ["LEAP.description"] = leapCustom
+                ? "获得{Block:diff()}点[gold]格挡[/gold]。\n本场战斗中此牌耗能变为0{energyPrefix:energyIcons(1)}。"
+                : "获得{Block:diff()}点[gold]格挡[/gold]。",
+
+            ["LIGHTNING_ROD.description"] = lightningRodCustom
+                ? "获得{Block:diff()}点[gold]格挡[/gold]。\n立即[gold]生成[/gold]1个[gold]闪电[/gold]；下回合开始时再生成1个。"
+                : "获得{Block:diff()}点[gold]格挡[/gold]。\n在下{LightningRodPower:diff()}个回合开始时，[gold]生成[/gold]1个[gold]闪电[/gold]充能球。",
+
+            ["SWEEPING_BEAM.description"] = sweepingBeamCustom
+                ? "对所有敌人造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。"
+                : "对所有敌人造成{Damage:diff()}点伤害。\n抽1张牌。",
+
+            ["UPROAR.description"] = uproarCustom
+                ? "造成{Damage:diff()}点伤害两次。\n优先随机打出你的[gold]抽牌堆[/gold]中的1张当前为2费的攻击牌；若没有，则随机打出1张攻击牌。"
+                : "造成{Damage:diff()}点伤害两次。\n随机打出你的[gold]抽牌堆[/gold]中的1张攻击牌。",
+
+            ["BD_RECURSION.description"] = recursionCustom
+                ? "[gold]激发[/gold]最左侧充能球两次，然后重新充能同类型充能球。"
+                : "[gold]激发[/gold]最左侧充能球一次，然后重新充能同类型充能球。",
+
+            ["BD_STREAMLINE.description"] = streamlineCustom
+                ? "造成{Damage:diff()}点伤害。\n每次打出后，使本场战斗中所有[gold]精简改良[/gold]的费用减少1。"
+                : "造成{Damage:diff()}点伤害。\n本场战斗中每次打出后费用减少1。",
         };
 
         manager.GetTable("cards").MergeWith(descriptions);

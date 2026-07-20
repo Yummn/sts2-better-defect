@@ -1,12 +1,17 @@
 using System.Reflection;
+using BetterDefect.Cards;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
+using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Nodes.Vfx;
 
 namespace BetterDefect;
 
@@ -23,7 +28,14 @@ internal static class BdCardVersionUpgrades
         typeof(Hotfix), typeof(RocketPunch), typeof(Voltaic), typeof(Hyperbeam),
         typeof(Shatter), typeof(TeslaCoil), typeof(Uproar), typeof(Fusion),
         typeof(Synthesis), typeof(Compact), typeof(MomentumStrike), typeof(Scrape),
-        typeof(Sunder), typeof(TrashToTreasure)
+        typeof(Sunder), typeof(TrashToTreasure),
+
+        // Custom common-card transformations selected by the user. These use
+        // the same persistent 35-point system as historical versions, but are
+        // deliberately labelled as custom transformations in the Encyclopedia.
+        typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
+        typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
+        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdStreamline)
     ];
 
     private static readonly Type[] CustomUpgradeTypes = [.. VersionedCardTypes, typeof(Fuel)];
@@ -37,17 +49,29 @@ internal static class BdCardVersionUpgrades
             ["CARD.HYPERBEAM"] = ("v0.109", "伤害由26(34)提高到30(38)"),
             ["CARD.SHATTER"] = ("v0.105", "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次"),
             ["CARD.TESLA_COIL"] = ("v0.105", "普通升级由6伤/闪电触发1次改为4伤/闪电触发2次"),
-            ["CARD.UPROAR"] = ("v0.105", "伤害由5(7)提高到6(8)"),
+            ["CARD.UPROAR"] = ("改造：自定义", "每段伤害保持5(7)；优先自动打出抽牌堆中的2费攻击牌"),
             ["CARD.FUSION"] = ("v0.106", "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗"),
             ["CARD.SYNTHESIS"] = ("v0.106", "伤害由12(18)提高到14(20)"),
             ["CARD.COMPACT"] = ("v0.99", "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌"),
             ["CARD.MOMENTUM_STRIKE"] = ("v0.108", "伤害由10(13)提高到11(15)"),
             ["CARD.SCRAPE"] = ("v0.108", "正确保留被全局临时效果降为0费的牌"),
             ["CARD.SUNDER"] = ("v0.109", "伤害由24(32)提高到26(34)"),
-            ["CARD.TRASH_TO_TREASURE"] = ("v0.99", "普通升级由耗能降为0改为获得固有")
+            ["CARD.TRASH_TO_TREASURE"] = ("v0.99", "普通升级由耗能降为0改为获得固有"),
+            ["CARD.BARRAGE"] = ("改造：自定义", "1费触发所有充能球的被动一次；普通升级改为两次"),
+            ["CARD.BEAM_CELL"] = ("改造：自定义", "0费施加1(2)层锁定，不再造成伤害或施加易伤"),
+            ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
+            ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
+            ["CARD.GO_FOR_THE_EYES"] = ("改造：自定义", "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱"),
+            ["CARD.GUNK_UP"] = ("改造：自定义", "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆"),
+            ["CARD.LEAP"] = ("改造：自定义", "获得8(11)格挡；打出后本场战斗变为0费"),
+            ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得3(6)格挡；立即生成1闪电，下回合再生成1闪电"),
+            ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
+            ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
+            ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费")
         };
     private static readonly FieldInfo? EnergyBaseField = AccessTools.Field(typeof(CardEnergyCost), "_base");
     private static readonly FieldInfo? KeywordsField = AccessTools.Field(typeof(CardModel), "_keywords");
+    private static readonly FieldInfo? TargetTypeField = AccessTools.Field(typeof(CardModel), "<TargetType>k__BackingField");
 
     internal static IEnumerable<Type> UpgradeMethodTypes => CustomUpgradeTypes;
 
@@ -66,7 +90,7 @@ internal static class BdCardVersionUpgrades
         Hyperbeam => "v0.109",
         Shatter => "v0.105",
         TeslaCoil => "v0.105",
-        Uproar => "v0.105",
+        Uproar => "改造：自定义",
         Fusion => "v0.106",
         Synthesis => "v0.106",
         Compact => "v0.99",
@@ -74,6 +98,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "v0.108",
         Sunder => "v0.109",
         TrashToTreasure => "v0.99",
+        Barrage or BeamCell or ChargeBattery or ColdSnap or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline => "改造：自定义",
         _ => VersionedCardSpecs.TryGetValue(SafeCardId(card), out var spec) ? spec.Version : "历史版本"
     };
 
@@ -85,7 +110,7 @@ internal static class BdCardVersionUpgrades
         Hyperbeam => "伤害由26(34)提高到30(38)",
         Shatter => "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次",
         TeslaCoil => "普通升级由6伤/闪电触发1次改为4伤/闪电触发2次",
-        Uproar => "伤害由5(7)提高到6(8)",
+        Uproar => "每段伤害保持5(7)；优先自动打出抽牌堆中的2费攻击牌",
         Fusion => "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗",
         Synthesis => "伤害由12(18)提高到14(20)",
         Compact => "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌",
@@ -93,6 +118,17 @@ internal static class BdCardVersionUpgrades
         Scrape => "正确保留被全局临时效果降为0费的牌",
         Sunder => "伤害由24(32)提高到26(34)",
         TrashToTreasure => "普通升级由耗能降为0改为获得固有",
+        Barrage => "1费触发所有充能球的被动一次；普通升级改为两次",
+        BeamCell => "0费施加1(2)层锁定，不再造成伤害或施加易伤",
+        ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
+        ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
+        GoForTheEyes => "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱",
+        GunkUp => "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆",
+        Leap => "获得8(11)格挡；打出后本场战斗变为0费",
+        LightningRod => "获得3(6)格挡；立即生成1闪电，下回合再生成1闪电",
+        SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
+        BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
+        BdStreamline => "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费",
         _ => VersionedCardSpecs.TryGetValue(SafeCardId(card), out var spec) ? spec.Effect : "切换到指定历史版本"
     };
 
@@ -143,6 +179,58 @@ internal static class BdCardVersionUpgrades
 
         switch (card)
         {
+            case Barrage:
+                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 7m : 5m);
+                SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
+                break;
+
+            case BeamCell:
+                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 4m : 3m);
+                // Reuse the vanilla Vulnerable DynamicVar as the visible
+                // 1(2) amount while the custom play route applies Lock-On.
+                SetDynamic(card, "VulnerablePower", plus ? 2m : 1m);
+                break;
+
+            case ChargeBattery:
+                SetDynamic(card, "Block", upgradedVersion
+                    ? plus ? 9m : 6m
+                    : plus ? 10m : 7m);
+                break;
+
+            case ColdSnap:
+                SetEnergy(card, upgradedVersion ? 2 : 1);
+                SetDynamic(card, "Damage", upgradedVersion
+                    ? plus ? 18m : 12m
+                    : plus ? 9m : 6m);
+                break;
+
+            case GoForTheEyes:
+                SetDynamic(card, "Damage", plus ? 4m : 3m);
+                SetDynamic(card, "WeakPower", plus ? 2m : 1m);
+                break;
+
+            case GunkUp:
+                SetDynamic(card, "Damage", plus ? 5m : 4m);
+                break;
+
+            case Leap:
+                SetDynamic(card, "Block", upgradedVersion
+                    ? plus ? 11m : 8m
+                    : plus ? 12m : 9m);
+                break;
+
+            case LightningRod:
+                SetDynamic(card, "Block", upgradedVersion
+                    ? plus ? 6m : 3m
+                    : plus ? 7m : 4m);
+                SetDynamic(card, "LightningRodPower", upgradedVersion ? 1m : 2m);
+                break;
+
+            case SweepingBeam:
+                SetDynamic(card, "Damage", plus ? 9m : 6m);
+                SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m);
+                break;
+
             case Hotfix:
                 SetDynamic(card, "FocusPower", plus && upgradedVersion ? 3m : 2m);
                 // v0.99 had no Exhaust at either normal-upgrade level.  The
@@ -180,9 +268,7 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case Uproar:
-                SetDynamic(card, "Damage", upgradedVersion
-                    ? plus ? 8m : 6m
-                    : plus ? 7m : 5m);
+                SetDynamic(card, "Damage", plus ? 7m : 5m);
                 break;
 
             case Fusion:
@@ -225,6 +311,16 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, plus && !upgradedVersion ? 0 : 1);
                 SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion);
                 break;
+
+            case BdRecursion:
+                SetEnergy(card, plus ? 0 : 1);
+                break;
+
+            case BdStreamline:
+                SetDynamic(card, "Damage", upgradedVersion
+                    ? plus ? 18m : 13m
+                    : plus ? 20m : 15m);
+                break;
         }
 
         // Encyclopedia upgrade previews may use a card model loaded through a
@@ -242,6 +338,36 @@ internal static class BdCardVersionUpgrades
 
         switch (card)
         {
+            case Barrage:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 7m);
+                break;
+            case BeamCell:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
+                UpgradeDynamicTo(card, "VulnerablePower", 2m);
+                break;
+            case ChargeBattery:
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m);
+                break;
+            case ColdSnap:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m);
+                break;
+            case GoForTheEyes:
+                UpgradeDynamicTo(card, "Damage", 4m);
+                UpgradeDynamicTo(card, "WeakPower", 2m);
+                break;
+            case GunkUp:
+                UpgradeDynamicTo(card, "Damage", 5m);
+                break;
+            case Leap:
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 11m : 12m);
+                break;
+            case LightningRod:
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 6m : 7m);
+                break;
+            case SweepingBeam:
+                UpgradeDynamicTo(card, "Damage", 9m);
+                UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);
+                break;
             case Hotfix:
                 if (upgradedVersion) UpgradeDynamicTo(card, "FocusPower", 3m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -263,7 +389,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m);
                 break;
             case Uproar:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 8m : 7m);
+                UpgradeDynamicTo(card, "Damage", 7m);
                 break;
             case Fusion:
                 if (upgradedVersion)
@@ -299,6 +425,12 @@ internal static class BdCardVersionUpgrades
                 else
                     card.EnergyCost.UpgradeBy(-1);
                 break;
+            case BdRecursion:
+                SetEnergy(card, 0);
+                break;
+            case BdStreamline:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 20m);
+                break;
         }
 
 
@@ -310,6 +442,37 @@ internal static class BdCardVersionUpgrades
     {
         switch (SafeCardId(card).ToUpperInvariant())
         {
+            case "CARD.BARRAGE":
+                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 7m : 5m);
+                SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
+                break;
+            case "CARD.BEAM_CELL":
+                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 4m : 3m);
+                SetDynamic(card, "VulnerablePower", plus ? 2m : 1m);
+                break;
+            case "CARD.CHARGE_BATTERY":
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 9m : 6m : plus ? 10m : 7m);
+                break;
+            case "CARD.COLD_SNAP":
+                SetEnergy(card, upgradedVersion ? 2 : 1);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 18m : 12m : plus ? 9m : 6m);
+                break;
+            case "CARD.GO_FOR_THE_EYES":
+                SetDynamic(card, "Damage", plus ? 4m : 3m);
+                SetDynamic(card, "WeakPower", plus ? 2m : 1m);
+                break;
+            case "CARD.GUNK_UP": SetDynamic(card, "Damage", plus ? 5m : 4m); break;
+            case "CARD.LEAP":
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 11m : 8m : plus ? 12m : 9m);
+                break;
+            case "CARD.LIGHTNING_ROD":
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 6m : 3m : plus ? 7m : 4m);
+                SetDynamic(card, "LightningRodPower", upgradedVersion ? 1m : 2m);
+                break;
+            case "CARD.SWEEPING_BEAM":
+                SetDynamic(card, "Damage", plus ? 9m : 6m);
+                SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m);
+                break;
             case "CARD.HOTFIX":
                 SetDynamic(card, "FocusPower", plus && upgradedVersion ? 3m : 2m);
                 SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion && !plus);
@@ -333,7 +496,7 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Damage", plus ? upgradedVersion ? 4m : 6m : 3m);
                 break;
             case "CARD.UPROAR":
-                SetDynamic(card, "Damage", upgradedVersion ? plus ? 8m : 6m : plus ? 7m : 5m);
+                SetDynamic(card, "Damage", plus ? 7m : 5m);
                 break;
             case "CARD.FUSION":
                 SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
@@ -359,6 +522,10 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, plus && !upgradedVersion ? 0 : 1);
                 SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion);
                 break;
+            case "CARD.BD_RECURSION": SetEnergy(card, plus ? 0 : 1); break;
+            case "CARD.BD_STREAMLINE":
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 18m : 13m : plus ? 20m : 15m);
+                break;
         }
     }
 
@@ -366,6 +533,24 @@ internal static class BdCardVersionUpgrades
     {
         switch (SafeCardId(card).ToUpperInvariant())
         {
+            case "CARD.BARRAGE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 7m); break;
+            case "CARD.BEAM_CELL":
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
+                UpgradeDynamicTo(card, "VulnerablePower", 2m);
+                break;
+            case "CARD.CHARGE_BATTERY": UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m); break;
+            case "CARD.COLD_SNAP": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m); break;
+            case "CARD.GO_FOR_THE_EYES":
+                UpgradeDynamicTo(card, "Damage", 4m);
+                UpgradeDynamicTo(card, "WeakPower", 2m);
+                break;
+            case "CARD.GUNK_UP": UpgradeDynamicTo(card, "Damage", 5m); break;
+            case "CARD.LEAP": UpgradeDynamicTo(card, "Block", upgradedVersion ? 11m : 12m); break;
+            case "CARD.LIGHTNING_ROD": UpgradeDynamicTo(card, "Block", upgradedVersion ? 6m : 7m); break;
+            case "CARD.SWEEPING_BEAM":
+                UpgradeDynamicTo(card, "Damage", 9m);
+                UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);
+                break;
             case "CARD.HOTFIX":
                 if (upgradedVersion) UpgradeDynamicTo(card, "FocusPower", 3m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -378,7 +563,7 @@ internal static class BdCardVersionUpgrades
             case "CARD.HYPERBEAM": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 38m : 34m); break;
             case "CARD.SHATTER": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 15m : 11m); break;
             case "CARD.TESLA_COIL": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m); break;
-            case "CARD.UPROAR": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 8m : 7m); break;
+            case "CARD.UPROAR": UpgradeDynamicTo(card, "Damage", 7m); break;
             case "CARD.FUSION":
                 if (upgradedVersion) SetKeyword(card, CardKeyword.Exhaust, false);
                 else card.EnergyCost.UpgradeBy(-1);
@@ -395,6 +580,8 @@ internal static class BdCardVersionUpgrades
                 if (upgradedVersion) SetKeyword(card, CardKeyword.Innate, true);
                 else card.EnergyCost.UpgradeBy(-1);
                 break;
+            case "CARD.BD_RECURSION": SetEnergy(card, 0); break;
+            case "CARD.BD_STREAMLINE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 20m); break;
         }
     }
 
@@ -451,6 +638,12 @@ internal static class BdCardVersionUpgrades
         catch { }
     }
 
+    private static void SetTargetType(CardModel card, TargetType value)
+    {
+        try { TargetTypeField?.SetValue(card, value); }
+        catch { }
+    }
+
     private static void SetKeyword(CardModel card, CardKeyword keyword, bool enabled)
     {
         try
@@ -504,6 +697,184 @@ internal static class BdCardVersionNormalUpgradePatch
     // during Android startup.
     private static void Postfix(CardModel __instance) =>
         BdCardVersionUpgrades.ApplyToModel(__instance);
+}
+
+/// <summary>
+/// Custom common-card play routes. A single Harmony patch class owns the nine
+/// affected vanilla OnPlay methods so Android performs one class-discovery
+/// pass, while each method still falls straight through to vanilla whenever
+/// its persistent Encyclopedia transformation is disabled.
+/// </summary>
+[HarmonyPatch]
+internal static class BdCustomCommonCardPlayPatch
+{
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        Type[] types =
+        [
+            typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
+            typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
+            typeof(Uproar)
+        ];
+        foreach (var type in types)
+        {
+            var method = AccessTools.DeclaredMethod(type, "OnPlay");
+            if (method != null) yield return method;
+        }
+    }
+
+    private static bool Prefix(
+        CardModel __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance))
+            return true;
+
+        __result = __instance switch
+        {
+            Barrage card => PlayBarrage(card, choiceContext),
+            BeamCell card => PlayBeamCell(card, choiceContext, cardPlay),
+            ChargeBattery card => PlayChargeBattery(card, choiceContext, cardPlay),
+            ColdSnap card => PlayColdSnap(card, choiceContext, cardPlay),
+            GoForTheEyes card => PlayGoForTheEyes(card, choiceContext, cardPlay),
+            GunkUp card => PlayGunkUp(card, choiceContext, cardPlay),
+            Leap card => PlayLeap(card, cardPlay),
+            LightningRod card => PlayLightningRod(card, choiceContext, cardPlay),
+            Uproar card => PlayUproar(card, choiceContext, cardPlay),
+            _ => Task.CompletedTask
+        };
+        return false;
+    }
+
+    private static async Task PlayBarrage(Barrage card, PlayerChoiceContext choiceContext)
+    {
+        var repeats = card.IsUpgraded ? 2 : 1;
+        // Snapshot the queue. Orb passives may enqueue commands or alter orb
+        // values, but every orb present when Barrage was played triggers the
+        // requested number of times, in visible left-to-right order.
+        var orbs = card.Owner.PlayerCombatState.OrbQueue.Orbs.ToList();
+        for (var repeat = 0; repeat < repeats; repeat++)
+            foreach (var orb in orbs)
+                await OrbCmd.Passive(choiceContext, orb, null);
+    }
+
+    private static async Task PlayBeamCell(BeamCell card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await Bd.ApplyPower<BdLockOnPower>(
+            choiceContext,
+            cardPlay.Target,
+            card.DynamicVars.Vulnerable.BaseValue,
+            card.Owner.Creature,
+            card);
+    }
+
+    private static async Task PlayChargeBattery(ChargeBattery card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        await CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardPlay);
+        await Bd.ApplyPower<EnergyNextTurnPower>(choiceContext, card.Owner.Creature, 1m, card.Owner.Creature, card);
+        await Bd.ApplyPower<DrawCardsNextTurnPower>(choiceContext, card.Owner.Creature, 1m, card.Owner.Creature, card);
+    }
+
+    private static async Task PlayColdSnap(ColdSnap card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
+            .Execute(choiceContext);
+        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
+        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
+    }
+
+    private static async Task PlayGoForTheEyes(GoForTheEyes card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
+            .Execute(choiceContext);
+        await Bd.ApplyPower<WeakPower>(choiceContext, cardPlay.Target, card.DynamicVars.Weak.BaseValue, card.Owner.Creature, card);
+    }
+
+    private static async Task PlayGunkUp(GunkUp card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(card.DynamicVars.Repeat.IntValue).FromCard(card)
+            .Targeting(cardPlay.Target)
+            .WithHitFx(null, null, "blunt_attack.mp3")
+            .WithHitVfxNode(NGoopyImpactVfx.Create)
+            .Execute(choiceContext);
+        var slimed = Bd.CreateCard<Slimed>(card);
+        CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(slimed, PileType.Hand, card.Owner));
+        await Cmd.Wait(0.5f);
+    }
+
+    private static async Task PlayLeap(Leap card, CardPlay cardPlay)
+    {
+        await CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardPlay);
+        card.EnergyCost.SetThisCombat(0);
+    }
+
+    private static async Task PlayLightningRod(LightningRod card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
+        await CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardPlay);
+        await OrbCmd.Channel<LightningOrb>(choiceContext, card.Owner);
+        await Bd.ApplyPower<LightningRodPower>(choiceContext, card.Owner.Creature, 1m, card.Owner.Creature, card);
+    }
+
+    private static async Task PlayUproar(Uproar card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).WithHitCount(2)
+            .Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(choiceContext);
+
+        var playableAttacks = PileType.Draw.GetPile(card.Owner).Cards
+            .Where(c => c.Type == CardType.Attack && !c.Keywords.Contains(CardKeyword.Unplayable))
+            .ToList();
+        var preferred = playableAttacks.Where(IsCurrentTwoCost).ToList();
+        var candidates = preferred.Count > 0 ? preferred : playableAttacks;
+        var selected = candidates.StableShuffle(card.Owner.RunState.Rng.Shuffle).FirstOrDefault();
+
+        // Preserve vanilla's defensive fallback for unusual modded attacks
+        // carrying Unplayable while still preferring playable 2-cost attacks.
+        selected ??= PileType.Draw.GetPile(card.Owner).Cards
+            .Where(c => c.Type == CardType.Attack)
+            .ToList()
+            .StableShuffle(card.Owner.RunState.Rng.Shuffle)
+            .FirstOrDefault();
+        if (selected != null)
+            await CardCmd.AutoPlay(choiceContext, selected, null);
+    }
+
+    private static bool IsCurrentTwoCost(CardModel card)
+    {
+        try
+        {
+            return !card.EnergyCost.CostsX
+                   && card.CurrentStarCost <= 0
+                   && !card.HasStarCostX
+                   && card.EnergyCost.GetWithModifiers(CostModifiers.All) == 2;
+        }
+        catch { return false; }
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomBeamCellHoverTipsPatch
+{
+    private static MethodBase? TargetMethod() => AccessTools.PropertyGetter(typeof(BeamCell), "ExtraHoverTips");
+
+    private static bool Prefix(BeamCell __instance, ref IEnumerable<IHoverTip> __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance))
+            return true;
+        __result = [HoverTipFactory.FromPower<BdLockOnPower>()];
+        return false;
+    }
 }
 
 [HarmonyPatch]

@@ -1,0 +1,103 @@
+BetterDefect v0.9.0 offline audit
+Timestamp: 2026-07-21T01:06:52+08:00
+Mode: source/registry/behavior-route/binary checks only; game was not launched
+Passed: 96
+Failed: 0
+
+PASS
+  [OK] restored registry contains exactly 26 cards
+  [OK] BdRecursion defining effect/value audit
+  [OK] BdSteamBarrier defining effect/value audit
+  [OK] BdStreamline defining effect/value audit
+  [OK] BdAggregate defining effect/value audit
+  [OK] BdAutoShields defining effect/value audit
+  [OK] BdBlizzard defining effect/value audit
+  [OK] BdBullseye defining effect/value audit
+  [OK] BdConsume defining effect/value audit
+  [OK] BdDoomAndGloom defining effect/value audit
+  [OK] BdForceField defining effect/value audit
+  [OK] BdHeatsinks defining effect/value audit
+  [OK] BdMelter defining effect/value audit
+  [OK] BdRecycle defining effect/value audit
+  [OK] BdReinforcedBody defining effect/value audit
+  [OK] BdReprogram defining effect/value audit
+  [OK] BdSelfRepair defining effect/value audit
+  [OK] BdStaticDischarge defining effect/value audit
+  [OK] BdAmplify defining effect/value audit
+  [OK] BdCoreSurge defining effect/value audit
+  [OK] BdElectrodynamics defining effect/value audit
+  [OK] BdFission defining effect/value audit
+  [OK] BdThunderStrike defining effect/value audit
+  [OK] Recycle X-cost uses current remaining energy
+  [OK] Static Discharge only accepts powered Move damage
+  [OK] Electrodynamics no longer adds damage only after evoke
+  [OK] Electrodynamics patches Lightning passive and evoke common path
+  [OK] Lock-On returns multiplier 1.5 instead of multiplied damage
+  [OK] Lock-On expires by enemy turn instead of per hit
+  [OK] BdHeatsinksPower effect route audit
+  [OK] BdSelfRepairPower effect route audit
+  [OK] BdAmplifyPower effect route audit
+  [OK] card-transformation registry contains exactly 25 cards
+  [OK] historical mapping exists for HOTFIX
+  [OK] historical mapping exists for ROCKET_PUNCH
+  [OK] historical mapping exists for VOLTAIC
+  [OK] historical mapping exists for HYPERBEAM
+  [OK] historical mapping exists for SHATTER
+  [OK] historical mapping exists for TESLA_COIL
+  [OK] historical mapping exists for UPROAR
+  [OK] historical mapping exists for FUSION
+  [OK] historical mapping exists for SYNTHESIS
+  [OK] historical mapping exists for COMPACT
+  [OK] historical mapping exists for MOMENTUM_STRIKE
+  [OK] historical mapping exists for SCRAPE
+  [OK] historical mapping exists for SUNDER
+  [OK] historical mapping exists for TRASH_TO_TREASURE
+  [OK] Hotfix v0.99 removes Exhaust
+  [OK] Rocket Punch v0.100 persists zero cost until played
+  [OK] Shatter double-evokes every orb
+  [OK] Tesla Coil v0.105 upgraded card triggers Lightning twice
+  [OK] Compact v0.99 Fuel draws cards
+  [OK] Scrape v0.108 uses all cost modifiers
+  [OK] Trash to Treasure v0.99 upgrade is Innate
+  [OK] Barrage custom route triggers every orb passive once or twice
+  [OK] Beam Cell custom route applies BetterDefect Lock-On
+  [OK] Charge Battery custom route draws next turn
+  [OK] Cold Snap custom route channels two Frost
+  [OK] Go for the Eyes custom route always applies Weak
+  [OK] Gunk Up custom route generates Slimed into hand
+  [OK] Leap custom route becomes zero cost for combat
+  [OK] Lightning Rod custom route channels now and once next turn
+  [OK] Sweeping Beam custom normal upgrade draws two
+  [OK] Uproar custom route prioritizes current two-cost attacks
+  [OK] Recursion custom route double-evokes the leftmost orb
+  [OK] Streamline custom route discounts every copy
+  [OK] Recycle localization describes selection
+  [OK] Electrodynamics localization covers passive and evoke
+  [OK] Fission description switches remove/evoke with normal upgrade
+  [OK] Core Surge and Fission rely on the real Exhaust keyword text
+  [OK] Rocket Punch description follows its historical behavior switch
+  [OK] Tesla Coil description follows its historical behavior switch
+  [OK] Fuel description hides drawing when Compact uses v0.108 behavior
+  [OK] Scrape description distinguishes local and final energy cost
+  [OK] custom transformations are labelled exactly
+  [OK] custom common-card descriptions follow their switches
+  [OK] Amplify text and power both expire this turn
+  [OK] Android skips unsafe NCard.Model setter detour
+  [OK] library-grid row assignment validates the owning screen
+  [OK] generic upgrade-preview refresh cannot re-inject run-deck controls
+  [OK] HUD follows NSubmenu visibility transitions
+  [OK] HUD is bound to the exact visible card library
+  [OK] HUD no longer uses global scene-tree visibility guesses
+  [OK] encyclopedia controls require the exact owned live grid
+  [OK] card-detail popup invalidates encyclopedia control scope
+  [OK] BetterDefect controls disappear synchronously before pooled-node release
+  [OK] library watcher cleans controls on detail and exit transitions
+  [OK] manifest is v0.9.0
+  [OK] cross-version combat state uses reflection
+  [OK] cross-version enemy targeting avoids direct CombatState typing
+  [OK] Electrodynamics uses cross-version opponent lookup
+  [OK] source contains no direct model CombatState access
+  [OK] Shatter uses cross-version all-opponent targeting
+  [OK] Shatter no longer directly targets card.CombatState
+  [OK] compiled binary exists: ..\..\..\..\.godot\mono\temp\bin\Release\BetterDefect.dll
+  [OK] compiled binary exists: ..\..\..\..\.mobilebuild\src-v103-0.9.0\.godot\mono\temp\bin\Release\BetterDefect.dll

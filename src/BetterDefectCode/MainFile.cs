@@ -66,7 +66,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.8.8: encyclopedia controls are bound to the exact active card grid and are synchronously removed on card-detail/open-screen transitions; complete localization, Pool/Rarity, reward/UI and upgrade behavior remains enabled; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.9.0: 14 historical versions and 12 custom card transformations share the persistent 35-point Encyclopedia budget; controls remain strictly bound to the active card grid; BaseLib not required.");
     }
 
     private static bool IsAndroidRuntime()

@@ -403,13 +403,14 @@ internal static class BdDynamicOddsCardUi
         button.Position = GetUpgradeTogglePosition();
         var usedPoints = BdDynamicOdds.GetUsedCardPointCount();
         var budgetFull = !enabled && usedPoints >= BdDynamicOdds.MaxCardPointBudget;
+        var targetLabel = BdCardVersionUpgrades.GetTargetVersionLabel(card);
         button.Disabled = budgetFull;
         button.Text = enabled
-            ? $"已改：{BdCardVersionUpgrades.GetTargetVersionLabel(card)}"
+            ? targetLabel.StartsWith("改造：", StringComparison.Ordinal) ? targetLabel : $"已改：{targetLabel}"
             : budgetFull ? "改造：点数已满" : "改造：关闭";
         button.TooltipText = budgetFull
             ? $"BetterDefect：改造点数已满（{usedPoints}/{BdDynamicOdds.MaxCardPointBudget}），先重新启用一张已禁用卡或关闭一个历史改造。"
-            : $"BetterDefect：消耗1点改造点数，切换到 {BdCardVersionUpgrades.GetTargetVersionLabel(card)}。效果：{BdCardVersionUpgrades.GetTargetEffectSummary(card)}。与禁用卡牌共享35点上限。";
+            : $"BetterDefect：消耗1点改造点数，切换到 {targetLabel}。效果：{BdCardVersionUpgrades.GetTargetEffectSummary(card)}。与禁用卡牌共享35点上限。";
         ApplyVersionUpgradeStyle(button, enabled);
         button.Visible = true;
     }

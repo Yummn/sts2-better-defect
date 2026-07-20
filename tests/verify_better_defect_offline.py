@@ -3,7 +3,8 @@
 
 These checks deliberately do not start Slay the Spire 2.  They verify the
 restored-card registry, every recreated StS1 card's defining values/behavior,
-the four audited power fixes, and the 14 historical-version upgrade routes.
+the four audited power fixes, 14 historical-version routes, and 11 additional
+custom common-card transformations (Uproar reuses an existing route).
 """
 
 from __future__ import annotations
@@ -143,8 +144,10 @@ def main() -> int:
     expected_version_types = [
         "Hotfix", "RocketPunch", "Voltaic", "Hyperbeam", "Shatter", "TeslaCoil", "Uproar",
         "Fusion", "Synthesis", "Compact", "MomentumStrike", "Scrape", "Sunder", "TrashToTreasure",
+        "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "GoForTheEyes", "GunkUp", "Leap",
+        "LightningRod", "SweepingBeam", "BdRecursion", "BdStreamline",
     ]
-    check("historical-version registry contains exactly 14 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 25 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -159,9 +162,21 @@ def main() -> int:
         "Compact v0.99 Fuel draws cards": 'SetDynamic(card, "Cards", plus ? 2m : 1m)',
         "Scrape v0.108 uses all cost modifiers": "useV108 ? CostModifiers.All : CostModifiers.Local",
         "Trash to Treasure v0.99 upgrade is Innate": "SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion)",
+        "Barrage custom route triggers every orb passive once or twice": "var repeats = card.IsUpgraded ? 2 : 1",
+        "Beam Cell custom route applies BetterDefect Lock-On": "Bd.ApplyPower<BdLockOnPower>",
+        "Charge Battery custom route draws next turn": "Bd.ApplyPower<DrawCardsNextTurnPower>",
+        "Cold Snap custom route channels two Frost": "await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);\n        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);",
+        "Go for the Eyes custom route always applies Weak": "PlayGoForTheEyes",
+        "Gunk Up custom route generates Slimed into hand": "AddGeneratedCardToCombat(slimed, PileType.Hand",
+        "Leap custom route becomes zero cost for combat": "card.EnergyCost.SetThisCombat(0)",
+        "Lightning Rod custom route channels now and once next turn": "Bd.ApplyPower<LightningRodPower>",
+        "Sweeping Beam custom normal upgrade draws two": 'SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m)',
+        "Uproar custom route prioritizes current two-cost attacks": "playableAttacks.Where(IsCurrentTwoCost)",
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
+    check("Recursion custom route double-evokes the leftmost orb", "OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false)" in cards)
+    check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
     check("Recycle localization describes selection", "选择并[gold]消耗[/gold] 1 张手牌" in localization)
     check("Electrodynamics localization covers passive and evoke", "被动与激发伤害会命中所有敌人" in localization)
@@ -171,6 +186,12 @@ def main() -> int:
     check("Tesla Coil description follows its historical behavior switch", 'teslaV105' in localization and "被动一次" in localization and "IfUpgraded:show:两次|一次" in localization)
     check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
     check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
+    check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/DynamicOddsUi.cs"))
+    check("custom common-card descriptions follow their switches", all(token in localization for token in (
+        "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "goForTheEyesCustom",
+        "gunkUpCustom", "leapCustom", "lightningRodCustom", "sweepingBeamCustom", "uproarCustom",
+        "recursionCustom", "streamlineCustom",
+    )))
     check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
     helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
@@ -240,7 +261,7 @@ def main() -> int:
         and "if (_wasVisible)" in hud
         and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
     )
-    check("manifest is v0.8.8", '"version":  "0.8.8"' in manifest)
+    check("manifest is v0.9.0", '"version":  "0.9.0"' in manifest)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
     check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
@@ -253,7 +274,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.8 offline audit",
+        "BetterDefect v0.9.0 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

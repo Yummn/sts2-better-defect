@@ -37,6 +37,8 @@ internal static class Bd
     private static readonly Dictionary<Type, PropertyInfo?> HittableEnemiesPropertyByType = new();
     private static readonly Dictionary<Type, MethodInfo?> OpponentsMethodByType = new();
     private static readonly Dictionary<(Type AttackType, Type StateType), MethodInfo?> TargetAllOpponentsByType = new();
+    private static readonly Dictionary<(Type StateType, Type CardType), MethodInfo?> CreateCardByType = new();
+    private static MethodInfo? AddGeneratedCardToCombatMethod;
     private static MethodInfo? ModifyPowerWithContext;
     private static MethodInfo? ModifyPowerWithoutContext;
 
@@ -105,6 +107,61 @@ internal static class Bd
         {
             BetterDefect.MainFile.Logger.Warn($"[BetterDefect] failed to resolve cross-version enemies: {ex.GetType().Name}: {ex.Message}");
             return Array.Empty<Creature>();
+        }
+    }
+
+    public static T CreateCard<T>(CardModel source) where T : CardModel
+    {
+        var state = CombatState(source) ?? throw new InvalidOperationException("Combat state is unavailable.");
+        var key = (state.GetType(), typeof(T));
+        MethodInfo? method;
+        lock (ReflectionCacheLock)
+        {
+            if (!CreateCardByType.TryGetValue(key, out method))
+            {
+                method = key.Item1.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(candidate => string.Equals(candidate.Name, "CreateCard", StringComparison.Ordinal))
+                    .Where(candidate => candidate.IsGenericMethodDefinition && candidate.GetGenericArguments().Length == 1)
+                    .FirstOrDefault(candidate =>
+                    {
+                        var parameters = candidate.GetParameters();
+                        return parameters.Length == 1 && parameters[0].ParameterType.IsAssignableFrom(source.Owner.GetType());
+                    })
+                    ?.MakeGenericMethod(typeof(T));
+                CreateCardByType[key] = method;
+            }
+        }
+
+        if (method?.Invoke(state, new object[] { source.Owner }) is T generated)
+            return generated;
+        throw new MissingMethodException(key.Item1.FullName, $"CreateCard<{typeof(T).Name}>");
+    }
+
+    public static Task<CardPileAddResult> AddGeneratedCardToCombat(CardModel card, PileType pile, Player creator)
+    {
+        AddGeneratedCardToCombatMethod ??= typeof(CardPileCmd)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(method =>
+            {
+                if (!string.Equals(method.Name, "AddGeneratedCardToCombat", StringComparison.Ordinal)) return false;
+                var parameters = method.GetParameters();
+                return parameters.Length == 4
+                       && parameters[0].ParameterType.IsAssignableFrom(typeof(CardModel))
+                       && parameters[1].ParameterType == typeof(PileType);
+            });
+        var method = AddGeneratedCardToCombatMethod
+                     ?? throw new MissingMethodException(typeof(CardPileCmd).FullName, "AddGeneratedCardToCombat");
+        var thirdType = method.GetParameters()[2].ParameterType;
+        object thirdArg = thirdType == typeof(bool) ? true : creator;
+        try
+        {
+            return (Task<CardPileAddResult>)method.Invoke(
+                null,
+                new object[] { card, pile, thirdArg, CardPilePosition.Bottom })!;
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            throw ex.InnerException;
         }
     }
 
@@ -407,7 +464,20 @@ public sealed class BdRecursion : CardModel
         var orb = Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
         if (orb == null) return;
         var t = orb.GetType();
-        await OrbCmd.EvokeNext(choiceContext, Owner);
+        if (BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this))
+        {
+            // Recursion explicitly operates on the left/front orb. EvokeNext
+            // uses OrbQueue.Orbs.First(), unlike EvokeLast used by effects
+            // that operate from the right side. The first call keeps the orb
+            // in place so the same object is evoked twice; the second removes
+            // it before the same orb type is re-channeled.
+            await OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false);
+            await OrbCmd.EvokeNext(choiceContext, Owner);
+        }
+        else
+        {
+            await OrbCmd.EvokeNext(choiceContext, Owner);
+        }
         if (t == typeof(LightningOrb)) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner);
         else if (t == typeof(FrostOrb)) await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
         else if (t == typeof(DarkOrb)) await OrbCmd.Channel<DarkOrb>(choiceContext, Owner);
@@ -436,7 +506,15 @@ public sealed class BdStreamline : CardModel
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         await Bd.Damage(choiceContext, this, cardPlay.Target, DynamicVars.Damage);
-        EnergyCost.AddThisCombat(-1, reduceOnly: true);
+        if (BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this))
+        {
+            foreach (var streamline in Owner.PlayerCombatState.AllCards.OfType<BdStreamline>())
+                streamline.EnergyCost.AddThisCombat(-1, reduceOnly: true);
+        }
+        else
+        {
+            EnergyCost.AddThisCombat(-1, reduceOnly: true);
+        }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(5);
 }
