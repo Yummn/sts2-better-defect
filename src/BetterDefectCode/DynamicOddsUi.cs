@@ -45,6 +45,9 @@ internal static class BdDynamicOddsCardUi
     private static ulong _lastToggleMsec;
     private static string? _lastUpgradeToggleKey;
     private static ulong _lastUpgradeToggleMsec;
+    private static ulong _lastScopeScanMsec;
+    private static ulong _lastScopeGridInstanceId;
+    private static bool _lastScopeHasOutsideCard;
 
     internal static void ApplyLibraryGrid(NCardLibraryGrid grid)
     {
@@ -625,10 +628,14 @@ internal static class BdDynamicOddsCardUi
 
     private static void RemoveBetterDefectUi(NCard cardNode)
     {
-        try { cardNode.GetNodeOrNull<Button>(ToggleButtonName)?.QueueFree(); } catch { }
-        try { cardNode.GetNodeOrNull<Button>(UpgradeButtonName)?.QueueFree(); } catch { }
-        try { cardNode.GetNodeOrNull<ColorRect>(DisabledOverlayName)?.QueueFree(); } catch { }
-        try { cardNode.Body.GetNodeOrNull<ColorRect>(DisabledOverlayName)?.QueueFree(); } catch { }
+        // Hide artifacts synchronously before QueueFree. Encyclopedia cards are
+        // pooled and can be reparented to another screen in the same frame.
+        HideAndQueueFree(cardNode.GetNodeOrNull<Button>(ToggleButtonName));
+        HideAndQueueFree(cardNode.GetNodeOrNull<Button>(UpgradeButtonName));
+        HideAndQueueFree(cardNode.GetNodeOrNull<ColorRect>(DisabledOverlayName));
+        try { HideAndQueueFree(cardNode.Body.GetNodeOrNull<ColorRect>(DisabledOverlayName)); } catch { }
+        try { cardNode.Body.Modulate = Colors.White; } catch { }
+        try { cardNode.Modulate = Colors.White; } catch { }
         try
         {
             var label = GetDescriptionLabel(cardNode);
@@ -642,6 +649,21 @@ internal static class BdDynamicOddsCardUi
         }
         catch { }
         try { cardNode.RemoveMeta(UiTouchedMeta); } catch { }
+    }
+
+    private static void HideAndQueueFree(CanvasItem? item)
+    {
+        if (item is null || !GodotObject.IsInstanceValid(item))
+            return;
+
+        try { item.Visible = false; } catch { }
+        try
+        {
+            if (item is Control control)
+                control.MouseFilter = Control.MouseFilterEnum.Ignore;
+        }
+        catch { }
+        try { item.QueueFree(); } catch { }
     }
 
     private static void RemoveBetterDefectUiIfTouched(NCard cardNode)
@@ -860,8 +882,11 @@ internal static class BdDynamicOddsCardUi
         return IsCardLibraryContext(cardNode);
     }
 
-    private static bool IsCardLibraryContext(Node node)
+    internal static bool IsCardLibraryContext(Node node)
     {
+        NCardLibrary? library = null;
+        NCardLibraryGrid? grid = null;
+
         for (var n = node; n != null; n = n.GetParent())
         {
             var typeName = n.GetType().FullName ?? n.GetType().Name;
@@ -876,11 +901,65 @@ internal static class BdDynamicOddsCardUi
                 ContainsAny(nodeName, NonLibraryContextNeedles))
                 return false;
 
-            // Only the actual compendium card-library screen should expose the
-            // disable button, grey mask and dynamic-odds annotation.
-            if (n is NCardLibrary)
-                return IsVisibleInTreeSafe(n);
+            if (grid is null && n is NCardLibraryGrid candidateGrid)
+                grid = candidateGrid;
+
+            if (n is NCardLibrary candidateLibrary)
+            {
+                library = candidateLibrary;
+                break;
+            }
         }
+
+        // A card-detail popup is also hosted below NCardLibrary. Require the
+        // exact live grid owned by that library, not just a library ancestor.
+        if (library is null || grid is null ||
+            !IsVisibleInTreeStrict(library) || !IsVisibleInTreeStrict(grid))
+            return false;
+
+        var ownedGrid = GetLibraryGrid(library);
+        return ownedGrid is not null &&
+               ReferenceEquals(ownedGrid, grid) &&
+               !HasVisibleCardOutsideGrid(grid);
+    }
+
+    private static bool HasVisibleCardOutsideGrid(NCardLibraryGrid grid)
+    {
+        try
+        {
+            var now = Time.GetTicksMsec();
+            var gridId = grid.GetInstanceId();
+            if (_lastScopeGridInstanceId == gridId && now - _lastScopeScanMsec < 100)
+                return _lastScopeHasOutsideCard;
+
+            if (Engine.GetMainLoop() is not SceneTree tree || tree.Root is null)
+                return false;
+
+            _lastScopeHasOutsideCard = HasVisibleCardOutsideGrid(tree.Root, grid);
+            _lastScopeGridInstanceId = gridId;
+            _lastScopeScanMsec = now;
+            return _lastScopeHasOutsideCard;
+        }
+        catch { return false; }
+    }
+
+    private static bool HasVisibleCardOutsideGrid(Node root, NCardLibraryGrid grid)
+    {
+        try
+        {
+            if (ReferenceEquals(root, grid))
+                return false; // Skip the encyclopedia grid and all its cards.
+
+            if (root is NCard card && IsVisibleInTreeStrict(card))
+                return true;
+
+            foreach (var child in root.GetChildren())
+            {
+                if (child is Node childNode && HasVisibleCardOutsideGrid(childNode, grid))
+                    return true;
+            }
+        }
+        catch { }
 
         return false;
     }
@@ -899,16 +978,16 @@ internal static class BdDynamicOddsCardUi
         return false;
     }
 
-    private static bool IsVisibleInTreeSafe(Node node)
+    private static bool IsVisibleInTreeStrict(Node node)
     {
         try
         {
             if (node is CanvasItem item)
-                return item.IsVisibleInTree();
+                return item.IsInsideTree() && item.Visible && item.IsVisibleInTree();
         }
         catch { }
 
-        return true;
+        return false;
     }
 
     private static bool IsCombatOrRewardContext(Node node)

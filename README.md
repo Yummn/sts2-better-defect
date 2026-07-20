@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.8.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.8): fixes encyclopedia-only disable/upgrade controls leaking into card details and later non-encyclopedia screens. Controls now require the exact active `NCardLibraryGrid`, hide synchronously before pooled-card reuse, and restore when returning to the encyclopedia list. Verified on PC v0.107.1 and REDMI K80 Pro / Android v0.103.2; offline audit 81/81.
+
 - [v0.8.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.7): fixes `Shatter / 打碎` on Android v103 by removing the PC-only `ICombatState` metadata dependency from all-opponent targeting. The mobile build passed 76/76 offline checks, contains zero `ICombatState` type references, and was live-tested on v0.103.2: Shatter dealt its 11 damage, evoked Lightning twice for 8+8, completed normally, and produced no crash.
 
 ## History

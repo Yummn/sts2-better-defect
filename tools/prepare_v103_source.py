@@ -58,7 +58,13 @@ def main() -> int:
     mobile_flag = "private const bool DisableUnsafeAndroidSetterDetour = true;"
     if source_flag not in ui:
         raise RuntimeError("Android setter-detour build flag marker is missing")
-    ui_path.write_text(ui.replace(source_flag, mobile_flag, 1), encoding="utf-8")
+    ui = ui.replace(source_flag, mobile_flag, 1)
+    visibility_source_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = false;"
+    visibility_mobile_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = true;"
+    if visibility_source_flag not in ui:
+        raise RuntimeError("Android visibility-detour build flag marker is missing")
+    ui = ui.replace(visibility_source_flag, visibility_mobile_flag, 1)
+    ui_path.write_text(ui, encoding="utf-8")
 
     print(target)
     return 0

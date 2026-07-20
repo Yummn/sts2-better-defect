@@ -205,7 +205,8 @@ def main() -> int:
     check(
         "HUD is bound to the exact visible card library",
         "private static NCardLibrary? _activeLibrary;" in hud
-        and "library.IsInsideTree() && library.Visible && library.IsVisibleInTree()" in hud
+        and "var grid = BdDynamicOddsCardUi.GetLibraryGrid(library);" in hud
+        and "BdDynamicOddsCardUi.IsCardLibraryContext(grid)" in hud
         and "ShowForLibrary(Node context)" in hud,
     )
     check(
@@ -214,7 +215,32 @@ def main() -> int:
         and "ShouldForceHideFromTree" not in hud
         and "HasRecentStatsContext" not in hud,
     )
-    check("manifest is v0.8.7", '"version":  "0.8.7"' in manifest)
+    check(
+        "encyclopedia controls require the exact owned live grid",
+        "var ownedGrid = GetLibraryGrid(library);" in ui
+        and "ReferenceEquals(ownedGrid, grid)" in ui
+        and "IsVisibleInTreeStrict(library)" in ui
+        and "IsVisibleInTreeStrict(grid)" in ui,
+    )
+    check(
+        "card-detail popup invalidates encyclopedia control scope",
+        "HasVisibleCardOutsideGrid(grid)" in ui
+        and "root is NCard card && IsVisibleInTreeStrict(card)" in ui
+        and "ReferenceEquals(root, grid)" in ui,
+    )
+    check(
+        "BetterDefect controls disappear synchronously before pooled-node release",
+        "HideAndQueueFree(cardNode.GetNodeOrNull<Button>(ToggleButtonName))" in ui
+        and "item.Visible = false" in ui
+        and "control.MouseFilter = Control.MouseFilterEnum.Ignore" in ui,
+    )
+    check(
+        "library watcher cleans controls on detail and exit transitions",
+        "BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();" in hud
+        and "if (_wasVisible)" in hud
+        and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
+    )
+    check("manifest is v0.8.8", '"version":  "0.8.8"' in manifest)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
     check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
@@ -227,7 +253,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.8.7 offline audit",
+        "BetterDefect v0.8.8 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

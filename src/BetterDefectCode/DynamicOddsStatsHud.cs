@@ -252,11 +252,11 @@ internal static partial class BdDynamicOddsStatsHud
     {
         try
         {
-            // NSubmenu.Visible is the authoritative stack state. A library can
-            // remain alive in the scene tree while a card-detail or another
-            // submenu is above it, which is why the old global tree scan leaked
-            // the progress bar outside the encyclopedia.
-            return library.IsInsideTree() && library.Visible && library.IsVisibleInTree();
+            // NCardLibrary itself can remain visible while its grid is hidden
+            // by a card-detail popup. The exact owned grid is authoritative for
+            // both the HUD and encyclopedia-only controls.
+            var grid = BdDynamicOddsCardUi.GetLibraryGrid(library);
+            return grid is not null && BdDynamicOddsCardUi.IsCardLibraryContext(grid);
         }
         catch { return false; }
     }
@@ -289,7 +289,10 @@ internal static partial class BdDynamicOddsStatsHud
                 if (!visible)
                 {
                     if (_wasVisible)
+                    {
+                        BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();
                         Hide();
+                    }
                     _wasVisible = false;
                     return;
                 }
@@ -297,7 +300,12 @@ internal static partial class BdDynamicOddsStatsHud
                 _wasVisible = true;
                 var grid = BdDynamicOddsCardUi.GetLibraryGrid(_library!);
                 if (grid is not null)
+                {
+                    // The detail popup can share NCardLibrary ancestry. Remove
+                    // artifacts from touched cards outside the exact live grid.
+                    BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();
                     BdDynamicOddsCardUi.ApplyLibraryGrid(grid);
+                }
                 else
                     SyncLibraryVisibility(_library!);
             }
