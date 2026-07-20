@@ -183,7 +183,8 @@ def main() -> int:
     check("Fission description switches remove/evoke with normal upgrade", "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}" in localization)
     check("Core Surge and Fission rely on the real Exhaust keyword text", '["cards/BD_CORE_SURGE.description"]' in localization and '["cards/BD_FISSION.description"]' in localization and "\\n[gold]消耗[/gold]。" not in localization)
     check("Rocket Punch description follows its historical behavior switch", 'rocketV100' in localization and "直到打出或当前回合结束" in localization)
-    check("Tesla Coil description follows its historical behavior switch", 'teslaV105' in localization and "被动一次" in localization and "IfUpgraded:show:两次|一次" in localization)
+    check("Tesla Coil description explicitly shows one (two) passive triggers", 'teslaV105' in localization and "被动一次（两次）" in localization)
+    check("Shatter description explicitly says every orb is evoked twice", '["SHATTER.description"]' in localization and "[gold]激发[/gold]所有充能球两次" in localization)
     check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
     check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
     check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/DynamicOddsUi.cs"))
@@ -193,6 +194,7 @@ def main() -> int:
         "recursionCustom", "streamlineCustom",
     )))
     check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
+    check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
     helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
     check("Android skips unsafe NCard.Model setter detour", "DisableUnsafeAndroidSetterDetour = false" in ui and "DisableUnsafeAndroidSetterDetour = true" in helper)
@@ -261,7 +263,7 @@ def main() -> int:
         and "if (_wasVisible)" in hud
         and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
     )
-    check("manifest is v0.9.0", '"version":  "0.9.0"' in manifest)
+    check("manifest is v0.9.1", '"version":  "0.9.1"' in manifest)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
     check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
@@ -274,7 +276,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.9.0 offline audit",
+        "BetterDefect v0.9.1 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.9.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.1): fixes Tesla Coil and Shatter descriptions to match their actual orb behavior, and fixes Reprogram+ so Focus loss remains 1. Dual-target audit 98/98; PC v0.107.1 encyclopedia validation passed.
+
 - [v0.9.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.0): adds 12 optional `??????` transformations for Barrage, Beam Cell, Charge Battery, Cold Snap, Go for the Eyes, Gunk Up, Leap, Lightning Rod, Sweeping Beam, Uproar, Recursion and Streamline. They use the existing persistent 35-point encyclopedia budget. PC v0.107.1 live startup/UI validation passed; dual-target source/binary audit 96/96.
 
 - [v0.8.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.8): fixes encyclopedia-only disable/upgrade controls leaking into card details and later non-encyclopedia screens. Controls now require the exact active `NCardLibraryGrid`, hide synchronously before pooled-card reuse, and restore when returning to the encyclopedia list. Verified on PC v0.107.1 and REDMI K80 Pro / Android v0.103.2; offline audit 81/81.

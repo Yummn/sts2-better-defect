@@ -675,7 +675,13 @@ public sealed class BdReprogram : CardModel
         await Bd.ApplyPower<StrengthPower>(choiceContext, Owner.Creature, DynamicVars.Strength.BaseValue, Owner.Creature, this);
         await Bd.ApplyPower<DexterityPower>(choiceContext, Owner.Creature, DynamicVars.Dexterity.BaseValue, Owner.Creature, this);
     }
-    protected override void OnUpgrade() { DynamicVars["Focus"].UpgradeValueBy(1); DynamicVars.Strength.UpgradeValueBy(1); DynamicVars.Dexterity.UpgradeValueBy(1); }
+    protected override void OnUpgrade()
+    {
+        // Reprogram+ still loses exactly 1 Focus. Only Strength and
+        // Dexterity improve from 1 to 2.
+        DynamicVars.Strength.UpgradeValueBy(1);
+        DynamicVars.Dexterity.UpgradeValueBy(1);
+    }
 }
 
 public sealed class BdSelfRepair : CardModel

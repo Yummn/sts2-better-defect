@@ -121,6 +121,7 @@ internal static class BdLocalization
     private static void RefreshVersionSensitiveCardDescriptions(LocManager manager)
     {
         var rocketV100 = IsVersionEnabled<RocketPunch>();
+        var shatterV105 = IsVersionEnabled<Shatter>();
         var teslaV105 = IsVersionEnabled<TeslaCoil>();
         var compactV099 = IsVersionEnabled<Compact>();
         var scrapeV108 = IsVersionEnabled<Scrape>();
@@ -143,8 +144,16 @@ internal static class BdLocalization
                 ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能将在下一次打出前降为0{energyPrefix:energyIcons(1)}。"
                 : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能降为0{energyPrefix:energyIcons(1)}，直到打出或当前回合结束。",
 
+            // Both the v0.108 baseline and selectable v0.105 behavior evoke
+            // every orb twice. Android v103's stock text still says once.
+            ["SHATTER.description"] = shatterV105
+                ? "对所有敌人造成{Damage:diff()}点伤害。\n[gold]激发[/gold]所有充能球两次。"
+                : "对所有敌人造成{Damage:diff()}点伤害。\n[gold]激发[/gold]所有充能球两次。",
+
             ["TESLA_COIL.description"] = teslaV105
-                ? "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动{IfUpgraded:show:两次|一次}。"
+                // Keep both values visible: pooled upgrade-preview nodes can
+                // otherwise cache IfUpgraded at the wrong preview state.
+                ? "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动一次（两次）。"
                 : "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动一次。",
 
             ["FUEL.description"] = compactV099
