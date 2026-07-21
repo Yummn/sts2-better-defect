@@ -87,7 +87,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.9.3: encyclopedia upgrade/odds controls are stripped before pooled cards enter combat, shop, deck or pile screens; restored power icon fixes remain active; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.9.4: transformed Tesla Coil now describes 3 damage/one Lightning passive before upgrade and 4 damage/two passives after upgrade; encyclopedia scope and power icon fixes remain active; BaseLib not required.");
     }
 
     internal static bool IsAndroidRuntime()
