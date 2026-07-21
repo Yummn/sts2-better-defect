@@ -54,6 +54,27 @@ public partial class MainFile : Node
                 Logger.Warn($"[BetterDefect] skipping merged Android startup hook {type.FullName}.");
                 continue;
             }
+            if (android && type == typeof(BetterDefectBetaPortraitPatch))
+            {
+                // v103's ARM64 Harmony backend becomes unstable when too many
+                // property getters are detoured during startup. The normal
+                // portrait getter already supplies BetterDefect art on Android;
+                // omitting only the beta getter frees one trampoline for the
+                // combat power status-icon fix without changing card faces.
+                Logger.Warn($"[BetterDefect] skipping redundant Android beta-portrait hook {type.FullName}.");
+                continue;
+            }
+            if (android && type == typeof(BdPowerIconPathPatch))
+            {
+                // Calls to PackedIconPath are inlined by the Android runtime,
+                // so patch the final Texture2D getter instead.
+                continue;
+            }
+            if (!android && type == typeof(BdPowerIconTexturePatch))
+            {
+                // PC can redirect both small and large paths before loading.
+                continue;
+            }
             patchTypes.Add(type);
         }
 
@@ -66,10 +87,10 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.9.1: Tesla Coil and Shatter descriptions match their actual orb behavior; Reprogram+ keeps Focus loss at 1; 14 historical versions and 12 custom transformations share the persistent 35-point Encyclopedia budget; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.9.2: restored StS1 power status icons no longer use the NOPE placeholder, smart power descriptions are complete, and all v0.9.1 behavior fixes remain active; BaseLib not required.");
     }
 
-    private static bool IsAndroidRuntime()
+    internal static bool IsAndroidRuntime()
     {
         try
         {

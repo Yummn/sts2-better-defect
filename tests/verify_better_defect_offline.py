@@ -52,6 +52,7 @@ def main() -> int:
     old_cards = (PROJECT / "BetterDefectCode" / "OldDefectCards.cs").read_text(encoding="utf-8")
     versions = (PROJECT / "BetterDefectCode" / "CardVersionUpgrades.cs").read_text(encoding="utf-8")
     localization = (PROJECT / "BetterDefectCode" / "Localization.cs").read_text(encoding="utf-8")
+    power_icons = (PROJECT / "BetterDefectCode" / "PowerIcons.cs").read_text(encoding="utf-8")
     manifest = (PROJECT / "BetterDefect.json").read_text(encoding="utf-8")
 
     passed: list[str] = []
@@ -263,7 +264,22 @@ def main() -> int:
         and "if (_wasVisible)" in hud
         and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
     )
-    check("manifest is v0.9.1", '"version":  "0.9.1"' in manifest)
+    for power_id in (
+        "BD_HEATSINKS_POWER", "BD_SELF_REPAIR_POWER", "BD_STATIC_DISCHARGE_POWER",
+        "BD_AMPLIFY_POWER", "BD_ELECTRODYNAMICS_POWER", "BD_LOCK_ON_POWER",
+    ):
+        check(f"{power_id} has a smart combat description", f'power/{power_id}.smartDescription' in localization or f'powers/{power_id}.smartDescription' in localization)
+    for power_type in (
+        "BdHeatsinksPower", "BdSelfRepairPower", "BdStaticDischargePower",
+        "BdAmplifyPower", "BdElectrodynamicsPower", "BdLockOnPower",
+    ):
+        check(f"{power_type} redirects its missing power icon", f"typeof({power_type})" in power_icons)
+    check("power icon redirect patches status and large icons", "PackedIconPath" in power_icons and "BigIconPath" in power_icons)
+    check("power icon redirect validates bundled resources", "ResourceLoader.Exists(candidate)" in power_icons)
+    check("Android patches final power texture getter", '[HarmonyPatch(typeof(PowerModel), "get_Icon")]' in power_icons)
+    check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
+    check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
+    check("manifest is v0.9.2", '"version":  "0.9.2"' in manifest)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
     check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
@@ -276,7 +292,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.9.1 offline audit",
+        "BetterDefect v0.9.2 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

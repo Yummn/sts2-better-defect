@@ -1,0 +1,8 @@
+BetterDefect v0.9.2 binary audit
+Timestamp: 2026-07-21T10:04:42+08:00
+PC zip: 5deb15056dd12eb6b16e18ffac84d8da7915ca9325d6465b4a5b66f2fdf067ab
+Mobile zip: cf8bd4388480e9a0cf4d99f6a560a3d8b74fa94e1c9e9f8dd7575a66d0a4885e
+Archive root: BetterDefect/
+Portraits: 26 each
+ZIP path separator: forward slash
+Result: PASS

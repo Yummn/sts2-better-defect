@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.9.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.2): fixes restored StS1 power status icons showing the red `NOPE` placeholder, adds smart descriptions for all six custom powers, and uses an Android-specific final-texture hook to remain stable on v103 ARM64. Verified 115/115 offline, PC v0.107.1, and REDMI K80 Pro / Android v0.103.2.
+
 - [v0.9.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.1): fixes Tesla Coil and Shatter descriptions to match their actual orb behavior, and fixes Reprogram+ so Focus loss remains 1. Dual-target audit 96/96; PC v0.107.1 encyclopedia validation passed.
 
 - [v0.9.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.0): adds 12 optional `??????` transformations for Barrage, Beam Cell, Charge Battery, Cold Snap, Go for the Eyes, Gunk Up, Leap, Lightning Rod, Sweeping Beam, Uproar, Recursion and Streamline. They use the existing persistent 35-point encyclopedia budget. PC v0.107.1 live startup/UI validation passed; dual-target source/binary audit 96/96.
@@ -141,10 +143,11 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 - The top segmented disabled-card counter shows 0-25 in blue and 26-35 in red, and remains visible only inside the encyclopedia/card-library screen.
 - `Data/Portraits/*.png` is included for CardBeautify's restored old Defect art.
 - Defect-card type checks and restored old-card list generation are cached to reduce repeated reflection/model lookups on Android.
+- Restored StS1 powers use valid built-in status textures instead of the red `NOPE` placeholder, with complete smart descriptions.
 - No BaseLib dependency.
 
 ## Install
 
-Download `BetterDefect-v0.8.4.zip` for mobile v103 or `BetterDefect-v0.8.4-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.9.2-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.9.2-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

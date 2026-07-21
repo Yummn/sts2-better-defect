@@ -59,16 +59,22 @@ internal static class BdLocalization
 
         ["powers/BD_HEATSINKS_POWER.title"] = "散热片",
         ["powers/BD_HEATSINKS_POWER.description"] = "每当你打出能力牌，抽 {Amount} 张牌。",
+        ["powers/BD_HEATSINKS_POWER.smartDescription"] = "每当你打出能力牌，抽[blue]{Amount}[/blue]张牌。",
         ["powers/BD_SELF_REPAIR_POWER.title"] = "自我修复",
         ["powers/BD_SELF_REPAIR_POWER.description"] = "战斗结束时回复 {Amount} 点生命。",
+        ["powers/BD_SELF_REPAIR_POWER.smartDescription"] = "战斗结束时回复[blue]{Amount}[/blue]点生命。",
         ["powers/BD_STATIC_DISCHARGE_POWER.title"] = "静电释放",
         ["powers/BD_STATIC_DISCHARGE_POWER.description"] = "每当你受到未被格挡的攻击伤害，充能 {Amount} 个闪电。",
+        ["powers/BD_STATIC_DISCHARGE_POWER.smartDescription"] = "每当你受到未被格挡的攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球。",
         ["powers/BD_AMPLIFY_POWER.title"] = "增幅",
         ["powers/BD_AMPLIFY_POWER.description"] = "本回合下 {Amount} 张能力牌会额外打出 1 次。",
+        ["powers/BD_AMPLIFY_POWER.smartDescription"] = "本回合下[blue]{Amount}[/blue]张能力牌会额外打出1次。",
         ["powers/BD_ELECTRODYNAMICS_POWER.title"] = "电动力学",
         ["powers/BD_ELECTRODYNAMICS_POWER.description"] = "闪电充能球的被动与激发伤害会命中所有敌人。",
+        ["powers/BD_ELECTRODYNAMICS_POWER.smartDescription"] = "[gold]闪电[/gold]充能球的被动与激发伤害会命中所有敌人。",
         ["powers/BD_LOCK_ON_POWER.title"] = "锁定",
         ["powers/BD_LOCK_ON_POWER.description"] = "受到的充能球伤害提高 50%。每个敌人回合结束时减少 1 层。剩余 {Amount} 层。",
+        ["powers/BD_LOCK_ON_POWER.smartDescription"] = "受到的充能球伤害提高[blue]50%[/blue]。每个敌人回合结束时减少1层。剩余[blue]{Amount}[/blue]层。",
     };
 
     public static bool TryGetRaw(string table, string key, out string raw) => Map.TryGetValue(table + "/" + key, out raw!);

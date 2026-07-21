@@ -1,0 +1,15 @@
+BetterDefect v0.9.2 mobile live audit
+Game: v0.103.2
+Device: REDMI K80 Pro
+Result: PASS - main menu reached; six injected StS1 powers loaded real status textures.
+Note: the red NOPE currently visible in the test save top bar is the built-in Deprecated Relic, not a BetterDefect combat power.
+
+[INFO] [BetterDefect] [BetterDefect] loaded v0.9.2: restored StS1 power status icons no longer use the NOPE placeholder, smart power descriptions are complete, and all v0.9.1 behavior fixes remain active; BaseLib not required.
+[INFO] [BetterDefect] [BetterDefect] merged 18 powers localization entries into LocManager.
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdHeatsinksPower -> FOCUS_POWER (status texture).
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdSelfRepairPower -> REGEN_POWER (status texture).
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdStaticDischargePower -> THORNS_POWER (status texture).
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdAmplifyPower -> BURST_POWER (status texture).
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdElectrodynamicsPower -> LIGHTNING_ROD_POWER (status texture).
+[INFO] [BetterDefect] [BetterDefect] power icon mapped: BdLockOnPower -> VULNERABLE_POWER (status texture).
+[INFO] [Startup] Time to main menu: 18,205ms

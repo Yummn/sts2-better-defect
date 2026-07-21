@@ -71,6 +71,7 @@ internal static class BetterDefectModelDbInitPatch
     {
         OldDefectCards.EnsureInjected();
         BdCardVersionUpgrades.RefreshAllCanonicalModels();
+        BdPowerIconPathPatch.ValidateInjectedStatusIcons();
     }
 }
 
