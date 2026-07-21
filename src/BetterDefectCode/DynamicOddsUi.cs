@@ -958,8 +958,7 @@ internal static class BdDynamicOddsCardUi
 
         var ownedGrid = GetLibraryGrid(library);
         return ownedGrid is not null &&
-               ReferenceEquals(ownedGrid, grid) &&
-               !HasVisibleCardOutsideGrid(grid);
+               ReferenceEquals(ownedGrid, grid);
     }
 
     private static bool HasVisibleCardOutsideGrid(NCardLibraryGrid grid)

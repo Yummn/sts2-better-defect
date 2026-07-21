@@ -157,3 +157,10 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 Download `BetterDefect-v0.10.0-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.10.0-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.
+
+
+## v0.10.1
+
+- Fix encyclopedia card-point HUD and enable/disable odds plus upgrade buttons disappearing.
+- Cause: v0.10.0 treated any visible card node outside the encyclopedia grid as a non-library context, so the real compendium could be rejected. The guard now validates only the exact NCardLibraryGrid owned by the active card library.
+- Keeps the v0.10.0 uncommon-card transformation set and the shared 35-point budget.
