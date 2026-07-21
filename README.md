@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.9.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.3): fixes encyclopedia upgrade/odds controls leaking into combat, shop, deck and pile screens after visiting the encyclopedia. It requires current-scene ownership and synchronously strips controls from pooled card nodes on exit. Card art remains active. Offline audit 117/117; Android v0.103.2 startup and encyclopedia transition verified.
+
 - [v0.9.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.2): fixes restored StS1 power status icons showing the red `NOPE` placeholder, adds smart descriptions for all six custom powers, and uses an Android-specific final-texture hook to remain stable on v103 ARM64. Verified 115/115 offline, PC v0.107.1, and REDMI K80 Pro / Android v0.103.2.
 
 - [v0.9.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.1): fixes Tesla Coil and Shatter descriptions to match their actual orb behavior, and fixes Reprogram+ so Focus loss remains 1. Dual-target audit 96/96; PC v0.107.1 encyclopedia validation passed.

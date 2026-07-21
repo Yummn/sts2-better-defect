@@ -87,7 +87,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.9.2: restored StS1 power status icons no longer use the NOPE placeholder, smart power descriptions are complete, and all v0.9.1 behavior fixes remain active; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.9.3: encyclopedia upgrade/odds controls are stripped before pooled cards enter combat, shop, deck or pile screens; restored power icon fixes remain active; BaseLib not required.");
     }
 
     internal static bool IsAndroidRuntime()

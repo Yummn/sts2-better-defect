@@ -163,6 +163,21 @@ internal static class BdDynamicOddsCardUi
         }
     }
 
+    internal static void CleanupAllTouchedCards()
+    {
+        try
+        {
+            if (Engine.GetMainLoop() is not SceneTree tree || tree.Root == null)
+                return;
+
+            CleanupAllTouchedCards(tree.Root);
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] full card UI cleanup skipped: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
     internal static void ApplyLibraryCardUi(NCard cardNode, bool assumeLibrary = false)
     {
         try
@@ -737,6 +752,22 @@ internal static class BdDynamicOddsCardUi
         catch { }
     }
 
+    private static void CleanupAllTouchedCards(Node root)
+    {
+        try
+        {
+            if (root is NCard cardNode && HasBetterDefectUiArtifact(cardNode))
+                RemoveBetterDefectUi(cardNode);
+
+            foreach (var child in root.GetChildren())
+            {
+                if (child is Node childNode)
+                    CleanupAllTouchedCards(childNode);
+            }
+        }
+        catch { }
+    }
+
     private static void CleanupGridIfTouched(NCardLibraryGrid grid)
     {
         try
@@ -918,6 +949,13 @@ internal static class BdDynamicOddsCardUi
             !IsVisibleInTreeStrict(library) || !IsVisibleInTreeStrict(grid))
             return false;
 
+        // The main-menu scene may remain alive after the run is resumed. A
+        // cached encyclopedia can therefore still report VisibleInTree while
+        // combat is the active scene. Never treat such a detached old screen
+        // as the current encyclopedia.
+        if (!IsUnderCurrentScene(library))
+            return false;
+
         var ownedGrid = GetLibraryGrid(library);
         return ownedGrid is not null &&
                ReferenceEquals(ownedGrid, grid) &&
@@ -985,6 +1023,24 @@ internal static class BdDynamicOddsCardUi
         {
             if (node is CanvasItem item)
                 return item.IsInsideTree() && item.Visible && item.IsVisibleInTree();
+        }
+        catch { }
+
+        return false;
+    }
+
+    internal static bool IsUnderCurrentScene(Node node)
+    {
+        try
+        {
+            if (Engine.GetMainLoop() is not SceneTree tree || tree.CurrentScene is null)
+                return false;
+
+            for (var current = node; current != null; current = current.GetParent())
+            {
+                if (ReferenceEquals(current, tree.CurrentScene))
+                    return true;
+            }
         }
         catch { }
 

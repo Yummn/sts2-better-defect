@@ -260,8 +260,8 @@ def main() -> int:
     )
     check(
         "library watcher cleans controls on detail and exit transitions",
-        "BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();" in hud
-        and "if (_wasVisible)" in hud
+        "BdDynamicOddsCardUi.CleanupAllTouchedCards();" in hud
+        and "if (_wasVisible || _library is not null)" in hud
         and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
     )
     for power_id in (
@@ -279,7 +279,11 @@ def main() -> int:
     check("Android patches final power texture getter", '[HarmonyPatch(typeof(PowerModel), "get_Icon")]' in power_icons)
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
-    check("manifest is v0.9.2", '"version":  "0.9.2"' in manifest)
+    hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
+    check("manifest is v0.9.3", '"version":  "0.9.3"' in manifest)
+    check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
+    check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
+    check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
     check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
@@ -292,7 +296,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.9.2 offline audit",
+        "BetterDefect v0.9.3 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

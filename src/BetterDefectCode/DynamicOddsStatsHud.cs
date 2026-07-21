@@ -285,14 +285,22 @@ internal static partial class BdDynamicOddsStatsHud
                 if (_library is null || !GodotObject.IsInstanceValid(_library) || !_library.IsInsideTree())
                     _library = FindLibrary();
 
-                var visible = _library is not null && IsLibraryActuallyVisible(_library);
+                var visible = _library is not null &&
+                              BdDynamicOddsCardUi.IsUnderCurrentScene(_library) &&
+                              IsLibraryActuallyVisible(_library);
                 if (!visible)
                 {
-                    if (_wasVisible)
+                    if (_wasVisible || _library is not null)
                     {
-                        BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();
+                        // Strip controls from the old encyclopedia cards before
+                        // the game moves those pooled NCard nodes into combat,
+                        // shop, deck or pile screens. Outside-only cleanup was
+                        // too late because the nodes could still be parented to
+                        // the cached menu library during the transition.
+                        BdDynamicOddsCardUi.CleanupAllTouchedCards();
                         Hide();
                     }
+                    _library = null;
                     _wasVisible = false;
                     return;
                 }
