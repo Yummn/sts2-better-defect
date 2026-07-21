@@ -157,7 +157,7 @@ internal static class BdLocalization
                 : "对所有敌人造成{Damage:diff()}点伤害。\n[gold]激发[/gold]所有充能球两次。",
 
             ["TESLA_COIL.description"] = teslaV105
-                ? "{IfUpgraded:show:造成4点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球被动两次。|造成3点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球被动一次。}"
+                ? "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球被动{IfUpgraded:show:两次|一次}。"
                 : "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动一次。",
 
             ["FUEL.description"] = compactV099

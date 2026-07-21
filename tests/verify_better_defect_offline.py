@@ -184,7 +184,7 @@ def main() -> int:
     check("Fission description switches remove/evoke with normal upgrade", "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}" in localization)
     check("Core Surge and Fission rely on the real Exhaust keyword text", '["cards/BD_CORE_SURGE.description"]' in localization and '["cards/BD_FISSION.description"]' in localization and "\\n[gold]消耗[/gold]。" not in localization)
     check("Rocket Punch description follows its historical behavior switch", 'rocketV100' in localization and "直到打出或当前回合结束" in localization)
-    check("Tesla Coil description switches exact transformed base and upgrade text", 'teslaV105' in localization and "造成4点伤害" in localization and "充能球被动两次" in localization and "造成3点伤害" in localization and "充能球被动一次" in localization)
+    check("Tesla Coil description switches transformed passive count and keeps dynamic damage", 'teslaV105' in localization and "造成{Damage:diff()}点伤害" in localization and "充能球被动{IfUpgraded:show:两次|一次}" in localization)
     check("Shatter description explicitly says every orb is evoked twice", '["SHATTER.description"]' in localization and "[gold]激发[/gold]所有充能球两次" in localization)
     check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
     check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
