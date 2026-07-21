@@ -159,6 +159,12 @@ Download `BetterDefect-v0.10.0-Mobile-v103.zip` for mobile v103 or `BetterDefect
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.
 
 
+## v0.10.3
+
+- Fix Android v103 startup after the encyclopedia-control repair by skipping the ARM64-unsafe LightningOrb Electrodynamics detour on mobile.
+- Keeps the v103 Hailstorm turn-end hook, resilient per-hook initialization, and active encyclopedia grid hooks.
+- Verified on a connected Android v103 device: BetterDefect initializes, 26 old Defect cards inject, the 114-card Defect pool is restored, and the encyclopedia card-point HUD plus in-card controls are visible.
+
 ## v0.10.1
 
 - Fix encyclopedia card-point HUD and enable/disable odds plus upgrade buttons disappearing.

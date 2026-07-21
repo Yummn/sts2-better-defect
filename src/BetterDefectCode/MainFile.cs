@@ -70,6 +70,15 @@ public partial class MainFile : Node
                 // so patch the final Texture2D getter instead.
                 continue;
             }
+            if (android && type.FullName == "BetterDefect.Cards.BdElectrodynamicsLightningTargetPatch")
+            {
+                // LightningOrb.ApplyLightningDamage is an ARM64-crashy detour
+                // point on v103.  Skipping this one effect hook is preferable
+                // to aborting process startup before the encyclopedia UI and
+                // reward-odds systems can load.
+                Logger.Warn($"[BetterDefect] skipping Android-unsafe {type.FullName}; Electrodynamics all-target lightning fallback is disabled on mobile.");
+                continue;
+            }
             if (!android && type == typeof(BdPowerIconTexturePatch))
             {
                 // PC can redirect both small and large paths before loading.
@@ -80,14 +89,26 @@ public partial class MainFile : Node
 
         foreach (var type in patchTypes)
         {
-            Logger.Info($"[BetterDefect] patching {type.FullName}");
-            harmony.CreateClassProcessor(type).Patch();
-            Logger.Info($"[BetterDefect] patched {type.FullName}");
+            try
+            {
+                Logger.Info($"[BetterDefect] patching {type.FullName}");
+                harmony.CreateClassProcessor(type).Patch();
+                Logger.Info($"[BetterDefect] patched {type.FullName}");
+            }
+            catch (Exception ex)
+            {
+                // Do not let one cross-version card hook abort the rest of the
+                // mod initializer.  On Android v103 a single missing renamed
+                // method previously stopped the encyclopedia watcher/HUD from
+                // being installed, which made the point bar and all in-card
+                // controls disappear even though the mod was listed as loaded.
+                Logger.Warn($"[BetterDefect] patch skipped after failure in {type.FullName}: {ex.GetType().Name}: {ex.Message}");
+            }
         }
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.0: added 16 user-approved uncommon-card transformations with matching base/upgrade values and descriptions; encyclopedia scope, dynamic odds, power icons and BaseLib-free mobile support remain active.");
+        Logger.Info("[BetterDefect] loaded v0.10.3: Android startup skips the ARM64-unsafe LightningOrb detour while keeping encyclopedia card-point controls active.");
     }
 
     internal static bool IsAndroidRuntime()
@@ -109,13 +130,6 @@ public partial class MainFile : Node
     }
 
     private static bool IsRedundantAndroidCardLibraryPatch(Type type) =>
-        type == typeof(BdDynamicOddsCardLibraryOpenedPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryFilterPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryClosedPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryFinalFilterPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryGridInitPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryGridAssignPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryUpgradePreviewPatch) ||
         type == typeof(BdDynamicOddsCardLibraryVisibilityPatch) ||
         type == typeof(BdDynamicOddsCardModelSetPatch) ||
         type == typeof(BdDynamicOddsCardReloadPatch) ||

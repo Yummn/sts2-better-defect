@@ -1287,6 +1287,8 @@ internal static class BdCustomRefractCostPatch
 [HarmonyPatch]
 internal static class BdCustomHailstormPowerPatch
 {
+    private static bool Prepare() => AccessTools.DeclaredMethod(typeof(HailstormPower), "BeforeSideTurnEnd") != null;
+
     private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(HailstormPower), "BeforeSideTurnEnd");
 
     private static bool Prefix(
@@ -1305,6 +1307,40 @@ internal static class BdCustomHailstormPowerPatch
     private static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext, IEnumerable<Creature> participants)
     {
         if (!participants.Contains(power.Owner)) return;
+        var frostCount = power.Owner.Player.PlayerCombatState.OrbQueue.Orbs.Count(orb => orb is FrostOrb);
+        if (frostCount <= 0) return;
+        await CreatureCmd.Damage(
+            choiceContext,
+            power.CombatState.HittableEnemies,
+            power.Amount * frostCount,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
+            power.Owner);
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomHailstormPowerV103Patch
+{
+    private static bool Prepare() => AccessTools.DeclaredMethod(typeof(HailstormPower), "BeforeTurnEnd") != null;
+
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(HailstormPower), "BeforeTurnEnd");
+
+    private static bool Prefix(
+        HailstormPower __instance,
+        PlayerChoiceContext choiceContext,
+        CombatSide side,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Hailstorm>())
+            return true;
+        __result = side == __instance.Owner.Side
+            ? Trigger(__instance, choiceContext)
+            : Task.CompletedTask;
+        return false;
+    }
+
+    private static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext)
+    {
         var frostCount = power.Owner.Player.PlayerCombatState.OrbQueue.Orbs.Count(orb => orb is FrostOrb);
         if (frostCount <= 0) return;
         await CreatureCmd.Damage(
