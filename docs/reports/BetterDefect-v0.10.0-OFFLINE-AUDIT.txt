@@ -1,0 +1,77 @@
+BetterDefect v0.10.0 offline audit
+Timestamp: 2026-07-21T16:19:49+08:00
+Mode: source/dual-target compile/package checks; game was not launched
+Passed: 70
+Failed: 0
+
+PASS
+  [OK] card-transformation registry contains exactly 41 cards
+  [OK] CHAOS registered in transformation specification
+  [OK] CHAOS has switch-sensitive Chinese description
+  [OK] DOUBLE_ENERGY registered in transformation specification
+  [OK] DOUBLE_ENERGY has switch-sensitive Chinese description
+  [OK] FIGHT_THROUGH registered in transformation specification
+  [OK] FIGHT_THROUGH has switch-sensitive Chinese description
+  [OK] SKIM registered in transformation specification
+  [OK] SKIM has switch-sensitive Chinese description
+  [OK] TEMPEST registered in transformation specification
+  [OK] TEMPEST has switch-sensitive Chinese description
+  [OK] WHITE_NOISE registered in transformation specification
+  [OK] WHITE_NOISE has switch-sensitive Chinese description
+  [OK] FTL registered in transformation specification
+  [OK] FTL has switch-sensitive Chinese description
+  [OK] NULL registered in transformation specification
+  [OK] NULL has switch-sensitive Chinese description
+  [OK] REFRACT registered in transformation specification
+  [OK] REFRACT has switch-sensitive Chinese description
+  [OK] FERAL registered in transformation specification
+  [OK] FERAL has switch-sensitive Chinese description
+  [OK] HAILSTORM registered in transformation specification
+  [OK] HAILSTORM has switch-sensitive Chinese description
+  [OK] ITERATION registered in transformation specification
+  [OK] ITERATION has switch-sensitive Chinese description
+  [OK] LOOP registered in transformation specification
+  [OK] LOOP has switch-sensitive Chinese description
+  [OK] SMOKESTACK registered in transformation specification
+  [OK] SMOKESTACK has switch-sensitive Chinese description
+  [OK] STORM registered in transformation specification
+  [OK] STORM has switch-sensitive Chinese description
+  [OK] SUBROUTINE registered in transformation specification
+  [OK] SUBROUTINE has switch-sensitive Chinese description
+  [OK] behavior route exists: PlayChaos
+  [OK] behavior route exists: PlayDoubleEnergy
+  [OK] behavior route exists: PlayFightThrough
+  [OK] behavior route exists: PlaySkim
+  [OK] behavior route exists: PlayTempest
+  [OK] behavior route exists: PlayWhiteNoise
+  [OK] behavior route exists: PlayFtl
+  [OK] behavior route exists: PlayNull
+  [OK] behavior route exists: BdCustomRefractCostPatch
+  [OK] behavior route exists: BdCustomHailstormPowerPatch
+  [OK] behavior route exists: BdCustomIterationPowerPatch
+  [OK] behavior route exists: BdCustomLoopPowerPatch
+  [OK] behavior route exists: BdCustomSmokestackPowerPatch
+  [OK] behavior route exists: BdCustomSubroutinePowerPatch
+  [OK] Chaos prioritizes missing orb types
+  [OK] Fight Through generates exactly two Dazed cards
+  [OK] Tempest draws only when overflow evokes Lightning
+  [OK] White Noise offers three power choices
+  [OK] FTL fallback applies BetterDefect Lock-On
+  [OK] Null snapshots pre-existing Weak before applying new Weak
+  [OK] Refract dynamic cost is capped at two with Glass orb
+  [OK] Feral transformed base cost is one and upgrade amount is two
+  [OK] Loop transformed upgrade changes cost instead of repeat count
+  [OK] Storm transformed card gains Innate
+  [OK] manifest is v0.10.0
+  [OK] PC v107.1 binary exists
+  [OK] Mobile v103 binary exists
+  [OK] PC package exists
+  [OK] PC package has manifest
+  [OK] PC package has DLL
+  [OK] PC packaged DLL matches compiled binary
+  [OK] PC packaged manifest is v0.10.0
+  [OK] Mobile package exists
+  [OK] Mobile package has manifest
+  [OK] Mobile package has DLL
+  [OK] Mobile packaged DLL matches compiled binary
+  [OK] Mobile packaged manifest is v0.10.0

@@ -1,10 +1,17 @@
 using System.Reflection;
+using System.Collections;
+using System.Runtime.CompilerServices;
 using BetterDefect.Cards;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.CardSelection;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
@@ -35,7 +42,13 @@ internal static class BdCardVersionUpgrades
         // deliberately labelled as custom transformations in the Encyclopedia.
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdStreamline)
+        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdStreamline),
+
+        // User-approved uncommon-card transformations.
+        typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough), typeof(Skim),
+        typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
+        typeof(Refract), typeof(Feral), typeof(Hailstorm), typeof(Iteration),
+        typeof(Loop), typeof(Smokestack), typeof(Storm), typeof(Subroutine)
     ];
 
     private static readonly Type[] CustomUpgradeTypes = [.. VersionedCardTypes, typeof(Fuel)];
@@ -67,7 +80,23 @@ internal static class BdCardVersionUpgrades
             ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得3(6)格挡；立即生成1闪电，下回合再生成1闪电"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
-            ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费")
+            ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费"),
+            ["CARD.CHAOS"] = ("改造：自定义", "1费生成1(2)个随机充能球，优先生成当前栏位中没有的种类"),
+            ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
+            ["CARD.FIGHT_THROUGH"] = ("改造：自定义", "1费获得12(18)格挡，将2张眩晕加入弃牌堆"),
+            ["CARD.SKIM"] = ("改造：自定义", "1费先弃1张手牌，再抽3(4)张牌"),
+            ["CARD.TEMPEST"] = ("改造：自定义", "生成X(X+1)个闪电；每因球位溢出激发一个闪电球便抽1张牌"),
+            ["CARD.WHITE_NOISE"] = ("改造：自定义", "1(0)费消耗；从3张随机机器人能力牌中选择1张，本回合免费"),
+            ["CARD.FTL"] = ("改造：自定义", "0费造成5(7)伤害；前三(四)张牌内抽1张，否则施加1(2)层锁定"),
+            ["CARD.NULL"] = ("改造：自定义", "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个"),
+            ["CARD.REFRACT"] = ("改造：自定义", "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费"),
+            ["CARD.FERAL"] = ("改造：自定义", "1费；每回合前1(2)张0费攻击牌返回手牌"),
+            ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害"),
+            ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
+            ["CARD.LOOP"] = ("改造：自定义", "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次"),
+            ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每回合首次触发额外抽1张"),
+            ["CARD.STORM"] = ("改造：自定义", "1费固有；每打出能力牌生成1(2)个闪电球"),
+            ["CARD.SUBROUTINE"] = ("改造：自定义", "1(0)费；打出能力牌获得1能量，每回合首次触发额外抽1张")
         };
     private static readonly FieldInfo? EnergyBaseField = AccessTools.Field(typeof(CardEnergyCost), "_base");
     private static readonly FieldInfo? KeywordsField = AccessTools.Field(typeof(CardModel), "_keywords");
@@ -98,7 +127,8 @@ internal static class BdCardVersionUpgrades
         Scrape => "v0.108",
         Sunder => "v0.109",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or ColdSnap or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline => "改造：自定义",
+        Barrage or BeamCell or ChargeBattery or ColdSnap or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline or
+        Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine => "改造：自定义",
         _ => VersionedCardSpecs.TryGetValue(SafeCardId(card), out var spec) ? spec.Version : "历史版本"
     };
 
@@ -129,6 +159,22 @@ internal static class BdCardVersionUpgrades
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
         BdStreamline => "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费",
+        Chaos => "1费生成1(2)个随机充能球，优先生成当前栏位中没有的种类",
+        DoubleEnergy => "1(0)费消耗；将当前能量翻倍并抽1张牌",
+        FightThrough => "1费获得12(18)格挡，将2张眩晕加入弃牌堆",
+        Skim => "1费先弃1张手牌，再抽3(4)张牌",
+        Tempest => "生成X(X+1)个闪电；每因球位溢出激发一个闪电球便抽1张牌",
+        WhiteNoise => "1(0)费消耗；从3张随机机器人能力牌中选择1张，本回合免费",
+        Ftl => "0费造成5(7)伤害；前三(四)张牌内抽1张，否则施加1(2)层锁定",
+        Null => "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个",
+        Refract => "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费",
+        Feral => "1费；每回合前1(2)张0费攻击牌返回手牌",
+        Hailstorm => "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害",
+        Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
+        Loop => "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次",
+        Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每回合首次触发额外抽1张",
+        Storm => "1费固有；每打出能力牌生成1(2)个闪电球",
+        Subroutine => "1(0)费；打出能力牌获得1能量，每回合首次触发额外抽1张",
         _ => VersionedCardSpecs.TryGetValue(SafeCardId(card), out var spec) ? spec.Effect : "切换到指定历史版本"
     };
 
@@ -229,6 +275,82 @@ internal static class BdCardVersionUpgrades
             case SweepingBeam:
                 SetDynamic(card, "Damage", plus ? 9m : 6m);
                 SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m);
+                break;
+
+            case Chaos:
+                SetEnergy(card, 1);
+                SetDynamic(card, "Repeat", plus ? 2m : 1m);
+                break;
+
+            case DoubleEnergy:
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+
+            case FightThrough:
+                SetDynamic(card, "Block", upgradedVersion
+                    ? plus ? 18m : 12m
+                    : plus ? 17m : 13m);
+                break;
+
+            case Skim:
+                SetDynamic(card, "Cards", plus ? 4m : 3m);
+                break;
+
+            case WhiteNoise:
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+
+            case Ftl:
+                SetDynamic(card, "Damage", plus ? (upgradedVersion ? 7m : 6m) : 5m);
+                SetDynamic(card, "PlayMax", plus ? 4m : 3m);
+                break;
+
+            case Null:
+                SetDynamic(card, "Damage", plus ? 13m : 10m);
+                SetDynamic(card, "WeakPower", plus ? 3m : 2m);
+                break;
+
+            case Refract:
+                SetEnergy(card, 3);
+                SetDynamic(card, "Damage", plus ? 12m : 9m);
+                SetDynamic(card, "Repeat", 2m);
+                break;
+
+            case Feral:
+                SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
+                SetDynamic(card, "FeralPower", upgradedVersion && plus ? 2m : 1m);
+                break;
+
+            case Hailstorm:
+                SetDynamic(card, "HailstormPower", upgradedVersion
+                    ? plus ? 3m : 2m
+                    : plus ? 8m : 6m);
+                break;
+
+            case Iteration:
+                SetDynamic(card, "IterationPower", plus ? 3m : 2m);
+                break;
+
+            case Loop:
+                SetEnergy(card, upgradedVersion && plus ? 0 : 1);
+                SetDynamic(card, "Loop", upgradedVersion ? 1m : plus ? 2m : 1m);
+                break;
+
+            case Smokestack:
+                SetDynamic(card, "SmokestackPower", upgradedVersion
+                    ? plus ? 6m : 4m
+                    : plus ? 7m : 5m);
+                break;
+
+            case Storm:
+                SetDynamic(card, "StormPower", plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                break;
+
+            case Subroutine:
+                SetEnergy(card, plus ? 0 : 1);
                 break;
 
             case Hotfix:
@@ -368,6 +490,56 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", 9m);
                 UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);
                 break;
+            case Chaos:
+                UpgradeDynamicTo(card, "Repeat", 2m);
+                break;
+            case DoubleEnergy:
+                SetEnergy(card, 0);
+                break;
+            case FightThrough:
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 18m : 17m);
+                break;
+            case Skim:
+                UpgradeDynamicTo(card, "Cards", 4m);
+                break;
+            case WhiteNoise:
+                SetEnergy(card, 0);
+                break;
+            case Ftl:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 7m : 6m);
+                UpgradeDynamicTo(card, "PlayMax", 4m);
+                break;
+            case Null:
+                UpgradeDynamicTo(card, "Damage", 13m);
+                UpgradeDynamicTo(card, "WeakPower", 3m);
+                break;
+            case Refract:
+                UpgradeDynamicTo(card, "Damage", 12m);
+                break;
+            case Feral:
+                SetEnergy(card, 1);
+                UpgradeDynamicTo(card, "FeralPower", upgradedVersion ? 2m : 1m);
+                break;
+            case Hailstorm:
+                UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m);
+                break;
+            case Iteration:
+                UpgradeDynamicTo(card, "IterationPower", 3m);
+                break;
+            case Loop:
+                if (upgradedVersion) SetEnergy(card, 0);
+                else UpgradeDynamicTo(card, "Loop", 2m);
+                break;
+            case Smokestack:
+                UpgradeDynamicTo(card, "SmokestackPower", upgradedVersion ? 6m : 7m);
+                break;
+            case Storm:
+                UpgradeDynamicTo(card, "StormPower", 2m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                break;
+            case Subroutine:
+                SetEnergy(card, 0);
+                break;
             case Hotfix:
                 if (upgradedVersion) UpgradeDynamicTo(card, "FocusPower", 3m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -473,6 +645,55 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Damage", plus ? 9m : 6m);
                 SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m);
                 break;
+            case "CARD.CHAOS":
+                SetEnergy(card, 1);
+                SetDynamic(card, "Repeat", plus ? 2m : 1m);
+                break;
+            case "CARD.DOUBLE_ENERGY":
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+            case "CARD.FIGHT_THROUGH":
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 18m : 12m : plus ? 17m : 13m);
+                break;
+            case "CARD.SKIM": SetDynamic(card, "Cards", plus ? 4m : 3m); break;
+            case "CARD.WHITE_NOISE":
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+            case "CARD.FTL":
+                SetDynamic(card, "Damage", plus ? upgradedVersion ? 7m : 6m : 5m);
+                SetDynamic(card, "PlayMax", plus ? 4m : 3m);
+                break;
+            case "CARD.NULL":
+                SetDynamic(card, "Damage", plus ? 13m : 10m);
+                SetDynamic(card, "WeakPower", plus ? 3m : 2m);
+                break;
+            case "CARD.REFRACT":
+                SetEnergy(card, 3);
+                SetDynamic(card, "Damage", plus ? 12m : 9m);
+                SetDynamic(card, "Repeat", 2m);
+                break;
+            case "CARD.FERAL":
+                SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
+                SetDynamic(card, "FeralPower", upgradedVersion && plus ? 2m : 1m);
+                break;
+            case "CARD.HAILSTORM":
+                SetDynamic(card, "HailstormPower", upgradedVersion ? plus ? 3m : 2m : plus ? 8m : 6m);
+                break;
+            case "CARD.ITERATION": SetDynamic(card, "IterationPower", plus ? 3m : 2m); break;
+            case "CARD.LOOP":
+                SetEnergy(card, upgradedVersion && plus ? 0 : 1);
+                SetDynamic(card, "Loop", upgradedVersion ? 1m : plus ? 2m : 1m);
+                break;
+            case "CARD.SMOKESTACK":
+                SetDynamic(card, "SmokestackPower", upgradedVersion ? plus ? 6m : 4m : plus ? 7m : 5m);
+                break;
+            case "CARD.STORM":
+                SetDynamic(card, "StormPower", plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                break;
+            case "CARD.SUBROUTINE": SetEnergy(card, plus ? 0 : 1); break;
             case "CARD.HOTFIX":
                 SetDynamic(card, "FocusPower", plus && upgradedVersion ? 3m : 2m);
                 SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion && !plus);
@@ -551,6 +772,36 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", 9m);
                 UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);
                 break;
+            case "CARD.CHAOS": UpgradeDynamicTo(card, "Repeat", 2m); break;
+            case "CARD.DOUBLE_ENERGY": SetEnergy(card, 0); break;
+            case "CARD.FIGHT_THROUGH": UpgradeDynamicTo(card, "Block", upgradedVersion ? 18m : 17m); break;
+            case "CARD.SKIM": UpgradeDynamicTo(card, "Cards", 4m); break;
+            case "CARD.WHITE_NOISE": SetEnergy(card, 0); break;
+            case "CARD.FTL":
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 7m : 6m);
+                UpgradeDynamicTo(card, "PlayMax", 4m);
+                break;
+            case "CARD.NULL":
+                UpgradeDynamicTo(card, "Damage", 13m);
+                UpgradeDynamicTo(card, "WeakPower", 3m);
+                break;
+            case "CARD.REFRACT": UpgradeDynamicTo(card, "Damage", 12m); break;
+            case "CARD.FERAL":
+                SetEnergy(card, 1);
+                UpgradeDynamicTo(card, "FeralPower", upgradedVersion ? 2m : 1m);
+                break;
+            case "CARD.HAILSTORM": UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m); break;
+            case "CARD.ITERATION": UpgradeDynamicTo(card, "IterationPower", 3m); break;
+            case "CARD.LOOP":
+                if (upgradedVersion) SetEnergy(card, 0);
+                else UpgradeDynamicTo(card, "Loop", 2m);
+                break;
+            case "CARD.SMOKESTACK": UpgradeDynamicTo(card, "SmokestackPower", upgradedVersion ? 6m : 7m); break;
+            case "CARD.STORM":
+                UpgradeDynamicTo(card, "StormPower", 2m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                break;
+            case "CARD.SUBROUTINE": SetEnergy(card, 0); break;
             case "CARD.HOTFIX":
                 if (upgradedVersion) UpgradeDynamicTo(card, "FocusPower", 3m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -586,6 +837,12 @@ internal static class BdCardVersionUpgrades
     }
 
     internal static bool IsVersionEnabled(CardModel card) => IsEligible(card) && BdDynamicOdds.IsCardVersionUpgraded(card);
+
+    internal static bool IsVersionEnabled<T>() where T : CardModel
+    {
+        try { return IsVersionEnabled(ModelDb.Card<T>()); }
+        catch { return false; }
+    }
 
     private static bool IsCompactVersionEnabled()
     {
@@ -714,7 +971,8 @@ internal static class BdCustomCommonCardPlayPatch
         [
             typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-            typeof(Uproar)
+            typeof(Uproar), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
+            typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null)
         ];
         foreach (var type in types)
         {
@@ -743,6 +1001,14 @@ internal static class BdCustomCommonCardPlayPatch
             Leap card => PlayLeap(card, cardPlay),
             LightningRod card => PlayLightningRod(card, choiceContext, cardPlay),
             Uproar card => PlayUproar(card, choiceContext, cardPlay),
+            Chaos card => PlayChaos(card, choiceContext),
+            DoubleEnergy card => PlayDoubleEnergy(card, choiceContext),
+            FightThrough card => PlayFightThrough(card, choiceContext, cardPlay),
+            Skim card => PlaySkim(card, choiceContext),
+            Tempest card => PlayTempest(card, choiceContext),
+            WhiteNoise card => PlayWhiteNoise(card, choiceContext),
+            Ftl card => PlayFtl(card, choiceContext, cardPlay),
+            Null card => PlayNull(card, choiceContext, cardPlay),
             _ => Task.CompletedTask
         };
         return false;
@@ -850,6 +1116,111 @@ internal static class BdCustomCommonCardPlayPatch
             await CardCmd.AutoPlay(choiceContext, selected, null);
     }
 
+    private static async Task PlayChaos(Chaos card, PlayerChoiceContext choiceContext)
+    {
+        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
+        for (var i = 0; i < card.DynamicVars.Repeat.IntValue; i++)
+        {
+            var occupiedTypes = card.Owner.PlayerCombatState.OrbQueue.Orbs
+                .Select(orb => orb.GetType())
+                .ToHashSet();
+            var canonical = ModelDb.Orbs.ToList();
+            var missing = canonical.Where(orb => !occupiedTypes.Contains(orb.GetType())).ToList();
+            var pool = missing.Count > 0 ? missing : canonical;
+            var selected = pool.StableShuffle(card.Owner.RunState.Rng.CombatOrbGeneration).FirstOrDefault();
+            if (selected != null)
+                await OrbCmd.Channel(choiceContext, selected.ToMutable(), card.Owner);
+        }
+    }
+
+    private static async Task PlayDoubleEnergy(DoubleEnergy card, PlayerChoiceContext choiceContext)
+    {
+        await PlayerCmd.GainEnergy(card.Owner.PlayerCombatState.Energy, card.Owner);
+        await CardPileCmd.Draw(choiceContext, 1m, card.Owner);
+    }
+
+    private static async Task PlayFightThrough(FightThrough card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        await CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardPlay);
+        for (var i = 0; i < 2; i++)
+        {
+            var dazed = Bd.CreateCard<Dazed>(card);
+            CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(dazed, PileType.Discard, card.Owner));
+        }
+    }
+
+    private static async Task PlaySkim(Skim card, PlayerChoiceContext choiceContext)
+    {
+        var selected = await CardSelectCmd.FromHandForDiscard(
+            choiceContext,
+            card.Owner,
+            new CardSelectorPrefs(CardSelectorPrefs.DiscardSelectionPrompt, 1),
+            null,
+            card);
+        await CardCmd.Discard(choiceContext, selected);
+        await CardPileCmd.Draw(choiceContext, card.DynamicVars.Cards.BaseValue, card.Owner);
+    }
+
+    private static async Task PlayTempest(Tempest card, PlayerChoiceContext choiceContext)
+    {
+        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
+        var count = card.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
+        for (var i = 0; i < count; i++)
+        {
+            var queue = card.Owner.PlayerCombatState.OrbQueue;
+            var evokedLightning = queue.Capacity > 0
+                                  && queue.Orbs.Count >= queue.Capacity
+                                  && queue.Orbs.FirstOrDefault() is LightningOrb;
+            await OrbCmd.Channel<LightningOrb>(choiceContext, card.Owner);
+            if (evokedLightning)
+                await CardPileCmd.Draw(choiceContext, 1m, card.Owner);
+        }
+    }
+
+    private static async Task PlayWhiteNoise(WhiteNoise card, PlayerChoiceContext choiceContext)
+    {
+        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
+        var choices = CardFactory.GetDistinctForCombat(
+                card.Owner,
+                card.Owner.Character.CardPool.GetUnlockedCards(card.Owner.UnlockState, card.Owner.RunState.CardMultiplayerConstraint)
+                    .Where(candidate => candidate.Type == CardType.Power),
+                3,
+                card.Owner.RunState.Rng.CombatCardGeneration)
+            .ToList();
+        var selected = await CardSelectCmd.FromChooseACardScreen(choiceContext, choices, card.Owner);
+        if (selected == null) return;
+        selected.SetToFreeThisTurn();
+        CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(selected, PileType.Hand, card.Owner));
+    }
+
+    private static async Task PlayFtl(Ftl card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(choiceContext);
+
+        var playsFinished = CombatManager.Instance.History.CardPlaysFinished.Count(entry =>
+            entry.HappenedThisTurn(card.CombatState) && entry.CardPlay.Card.Owner == card.Owner);
+        if (playsFinished < card.DynamicVars["PlayMax"].IntValue)
+            await CardPileCmd.Draw(choiceContext, 1m, card.Owner);
+        else
+            await Bd.ApplyPower<BdLockOnPower>(choiceContext, cardPlay.Target, card.IsUpgraded ? 2m : 1m, card.Owner.Creature, card);
+    }
+
+    private static async Task PlayNull(Null card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        var alreadyWeak = cardPlay.Target.HasPower<WeakPower>();
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(choiceContext);
+        await Bd.ApplyPower<WeakPower>(choiceContext, cardPlay.Target, card.DynamicVars.Weak.BaseValue, card.Owner.Creature, card);
+        await OrbCmd.Channel<DarkOrb>(choiceContext, card.Owner);
+        if (alreadyWeak)
+            await OrbCmd.Channel<DarkOrb>(choiceContext, card.Owner);
+    }
+
     private static bool IsCurrentTwoCost(CardModel card)
     {
         try
@@ -874,6 +1245,247 @@ internal static class BdCustomBeamCellHoverTipsPatch
             return true;
         __result = [HoverTipFactory.FromPower<BdLockOnPower>()];
         return false;
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomFightThroughHoverTipsPatch
+{
+    private static MethodBase? TargetMethod() => AccessTools.PropertyGetter(typeof(FightThrough), "ExtraHoverTips");
+
+    private static bool Prefix(FightThrough __instance, ref IEnumerable<IHoverTip> __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance))
+            return true;
+        __result = [HoverTipFactory.FromCard<Dazed>()];
+        return false;
+    }
+}
+
+/// <summary>
+/// Refract keeps its printed base cost at three, but its final combat cost is
+/// two whenever its owner currently has at least one Glass orb.
+/// </summary>
+[HarmonyPatch(typeof(AbstractModel), nameof(AbstractModel.TryModifyEnergyCostInCombat))]
+internal static class BdCustomRefractCostPatch
+{
+    private static bool Prefix(AbstractModel __instance, CardModel card, decimal originalCost, ref decimal modifiedCost, ref bool __result)
+    {
+        if (__instance is not Refract source || card is not Refract)
+            return true;
+        if (!ReferenceEquals(source.Owner, card.Owner) || !BdCardVersionUpgrades.IsVersionEnabled(card))
+            return true;
+        if (!card.Owner.PlayerCombatState.OrbQueue.Orbs.Any(orb => orb is GlassOrb))
+            return true;
+
+        modifiedCost = Math.Min(originalCost, 2m);
+        __result = modifiedCost != originalCost;
+        return false;
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomHailstormPowerPatch
+{
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(HailstormPower), "BeforeSideTurnEnd");
+
+    private static bool Prefix(
+        HailstormPower __instance,
+        PlayerChoiceContext choiceContext,
+        CombatSide side,
+        IEnumerable<Creature> participants,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Hailstorm>())
+            return true;
+        __result = Trigger(__instance, choiceContext, participants);
+        return false;
+    }
+
+    private static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext, IEnumerable<Creature> participants)
+    {
+        if (!participants.Contains(power.Owner)) return;
+        var frostCount = power.Owner.Player.PlayerCombatState.OrbQueue.Orbs.Count(orb => orb is FrostOrb);
+        if (frostCount <= 0) return;
+        await CreatureCmd.Damage(
+            choiceContext,
+            power.CombatState.HittableEnemies,
+            power.Amount * frostCount,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
+            power.Owner);
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomIterationPowerPatch
+{
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(IterationPower), "AfterCardDrawn");
+
+    private static void Postfix(
+        IterationPower __instance,
+        PlayerChoiceContext choiceContext,
+        CardModel card,
+        bool fromHandDraw,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Iteration>() || card.Owner.Creature != __instance.Owner || card.Type != CardType.Status)
+            return;
+
+        var firstStatus = CombatManager.Instance.History.Entries.OfType<CardDrawnEntry>().Count(entry =>
+            entry.HappenedThisTurn(__instance.CombatState)
+            && entry.Actor == __instance.Owner
+            && entry.Card.Type == CardType.Status) <= 1;
+        if (firstStatus)
+            __result = FinishAndExhaust(__result, choiceContext, card);
+    }
+
+    private static async Task FinishAndExhaust(Task original, PlayerChoiceContext choiceContext, CardModel card)
+    {
+        await original;
+        try
+        {
+            if (card.Pile?.Type == PileType.Hand)
+                await CardCmd.Exhaust(choiceContext, card);
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] Iteration could not exhaust drawn status: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomLoopPowerPatch
+{
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(LoopPower), "AfterPlayerTurnStart");
+
+    private static bool Prefix(LoopPower __instance, PlayerChoiceContext choiceContext, Player player, ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Loop>())
+            return true;
+        __result = Trigger(__instance, choiceContext, player);
+        return false;
+    }
+
+    private static async Task Trigger(LoopPower power, PlayerChoiceContext choiceContext, Player player)
+    {
+        if (player != power.Owner.Player) return;
+        var orbs = player.PlayerCombatState.OrbQueue.Orbs.ToList();
+        if (orbs.Count == 0) return;
+        await OrbCmd.Passive(choiceContext, orbs[0], null);
+        await Cmd.Wait(0.25f);
+        if (orbs.Count > 1 && player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1]))
+        {
+            await OrbCmd.Passive(choiceContext, orbs[^1], null);
+            await Cmd.Wait(0.25f);
+        }
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomSmokestackPowerPatch
+{
+    private sealed class TriggerState
+    {
+        public int Round = int.MinValue;
+        public bool Drew;
+    }
+
+    private static readonly ConditionalWeakTable<SmokestackPower, TriggerState> States = new();
+
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(SmokestackPower), "AfterCardGeneratedForCombat");
+
+    private static bool Prefix(SmokestackPower __instance, CardModel card, Player? creator, ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Smokestack>())
+            return true;
+        __result = Trigger(__instance, card, creator);
+        return false;
+    }
+
+    private static async Task Trigger(SmokestackPower power, CardModel card, Player? creator)
+    {
+        if (card.Type != CardType.Status || creator?.Creature != power.Owner)
+            return;
+
+        var context = new ThrowingPlayerChoiceContext();
+        await CreatureCmd.Damage(
+            context,
+            power.CombatState.HittableEnemies,
+            power.Amount,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
+            power.Owner,
+            null);
+
+        var state = States.GetOrCreateValue(power);
+        var round = power.CombatState.RoundNumber;
+        if (state.Round != round)
+        {
+            state.Round = round;
+            state.Drew = false;
+        }
+        if (!state.Drew)
+        {
+            state.Drew = true;
+            await CardPileCmd.Draw(context, 1m, power.Owner.Player);
+        }
+    }
+}
+
+[HarmonyPatch]
+internal static class BdCustomSubroutinePowerPatch
+{
+    private sealed class TriggerState
+    {
+        public int Round = int.MinValue;
+        public bool Drew;
+    }
+
+    private static readonly ConditionalWeakTable<SubroutinePower, TriggerState> States = new();
+    private static readonly FieldInfo? InternalDataField = AccessTools.Field(typeof(PowerModel), "_internalData");
+
+    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(SubroutinePower), "AfterCardPlayed");
+
+    private static void Prefix(SubroutinePower __instance, CardPlay cardPlay, out bool __state)
+    {
+        __state = BdCardVersionUpgrades.IsVersionEnabled<Subroutine>() && WasTrackedByVanilla(__instance, cardPlay.Card);
+    }
+
+    private static void Postfix(
+        SubroutinePower __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        bool __state,
+        ref Task __result)
+    {
+        if (!__state) return;
+        var state = States.GetOrCreateValue(__instance);
+        var round = __instance.CombatState.RoundNumber;
+        if (state.Round != round)
+        {
+            state.Round = round;
+            state.Drew = false;
+        }
+        if (state.Drew) return;
+        state.Drew = true;
+        __result = FinishAndDraw(__result, choiceContext, __instance.Owner.Player);
+    }
+
+    private static bool WasTrackedByVanilla(SubroutinePower power, CardModel card)
+    {
+        try
+        {
+            var data = InternalDataField?.GetValue(power);
+            var field = data == null ? null : AccessTools.Field(data.GetType(), "amountsForPlayedCards");
+            return field?.GetValue(data) is IDictionary dictionary && dictionary.Contains(card);
+        }
+        catch { return false; }
+    }
+
+    private static async Task FinishAndDraw(Task original, PlayerChoiceContext choiceContext, Player player)
+    {
+        await original;
+        await CardPileCmd.Draw(choiceContext, 1m, player);
     }
 }
 

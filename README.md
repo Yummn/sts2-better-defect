@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.0): adds 16 user-approved optional uncommon-card transformations for Chaos, Double Energy, Fight Through, Skim, Tempest, White Noise, FTL, Null, Refract, Feral, Hailstorm, Iteration, Loop, Smokestack, Storm and Subroutine. Base/upgraded values, combat behavior and Chinese descriptions are synchronized. PC v0.107.1 and Android v0.103.2 compile successfully; offline regression audit 135/135.
+
 - [v0.9.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.4): fixes transformed Tesla Coil text. Normal: 3 damage and trigger every Lightning passive once. Upgraded: 4 damage and trigger every Lightning passive twice. Behavior is unchanged and matches the corrected text.
 
 - [v0.9.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.3): fixes encyclopedia upgrade/odds controls leaking into combat, shop, deck and pile screens after visiting the encyclopedia. It requires current-scene ownership and synchronously strips controls from pooled card nodes on exit. Card art remains active. Offline audit 117/117; Android v0.103.2 startup and encyclopedia transition verified.
@@ -152,6 +154,6 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Install
 
-Download `BetterDefect-v0.9.2-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.9.2-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.10.0-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.10.0-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.

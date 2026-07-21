@@ -3,8 +3,8 @@
 
 These checks deliberately do not start Slay the Spire 2.  They verify the
 restored-card registry, every recreated StS1 card's defining values/behavior,
-the four audited power fixes, 14 historical-version routes, and 11 additional
-custom common-card transformations (Uproar reuses an existing route).
+the four audited power fixes, 14 historical-version routes, 11 additional
+custom common-card transformations, and 16 custom uncommon-card transformations.
 """
 
 from __future__ import annotations
@@ -147,8 +147,11 @@ def main() -> int:
         "Fusion", "Synthesis", "Compact", "MomentumStrike", "Scrape", "Sunder", "TrashToTreasure",
         "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "GoForTheEyes", "GunkUp", "Leap",
         "LightningRod", "SweepingBeam", "BdRecursion", "BdStreamline",
+        "Chaos", "DoubleEnergy", "FightThrough", "Skim", "Tempest", "WhiteNoise",
+        "Ftl", "Null", "Refract", "Feral", "Hailstorm", "Iteration", "Loop",
+        "Smokestack", "Storm", "Subroutine",
     ]
-    check("card-transformation registry contains exactly 25 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 41 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -176,6 +179,26 @@ def main() -> int:
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
+    uncommon_behavior_checks = {
+        "Chaos prioritizes missing orb types": "missing.Count > 0 ? missing : canonical",
+        "Double Energy draws one card": "PlayDoubleEnergy",
+        "Fight Through generates Dazed": "Bd.CreateCard<Dazed>",
+        "Skim discards before drawing": "PlaySkim",
+        "Tempest draws when overflow evokes Lightning": "if (evokedLightning)",
+        "White Noise offers three powers": "PlayWhiteNoise",
+        "FTL fallback applies Lock-On": "PlayFtl",
+        "Null checks pre-existing Weak": "var alreadyWeak = cardPlay.Target.HasPower<WeakPower>()",
+        "Refract costs two with Glass": "Math.Min(originalCost, 2m)",
+        "Feral upgrade returns two zero-cost attacks": "upgradedVersion && plus ? 2m : 1m",
+        "Hailstorm scales with Frost count": "power.Amount * frostCount",
+        "Iteration exhausts the first drawn status": "FinishAndExhaust",
+        "Loop triggers both edge orbs": "BdCustomLoopPowerPatch",
+        "Smokestack draws on its first trigger": "BdCustomSmokestackPowerPatch",
+        "Storm gains Innate when transformed": "SetKeyword(card, CardKeyword.Innate, upgradedVersion)",
+        "Subroutine draws on its first trigger": "BdCustomSubroutinePowerPatch",
+    }
+    for name, token in uncommon_behavior_checks.items():
+        check(name, token in versions)
     check("Recursion custom route double-evokes the leftmost orb", "OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false)" in cards)
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
@@ -193,6 +216,12 @@ def main() -> int:
         "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "goForTheEyesCustom",
         "gunkUpCustom", "leapCustom", "lightningRodCustom", "sweepingBeamCustom", "uproarCustom",
         "recursionCustom", "streamlineCustom",
+    )))
+    check("custom uncommon-card descriptions follow their switches", all(token in localization for token in (
+        "chaosCustom", "doubleEnergyCustom", "fightThroughCustom", "skimCustom", "tempestCustom",
+        "whiteNoiseCustom", "ftlCustom", "nullCustom", "refractCustom", "feralCustom",
+        "hailstormCustom", "iterationCustom", "loopCustom", "smokestackCustom", "stormCustom",
+        "subroutineCustom",
     )))
     check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
     check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
@@ -280,7 +309,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.9.4", '"version":  "0.9.4"' in manifest)
+    check("manifest is v0.10.0", '"version":  "0.10.0"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -296,7 +325,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.9.4 offline audit",
+        "BetterDefect v0.10.0 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

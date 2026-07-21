@@ -87,7 +87,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.9.4: transformed Tesla Coil now describes 3 damage/one Lightning passive before upgrade and 4 damage/two passives after upgrade; encyclopedia scope and power icon fixes remain active; BaseLib not required.");
+        Logger.Info("[BetterDefect] loaded v0.10.0: added 16 user-approved uncommon-card transformations with matching base/upgrade values and descriptions; encyclopedia scope, dynamic odds, power icons and BaseLib-free mobile support remain active.");
     }
 
     internal static bool IsAndroidRuntime()

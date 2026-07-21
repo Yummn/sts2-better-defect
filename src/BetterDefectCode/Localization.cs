@@ -143,6 +143,22 @@ internal static class BdLocalization
         var uproarCustom = IsVersionEnabled<Uproar>();
         var recursionCustom = IsVersionEnabled<Cards.BdRecursion>();
         var streamlineCustom = IsVersionEnabled<Cards.BdStreamline>();
+        var chaosCustom = IsVersionEnabled<Chaos>();
+        var doubleEnergyCustom = IsVersionEnabled<DoubleEnergy>();
+        var fightThroughCustom = IsVersionEnabled<FightThrough>();
+        var skimCustom = IsVersionEnabled<Skim>();
+        var tempestCustom = IsVersionEnabled<Tempest>();
+        var whiteNoiseCustom = IsVersionEnabled<WhiteNoise>();
+        var ftlCustom = IsVersionEnabled<Ftl>();
+        var nullCustom = IsVersionEnabled<Null>();
+        var refractCustom = IsVersionEnabled<Refract>();
+        var feralCustom = IsVersionEnabled<Feral>();
+        var hailstormCustom = IsVersionEnabled<Hailstorm>();
+        var iterationCustom = IsVersionEnabled<Iteration>();
+        var loopCustom = IsVersionEnabled<Loop>();
+        var smokestackCustom = IsVersionEnabled<Smokestack>();
+        var stormCustom = IsVersionEnabled<Storm>();
+        var subroutineCustom = IsVersionEnabled<Subroutine>();
 
         var descriptions = new Dictionary<string, string>
         {
@@ -215,6 +231,70 @@ internal static class BdLocalization
             ["BD_STREAMLINE.description"] = streamlineCustom
                 ? "造成{Damage:diff()}点伤害。\n每次打出后，使本场战斗中所有[gold]精简改良[/gold]的费用减少1。"
                 : "造成{Damage:diff()}点伤害。\n本场战斗中每次打出后费用减少1。",
+
+            ["CHAOS.description"] = chaosCustom
+                ? "[gold]生成[/gold]{Repeat:diff()}个随机充能球。优先生成当前充能球栏位中没有的种类。"
+                : "[gold]生成[/gold]{Repeat:diff()}个随机充能球。",
+
+            ["DOUBLE_ENERGY.description"] = doubleEnergyCustom
+                ? "将你的能量翻倍。\n抽1张牌。"
+                : "将你的能量翻倍。",
+
+            ["FIGHT_THROUGH.description"] = fightThroughCustom
+                ? "获得{Block:diff()}点[gold]格挡[/gold]。\n将2张[gold]眩晕[/gold]加入你的[gold]弃牌堆[/gold]。"
+                : "获得{Block:diff()}点[gold]格挡[/gold]。\n将2张[gold]伤口[/gold]加入你的[gold]弃牌堆[/gold]。",
+
+            ["SKIM.description"] = skimCustom
+                ? "丢弃1张牌。\n抽{Cards:diff()}张牌。"
+                : "抽{Cards:diff()}张牌。",
+
+            ["TEMPEST.description"] = tempestCustom
+                ? "[gold]生成[/gold]{IfUpgraded:show:X+1|X}个[gold]闪电[/gold]充能球。\n每因此[gold]激发[/gold]1个[gold]闪电[/gold]充能球，抽1张牌。"
+                : "[gold]生成[/gold]{IfUpgraded:show:X+1|X}个[gold]闪电[/gold]充能球。",
+
+            ["WHITE_NOISE.description"] = whiteNoiseCustom
+                ? "从3张随机机器人能力牌中选择1张加入你的[gold]手牌[/gold]。这张牌在本回合内免费打出。"
+                : "将一张随机能力牌加入你的[gold]手牌[/gold]。这张牌在本回合内免费打出。",
+
+            ["FTL.description"] = ftlCustom
+                ? "造成{Damage:diff()}点伤害。\n如果你在这回合打出的牌数小于{PlayMax:diff()}张，抽1张牌；否则给予{IfUpgraded:show:2|1}层[gold]锁定[/gold]。"
+                : "造成{Damage:diff()}点伤害。\n如果你在这回合打出的牌数小于{PlayMax:diff()}张，抽1张牌。",
+
+            ["NULL.description"] = nullCustom
+                ? "造成{Damage:diff()}点伤害。\n给予{WeakPower:diff()}层[gold]虚弱[/gold]。\n[gold]生成[/gold]1个[gold]黑暗[/gold]充能球。若目标在打出前已有[gold]虚弱[/gold]，再生成1个。"
+                : "造成{Damage:diff()}点伤害。\n给予{WeakPower:diff()}层[gold]虚弱[/gold]。\n[gold]生成[/gold]1个[gold]黑暗[/gold]充能球。",
+
+            ["REFRACT.description"] = refractCustom
+                ? "造成{Damage:diff()}点伤害两次。\n[gold]生成[/gold]{Repeat:diff()}个[gold]玻璃[/gold]充能球。若充能球栏位中有[gold]玻璃[/gold]，此牌耗能变为2。"
+                : "造成{Damage:diff()}点伤害两次。\n[gold]生成[/gold]{Repeat:diff()}个[gold]玻璃[/gold]充能球。",
+
+            ["FERAL.description"] = feralCustom
+                ? "你每回合打出的{FeralPower:choose(1):第一张|前{FeralPower:diff()}张}耗能为0{energyPrefix:energyIcons(1)}的攻击牌，会放回你的[gold]手牌[/gold]。"
+                : "你每回合打出的{FeralPower:choose(1):第一张|前{FeralPower:diff()}张}\n耗能为0{energyPrefix:energyIcons(1)}的攻击牌，\n会放回你的[gold]手牌[/gold]。",
+
+            ["HAILSTORM.description"] = hailstormCustom
+                ? "在你的回合结束时，每有1个[gold]冰霜[/gold]充能球，就对所有敌人造成{HailstormPower:diff()}点伤害。"
+                : "在你的回合结束时，如果你有[gold]冰霜[/gold]充能球，则对所有敌人造成{HailstormPower:diff()}点伤害。",
+
+            ["ITERATION.description"] = iterationCustom
+                ? "每回合你第一次抽到状态牌时，抽{IterationPower:diff()}张牌，然后[gold]消耗[/gold]该状态牌。"
+                : "每回合你第一次抽到状态牌时，抽{IterationPower:diff()}张牌。",
+
+            ["LOOP.description"] = loopCustom
+                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动一次。同一个充能球只触发一次。"
+                : "在你的回合开始时，触发你最右侧的一个充能球的被动能力{IfUpgraded:show:2次}。",
+
+            ["SMOKESTACK.description"] = smokestackCustom
+                ? "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。每回合第一次触发时，额外抽1张牌。"
+                : "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。",
+
+            ["STORM.description"] = stormCustom
+                ? "[gold]固有[/gold]。\n每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。"
+                : "每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。",
+
+            ["SUBROUTINE.description"] = subroutineCustom
+                ? "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。每回合第一次触发时，额外抽1张牌。"
+                : "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。",
         };
 
         manager.GetTable("cards").MergeWith(descriptions);
