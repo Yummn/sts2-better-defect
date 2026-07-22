@@ -276,7 +276,10 @@ internal static partial class BdDynamicOddsStatsHud
         public override void _Process(double delta)
         {
             _timer += delta;
-            if (_timer < 0.45)
+            // Card details are a global overlay while the encyclopedia grid
+            // remains alive below it. Poll quickly enough to remove/reapply
+            // encyclopedia-only controls as the detail screen opens/closes.
+            if (_timer < 0.10)
                 return;
             _timer = 0;
 

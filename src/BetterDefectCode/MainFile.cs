@@ -40,12 +40,11 @@ public partial class MainFile : Node
             }
             if (android && IsRedundantAndroidCardLibraryPatch(type))
             {
-                // On Android the encyclopedia is driven by InitGrid and
-                // AssignCardsToRow, while its own watcher handles temporary
-                // hide/show transitions. Avoid redundant NCard/NSubmenu hooks:
-                // each native ARM64 trampoline increases startup fragility and
-                // these callbacks add no behavior that the two grid hooks and
-                // the explicit close hook do not already cover.
+                // Android drives the encyclopedia UI entirely from the
+                // lightweight LibraryWatcher. Avoid all native card-library
+                // trampolines: every extra ARM64 detour increases startup
+                // fragility, while the watcher can apply, remove and refresh
+                // the same controls without patching game UI methods.
                 Logger.Warn($"[BetterDefect] skipping redundant Android card-library hook {type.FullName}.");
                 continue;
             }
@@ -108,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.3: Android startup skips the ARM64-unsafe LightningOrb detour while keeping encyclopedia card-point controls active.");
+        Logger.Info("[BetterDefect] loaded v0.10.5: encyclopedia controls are suppressed while the card-detail overlay is open; Android omits the redundant library-open detour.");
     }
 
     internal static bool IsAndroidRuntime()
@@ -130,6 +129,13 @@ public partial class MainFile : Node
     }
 
     private static bool IsRedundantAndroidCardLibraryPatch(Type type) =>
+        type == typeof(BdDynamicOddsCardLibraryClosedPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryFilterPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryFinalFilterPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryGridAssignPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryGridInitPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryOpenedPatch) ||
+        type == typeof(BdDynamicOddsCardLibraryUpgradePreviewPatch) ||
         type == typeof(BdDynamicOddsCardLibraryVisibilityPatch) ||
         type == typeof(BdDynamicOddsCardModelSetPatch) ||
         type == typeof(BdDynamicOddsCardReloadPatch) ||

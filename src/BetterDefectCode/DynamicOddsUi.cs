@@ -2,6 +2,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
@@ -307,7 +308,10 @@ internal static class BdDynamicOddsCardUi
                 Position = GetTogglePosition(ToggleButtonSize),
                 FocusMode = Control.FocusModeEnum.None,
                 MouseFilter = Control.MouseFilterEnum.Stop,
-                ZIndex = 4095,
+                // Keep the control above the card art, but below the game's
+                // global inspect-card overlay. The old 4095 value punched
+                // through the detail popup.
+                ZIndex = 40,
                 TooltipText = "BetterDefect：点击禁用/启用这张机器人卡牌的奖励出率"
             };
             ApplyCardBeautifyStyle(button);
@@ -391,7 +395,7 @@ internal static class BdDynamicOddsCardUi
                 Position = GetUpgradeTogglePosition(),
                 FocusMode = Control.FocusModeEnum.None,
                 MouseFilter = Control.MouseFilterEnum.Stop,
-                ZIndex = 4096
+                ZIndex = 41
             };
 
             void ToggleFromButton() => ToggleVersionUpgradeFromButton(cardNode);
@@ -916,6 +920,18 @@ internal static class BdDynamicOddsCardUi
 
     internal static bool IsCardLibraryContext(Node node)
     {
+        // The inspect-card screen is a global overlay and leaves the library
+        // grid visible underneath. Treat the grid as inactive while that
+        // overlay is open, otherwise its controls bleed onto card details.
+        try
+        {
+            var inspect = NGame.Instance?.InspectCardScreen;
+            if (inspect is CanvasItem inspectItem &&
+                inspectItem.IsInsideTree() && inspectItem.Visible && inspectItem.IsVisibleInTree())
+                return false;
+        }
+        catch { }
+
         NCardLibrary? library = null;
         NCardLibraryGrid? grid = null;
 
