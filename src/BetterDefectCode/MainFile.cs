@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.6: transformed Feral costs 2(1) and returns the first zero-energy card of any type each turn.");
+        Logger.Info("[BetterDefect] loaded v0.10.7: transformed Lightning Rod grants 5(6) Block.");
     }
 
     internal static bool IsAndroidRuntime()

@@ -179,6 +179,11 @@ def main() -> int:
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
+    check(
+        "Lightning Rod transformed Block is five and upgrades to six",
+        'upgradedVersion\n                    ? plus ? 6m : 5m' in versions
+        and 'upgradedVersion ? plus ? 6m : 5m : plus ? 7m : 4m' in versions,
+    )
     uncommon_behavior_checks = {
         "Chaos prioritizes missing orb types": "missing.Count > 0 ? missing : canonical",
         "Double Energy draws one card": "PlayDoubleEnergy",
@@ -310,7 +315,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.6", '"version":  "0.10.6"' in manifest)
+    check("manifest is v0.10.7", '"version":  "0.10.7"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -326,7 +331,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.6 offline audit",
+        "BetterDefect v0.10.7 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
