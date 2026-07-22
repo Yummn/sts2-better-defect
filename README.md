@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.6): changes transformed Feral to cost 2 energy (1 when upgraded). Its first zero-energy card each turn now returns to hand regardless of card type; upgrading no longer increases the number of returned cards. PC v0.107.1 and Android v0.103.2 builds pass the 120-check offline audit.
+
 - [v0.10.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.5): fixes encyclopedia controls remaining over the card-detail overlay. Upgrade and disable controls are removed while details are open and restored on return; Android uses the lightweight library watcher instead of fragile redundant native UI detours. Verified live on PC v0.107.1 and REDMI K80 Pro / Android v0.103.2.
 
 - [v0.10.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.0): adds 16 user-approved optional uncommon-card transformations for Chaos, Double Energy, Fight Through, Skim, Tempest, White Noise, FTL, Null, Refract, Feral, Hailstorm, Iteration, Loop, Smokestack, Storm and Subroutine. Base/upgraded values, combat behavior and Chinese descriptions are synchronized. PC v0.107.1 and Android v0.103.2 compile successfully; offline regression audit 135/135.

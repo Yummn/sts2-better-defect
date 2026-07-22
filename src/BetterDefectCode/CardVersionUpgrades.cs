@@ -90,7 +90,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.FTL"] = ("改造：自定义", "0费造成5(7)伤害；前三(四)张牌内抽1张，否则施加1(2)层锁定"),
             ["CARD.NULL"] = ("改造：自定义", "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个"),
             ["CARD.REFRACT"] = ("改造：自定义", "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费"),
-            ["CARD.FERAL"] = ("改造：自定义", "1费；每回合前1(2)张0费攻击牌返回手牌"),
+            ["CARD.FERAL"] = ("改造：自定义", "2(1)费；每回合第一次打出的0费牌返回手牌"),
             ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害"),
             ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
             ["CARD.LOOP"] = ("改造：自定义", "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次"),
@@ -168,7 +168,7 @@ internal static class BdCardVersionUpgrades
         Ftl => "0费造成5(7)伤害；前三(四)张牌内抽1张，否则施加1(2)层锁定",
         Null => "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个",
         Refract => "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费",
-        Feral => "1费；每回合前1(2)张0费攻击牌返回手牌",
+        Feral => "2(1)费；每回合第一次打出的0费牌返回手牌",
         Hailstorm => "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害",
         Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
         Loop => "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次",
@@ -319,8 +319,8 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case Feral:
-                SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
-                SetDynamic(card, "FeralPower", upgradedVersion && plus ? 2m : 1m);
+                SetEnergy(card, plus ? 1 : 2);
+                SetDynamic(card, "FeralPower", 1m);
                 break;
 
             case Hailstorm:
@@ -518,7 +518,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case Feral:
                 SetEnergy(card, 1);
-                UpgradeDynamicTo(card, "FeralPower", upgradedVersion ? 2m : 1m);
+                UpgradeDynamicTo(card, "FeralPower", 1m);
                 break;
             case Hailstorm:
                 UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m);
@@ -675,8 +675,8 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Repeat", 2m);
                 break;
             case "CARD.FERAL":
-                SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
-                SetDynamic(card, "FeralPower", upgradedVersion && plus ? 2m : 1m);
+                SetEnergy(card, plus ? 1 : 2);
+                SetDynamic(card, "FeralPower", 1m);
                 break;
             case "CARD.HAILSTORM":
                 SetDynamic(card, "HailstormPower", upgradedVersion ? plus ? 3m : 2m : plus ? 8m : 6m);
@@ -788,7 +788,7 @@ internal static class BdCardVersionUpgrades
             case "CARD.REFRACT": UpgradeDynamicTo(card, "Damage", 12m); break;
             case "CARD.FERAL":
                 SetEnergy(card, 1);
-                UpgradeDynamicTo(card, "FeralPower", upgradedVersion ? 2m : 1m);
+                UpgradeDynamicTo(card, "FeralPower", 1m);
                 break;
             case "CARD.HAILSTORM": UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m); break;
             case "CARD.ITERATION": UpgradeDynamicTo(card, "IterationPower", 3m); break;
@@ -1280,6 +1280,40 @@ internal static class BdCustomRefractCostPatch
 
         modifiedCost = Math.Min(originalCost, 2m);
         __result = modifiedCost != originalCost;
+        return false;
+    }
+}
+
+/// <summary>
+/// The transformed Feral applies to the first zero-energy card of any type,
+/// rather than only to zero-energy attacks. The native power still owns the
+/// per-turn counter, stacking, flash, and reset behavior.
+/// </summary>
+[HarmonyPatch]
+internal static class BdCustomFeralPowerResultPatch
+{
+    private static MethodBase? TargetMethod() =>
+        AccessTools.DeclaredMethod(typeof(FeralPower), nameof(FeralPower.ModifyCardPlayResultPileTypeAndPosition));
+
+    private static bool Prefix(
+        FeralPower __instance,
+        CardModel card,
+        bool isAutoPlay,
+        ResourceInfo resources,
+        PileType pileType,
+        CardPilePosition position,
+        ref ValueTuple<PileType, CardPilePosition> __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Feral>())
+            return true;
+
+        __result = (pileType, position);
+        if (card.Owner.Creature == __instance.Owner &&
+            resources.EnergyValue <= 0 &&
+            __instance.DisplayAmount > 0)
+        {
+            __result = (PileType.Hand, CardPilePosition.Top);
+        }
         return false;
     }
 }

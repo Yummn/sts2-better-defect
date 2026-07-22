@@ -189,7 +189,8 @@ def main() -> int:
         "FTL fallback applies Lock-On": "PlayFtl",
         "Null checks pre-existing Weak": "var alreadyWeak = cardPlay.Target.HasPower<WeakPower>()",
         "Refract costs two with Glass": "Math.Min(originalCost, 2m)",
-        "Feral upgrade returns two zero-cost attacks": "upgradedVersion && plus ? 2m : 1m",
+        "Feral custom card costs two and upgrades to one": 'SetEnergy(card, plus ? 1 : 2)',
+        "Feral custom power returns any zero-energy card": "BdCustomFeralPowerResultPatch",
         "Hailstorm scales with Frost count": "power.Amount * frostCount",
         "Iteration exhausts the first drawn status": "FinishAndExhaust",
         "Loop triggers both edge orbs": "BdCustomLoopPowerPatch",
@@ -223,6 +224,7 @@ def main() -> int:
         "hailstormCustom", "iterationCustom", "loopCustom", "smokestackCustom", "stormCustom",
         "subroutineCustom",
     )))
+    check("Feral custom text includes every zero-energy card type", '? "你每回合第一次打出的耗能为0' in localization and '的牌，会放回你的[gold]手牌[/gold]' in localization)
     check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
     check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
@@ -277,9 +279,8 @@ def main() -> int:
     )
     check(
         "card-detail popup invalidates encyclopedia control scope",
-        "HasVisibleCardOutsideGrid(grid)" in ui
-        and "root is NCard card && IsVisibleInTreeStrict(card)" in ui
-        and "ReferenceEquals(root, grid)" in ui,
+        "NGame.Instance?.InspectCardScreen" in ui
+        and "inspectItem.IsVisibleInTree()" in ui,
     )
     check(
         "BetterDefect controls disappear synchronously before pooled-node release",
@@ -309,7 +310,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.0", '"version":  "0.10.0"' in manifest)
+    check("manifest is v0.10.6", '"version":  "0.10.6"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -325,7 +326,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.0 offline audit",
+        "BetterDefect v0.10.6 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

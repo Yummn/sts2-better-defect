@@ -269,7 +269,7 @@ internal static class BdLocalization
                 : "造成{Damage:diff()}点伤害两次。\n[gold]生成[/gold]{Repeat:diff()}个[gold]玻璃[/gold]充能球。",
 
             ["FERAL.description"] = feralCustom
-                ? "你每回合打出的{FeralPower:choose(1):第一张|前{FeralPower:diff()}张}耗能为0{energyPrefix:energyIcons(1)}的攻击牌，会放回你的[gold]手牌[/gold]。"
+                ? "你每回合第一次打出的耗能为0{energyPrefix:energyIcons(1)}的牌，会放回你的[gold]手牌[/gold]。"
                 : "你每回合打出的{FeralPower:choose(1):第一张|前{FeralPower:diff()}张}\n耗能为0{energyPrefix:energyIcons(1)}的攻击牌，\n会放回你的[gold]手牌[/gold]。",
 
             ["HAILSTORM.description"] = hailstormCustom

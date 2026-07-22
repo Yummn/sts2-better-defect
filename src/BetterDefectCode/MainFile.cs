@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.5: encyclopedia controls are suppressed while the card-detail overlay is open; Android omits the redundant library-open detour.");
+        Logger.Info("[BetterDefect] loaded v0.10.6: transformed Feral costs 2(1) and returns the first zero-energy card of any type each turn.");
     }
 
     internal static bool IsAndroidRuntime()
