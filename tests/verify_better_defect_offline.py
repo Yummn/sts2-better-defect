@@ -132,13 +132,20 @@ def main() -> int:
 
     power_specs = {
         "BdHeatsinksPower": ("AfterCardPlayed", "CardType.Power", "CardPileCmd.Draw"),
-        "BdSelfRepairPower": ("AfterCombatVictory", "CreatureCmd.Heal"),
+        "BdSelfRepairPower": ("AfterCombatEnd", "CreatureCmd.Heal"),
         "BdAmplifyPower": ("ModifyCardPlayCount", "playCount + 1", "AfterModifyingCardPlayCount", "PowerCmd.Decrement", "AfterSideTurnEnd", "PowerCmd.Remove"),
     }
     for class_name, tokens in power_specs.items():
         body = class_body(cards, class_name)
         missing = [token for token in tokens if token not in body]
         check(f"{class_name} effect route audit", not missing, f"missing {missing}")
+    self_repair_power = class_body(cards, "BdSelfRepairPower")
+    check(
+        "Self Repair heals before combat powers are removed",
+        "AfterCombatEnd" in self_repair_power
+        and "override Task AfterCombatVictory" not in self_repair_power
+        and "CreatureCmd.Heal(Owner, Amount)" in self_repair_power,
+    )
 
     version_list_match = re.search(r"VersionedCardTypes\s*=\s*\[(?P<body>.*?)\];", versions, re.S)
     version_types = re.findall(r"typeof\((\w+)\)", version_list_match.group("body") if version_list_match else "")
@@ -354,7 +361,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.9", '"version":  "0.10.9"' in manifest)
+    check("manifest is v0.10.10", '"version":  "0.10.10"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -370,7 +377,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.9 offline audit",
+        "BetterDefect v0.10.10 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

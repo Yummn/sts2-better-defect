@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.9: Android v103-compatible Smokestack and Subroutine draw patches enabled.");
+        Logger.Info("[BetterDefect] loaded v0.10.10: Self Repair now heals during combat-end hooks before powers are removed.");
     }
 
     internal static bool IsAndroidRuntime()

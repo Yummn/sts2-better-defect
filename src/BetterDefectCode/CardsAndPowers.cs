@@ -794,7 +794,12 @@ public sealed class BdSelfRepairPower : PowerModel
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
-    public override Task AfterCombatVictory(CombatRoom room) => CreatureCmd.Heal(Owner, Amount);
+
+    // Combat teardown removes all powers before AfterCombatVictory is
+    // dispatched. Heal from AfterCombatEnd instead, while this power is still
+    // registered as a hook listener. This ordering is shared by Android v103
+    // and PC v107.1.
+    public override Task AfterCombatEnd(CombatRoom room) => CreatureCmd.Heal(Owner, Amount);
 }
 
 public sealed class BdStaticDischargePower : PowerModel
