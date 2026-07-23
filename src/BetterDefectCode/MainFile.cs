@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.8: transformed Barrage gains 2(3) temporary Focus while triggering every orb passive once.");
+        Logger.Info("[BetterDefect] loaded v0.10.9: Android v103-compatible Smokestack and Subroutine draw patches enabled.");
     }
 
     internal static bool IsAndroidRuntime()

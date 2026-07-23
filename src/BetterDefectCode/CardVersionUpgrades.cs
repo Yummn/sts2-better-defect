@@ -1496,17 +1496,31 @@ internal static class BdCustomSmokestackPowerPatch
 
     private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(SmokestackPower), "AfterCardGeneratedForCombat");
 
-    private static bool Prefix(SmokestackPower __instance, CardModel card, Player? creator, ref Task __result)
+    private static bool Prefix(SmokestackPower __instance, object[] __args, ref Task __result)
     {
         if (!BdCardVersionUpgrades.IsVersionEnabled<Smokestack>())
             return true;
-        __result = Trigger(__instance, card, creator);
+
+        if (__args.Length < 2 || __args[0] is not CardModel card)
+            return true;
+
+        // v0.103 uses (CardModel card, bool addedByPlayer), while newer PC
+        // builds use (CardModel card, Player? creator). Avoid binding the
+        // Harmony patch to either version's second argument name/type.
+        var generatedByOwner = __args[1] switch
+        {
+            bool addedByPlayer => addedByPlayer && card.Owner?.Creature == __instance.Owner,
+            Player creator => creator.Creature == __instance.Owner,
+            _ => false
+        };
+
+        __result = Trigger(__instance, card, generatedByOwner);
         return false;
     }
 
-    private static async Task Trigger(SmokestackPower power, CardModel card, Player? creator)
+    private static async Task Trigger(SmokestackPower power, CardModel card, bool generatedByOwner)
     {
-        if (card.Type != CardType.Status || creator?.Creature != power.Owner)
+        if (card.Type != CardType.Status || !generatedByOwner)
             return;
 
         var context = new ThrowingPlayerChoiceContext();
@@ -1547,19 +1561,23 @@ internal static class BdCustomSubroutinePowerPatch
 
     private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(SubroutinePower), "AfterCardPlayed");
 
-    private static void Prefix(SubroutinePower __instance, CardPlay cardPlay, out bool __state)
+    private static void Prefix(SubroutinePower __instance, object[] __args, out bool __state)
     {
-        __state = BdCardVersionUpgrades.IsVersionEnabled<Subroutine>() && WasTrackedByVanilla(__instance, cardPlay.Card);
+        var cardPlay = __args.Length > 1 ? __args[1] as CardPlay : null;
+        __state = BdCardVersionUpgrades.IsVersionEnabled<Subroutine>()
+            && cardPlay != null
+            && WasTrackedByVanilla(__instance, cardPlay.Card);
     }
 
     private static void Postfix(
         SubroutinePower __instance,
-        PlayerChoiceContext choiceContext,
-        CardPlay cardPlay,
+        object[] __args,
         bool __state,
         ref Task __result)
     {
         if (!__state) return;
+        if (__args.Length == 0 || __args[0] is not PlayerChoiceContext choiceContext)
+            return;
         var state = States.GetOrCreateValue(__instance);
         var round = __instance.CombatState.RoundNumber;
         if (state.Round != round)

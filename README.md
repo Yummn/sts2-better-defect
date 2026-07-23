@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.9): fixes transformed Smokestack and Subroutine not drawing on Android v0.103.2. Their Harmony patches now consume the original callback arguments by position, covering Android's `bool addedByPlayer` Smokestack callback and the parameter-name differences between Android v103 and PC v107.1. Both targets compile successfully; offline regression audit 143/143, and PC startup confirms both patches attach without errors.
+
 - [v0.10.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.8): changes transformed Barrage to gain 2 temporary Focus (3 when upgraded), trigger every orb passive once, then remove exactly that temporary Focus. The cleanup directly modifies Focus so Artifact cannot make the bonus permanent. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 141/141.
 
 - [v0.10.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.7): changes transformed Lightning Rod to grant 5 Block, or 6 when upgraded. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 138/138.

@@ -225,6 +225,21 @@ def main() -> int:
     }
     for name, token in uncommon_behavior_checks.items():
         check(name, token in versions)
+    smokestack_patch = class_body(versions, "BdCustomSmokestackPowerPatch")
+    subroutine_patch = class_body(versions, "BdCustomSubroutinePowerPatch")
+    check(
+        "Smokestack patch accepts both Android v103 and PC callback arguments",
+        "object[] __args" in smokestack_patch
+        and "bool addedByPlayer" in smokestack_patch
+        and "Player creator" in smokestack_patch
+        and "generatedByOwner" in smokestack_patch,
+    )
+    check(
+        "Subroutine patch avoids callback parameter-name drift",
+        subroutine_patch.count("object[] __args") >= 2
+        and "__args[1] as CardPlay" in subroutine_patch
+        and "__args[0] is not PlayerChoiceContext choiceContext" in subroutine_patch,
+    )
     check("Recursion custom route double-evokes the leftmost orb", "OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false)" in cards)
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
@@ -339,7 +354,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.8", '"version":  "0.10.8"' in manifest)
+    check("manifest is v0.10.9", '"version":  "0.10.9"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -355,7 +370,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.8 offline audit",
+        "BetterDefect v0.10.9 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
