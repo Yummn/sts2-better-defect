@@ -185,7 +185,7 @@ internal static class BdLocalization
                 : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按卡牌自身耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌；由全局效果暂时降为0费的牌仍会被丢弃。",
 
             ["BARRAGE.description"] = barrageCustom
-                ? "触发你的所有充能球的被动{IfUpgraded:show:两次|一次}。"
+                ? "获得{Damage:diff()}点[gold]临时集中[/gold]，然后触发你的所有充能球的被动一次。"
                 : "当前每有一个[gold]充能球[/gold]，造成{Damage:diff()}点伤害。{InCombat:\n（命中{CalculatedHits:diff()}次）|}",
 
             ["BEAM_CELL.description"] = beamCellCustom

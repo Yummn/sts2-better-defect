@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.8): changes transformed Barrage to gain 2 temporary Focus (3 when upgraded), trigger every orb passive once, then remove exactly that temporary Focus. The cleanup directly modifies Focus so Artifact cannot make the bonus permanent. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 141/141.
+
 - [v0.10.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.7): changes transformed Lightning Rod to grant 5 Block, or 6 when upgraded. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 138/138.
 
 - [v0.10.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.6): changes transformed Feral to cost 2 energy (1 when upgraded). Its first zero-energy card each turn now returns to hand regardless of card type; upgrading no longer increases the number of returned cards. PC v0.107.1 and Android v0.103.2 builds pass the 120-check offline audit.

@@ -70,7 +70,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.SCRAPE"] = ("v0.108", "正确保留被全局临时效果降为0费的牌"),
             ["CARD.SUNDER"] = ("v0.109", "伤害由24(32)提高到26(34)"),
             ["CARD.TRASH_TO_TREASURE"] = ("v0.99", "普通升级由耗能降为0改为获得固有"),
-            ["CARD.BARRAGE"] = ("改造：自定义", "1费触发所有充能球的被动一次；普通升级改为两次"),
+            ["CARD.BARRAGE"] = ("改造：自定义", "获得2(3)点临时集中，然后触发所有充能球的被动一次"),
             ["CARD.BEAM_CELL"] = ("改造：自定义", "0费施加1(2)层锁定，不再造成伤害或施加易伤"),
             ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
             ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
@@ -148,7 +148,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "正确保留被全局临时效果降为0费的牌",
         Sunder => "伤害由24(32)提高到26(34)",
         TrashToTreasure => "普通升级由耗能降为0改为获得固有",
-        Barrage => "1费触发所有充能球的被动一次；普通升级改为两次",
+        Barrage => "获得2(3)点临时集中，然后触发所有充能球的被动一次",
         BeamCell => "0费施加1(2)层锁定，不再造成伤害或施加易伤",
         ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
         ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
@@ -226,7 +226,9 @@ internal static class BdCardVersionUpgrades
         switch (card)
         {
             case Barrage:
-                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 7m : 5m);
+                // Barrage already owns a Damage DynamicVar, so reuse it as
+                // the visible temporary-Focus amount while transformed.
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 3m : 2m : plus ? 7m : 5m);
                 SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
                 break;
 
@@ -461,7 +463,7 @@ internal static class BdCardVersionUpgrades
         switch (card)
         {
             case Barrage:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 7m);
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 3m : 7m);
                 break;
             case BeamCell:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
@@ -615,7 +617,7 @@ internal static class BdCardVersionUpgrades
         switch (SafeCardId(card).ToUpperInvariant())
         {
             case "CARD.BARRAGE":
-                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 7m : 5m);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 3m : 2m : plus ? 7m : 5m);
                 SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
                 break;
             case "CARD.BEAM_CELL":
@@ -754,7 +756,7 @@ internal static class BdCardVersionUpgrades
     {
         switch (SafeCardId(card).ToUpperInvariant())
         {
-            case "CARD.BARRAGE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 7m); break;
+            case "CARD.BARRAGE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 3m : 7m); break;
             case "CARD.BEAM_CELL":
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
                 UpgradeDynamicTo(card, "VulnerablePower", 2m);
@@ -1016,14 +1018,43 @@ internal static class BdCustomCommonCardPlayPatch
 
     private static async Task PlayBarrage(Barrage card, PlayerChoiceContext choiceContext)
     {
-        var repeats = card.IsUpgraded ? 2 : 1;
-        // Snapshot the queue. Orb passives may enqueue commands or alter orb
-        // values, but every orb present when Barrage was played triggers the
-        // requested number of times, in visible left-to-right order.
+        var temporaryFocus = card.DynamicVars.Damage.BaseValue;
+        var focusApplied = false;
+        // Snapshot the queue before resolving passives. Every orb present when
+        // Barrage was played triggers once, in visible left-to-right order,
+        // while the temporary Focus is active.
         var orbs = card.Owner.PlayerCombatState.OrbQueue.Orbs.ToList();
-        for (var repeat = 0; repeat < repeats; repeat++)
+        try
+        {
+            await Bd.ApplyPower<FocusPower>(
+                choiceContext,
+                card.Owner.Creature,
+                temporaryFocus,
+                card.Owner.Creature,
+                card);
+            focusApplied = true;
             foreach (var orb in orbs)
                 await OrbCmd.Passive(choiceContext, orb, null);
+        }
+        finally
+        {
+            if (focusApplied)
+            {
+                // Remove the temporary amount directly instead of applying
+                // negative Focus, so Artifact cannot turn it into permanent
+                // Focus. ModifyPowerAmount also preserves any Focus that was
+                // already present before Barrage was played.
+                var focus = card.Owner.Creature.GetPower<FocusPower>();
+                if (focus != null)
+                    await Bd.ModifyPowerAmount(
+                        choiceContext,
+                        focus,
+                        -temporaryFocus,
+                        card.Owner.Creature,
+                        card,
+                        silent: true);
+            }
+        }
     }
 
     private static async Task PlayBeamCell(BeamCell card, PlayerChoiceContext choiceContext, CardPlay cardPlay)

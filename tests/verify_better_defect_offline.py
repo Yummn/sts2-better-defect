@@ -166,7 +166,7 @@ def main() -> int:
         "Compact v0.99 Fuel draws cards": 'SetDynamic(card, "Cards", plus ? 2m : 1m)',
         "Scrape v0.108 uses all cost modifiers": "useV108 ? CostModifiers.All : CostModifiers.Local",
         "Trash to Treasure v0.99 upgrade is Innate": "SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion)",
-        "Barrage custom route triggers every orb passive once or twice": "var repeats = card.IsUpgraded ? 2 : 1",
+        "Barrage custom route applies temporary Focus": "var temporaryFocus = card.DynamicVars.Damage.BaseValue",
         "Beam Cell custom route applies BetterDefect Lock-On": "Bd.ApplyPower<BdLockOnPower>",
         "Charge Battery custom route draws next turn": "Bd.ApplyPower<DrawCardsNextTurnPower>",
         "Cold Snap custom route channels two Frost": "await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);\n        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);",
@@ -179,6 +179,26 @@ def main() -> int:
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
+    check(
+        "Barrage transformed temporary Focus is two and upgrades to three",
+        'upgradedVersion ? plus ? 3m : 2m : plus ? 7m : 5m' in versions
+        and 'UpgradeDynamicTo(card, "Damage", upgradedVersion ? 3m : 7m)' in versions,
+    )
+    barrage_play = class_body(versions, "BdCustomCommonCardPlayPatch")
+    barrage_start = barrage_play.find("private static async Task PlayBarrage")
+    barrage_end = barrage_play.find("private static async Task PlayBeamCell", barrage_start)
+    barrage_route = barrage_play[barrage_start:barrage_end]
+    gain_at = barrage_route.find("temporaryFocus,")
+    passive_at = barrage_route.find("OrbCmd.Passive")
+    remove_at = barrage_route.find("Bd.ModifyPowerAmount")
+    check(
+        "Barrage gains Focus, triggers each orb once, then removes Focus",
+        gain_at >= 0 and passive_at > gain_at and remove_at > passive_at
+        and "foreach (var orb in orbs)" in barrage_route
+        and "GetPower<FocusPower>()" in barrage_route
+        and "-temporaryFocus" in barrage_route
+        and "for (var repeat" not in barrage_route,
+    )
     check(
         "Lightning Rod transformed Block is five and upgrades to six",
         'upgradedVersion\n                    ? plus ? 6m : 5m' in versions
@@ -223,6 +243,10 @@ def main() -> int:
         "gunkUpCustom", "leapCustom", "lightningRodCustom", "sweepingBeamCustom", "uproarCustom",
         "recursionCustom", "streamlineCustom",
     )))
+    check(
+        "Barrage transformed description says temporary Focus and one passive trigger",
+        "获得{Damage:diff()}点[gold]临时集中[/gold]，然后触发你的所有充能球的被动一次。" in localization,
+    )
     check("custom uncommon-card descriptions follow their switches", all(token in localization for token in (
         "chaosCustom", "doubleEnergyCustom", "fightThroughCustom", "skimCustom", "tempestCustom",
         "whiteNoiseCustom", "ftlCustom", "nullCustom", "refractCustom", "feralCustom",
@@ -315,7 +339,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.7", '"version":  "0.10.7"' in manifest)
+    check("manifest is v0.10.8", '"version":  "0.10.8"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -331,7 +355,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.7 offline audit",
+        "BetterDefect v0.10.8 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.7: transformed Lightning Rod grants 5(6) Block.");
+        Logger.Info("[BetterDefect] loaded v0.10.8: transformed Barrage gains 2(3) temporary Focus while triggering every orb passive once.");
     }
 
     internal static bool IsAndroidRuntime()
