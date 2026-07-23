@@ -71,7 +71,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.SUNDER"] = ("v0.109", "伤害由24(32)提高到26(34)"),
             ["CARD.TRASH_TO_TREASURE"] = ("v0.99", "普通升级由耗能降为0改为获得固有"),
             ["CARD.BARRAGE"] = ("改造：自定义", "获得2(3)点临时集中，然后触发所有充能球的被动一次"),
-            ["CARD.BEAM_CELL"] = ("改造：自定义", "0费施加1(2)层锁定，不再造成伤害或施加易伤"),
+            ["CARD.BEAM_CELL"] = ("改造：自定义", "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤"),
             ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
             ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
             ["CARD.GO_FOR_THE_EYES"] = ("改造：自定义", "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱"),
@@ -149,7 +149,7 @@ internal static class BdCardVersionUpgrades
         Sunder => "伤害由24(32)提高到26(34)",
         TrashToTreasure => "普通升级由耗能降为0改为获得固有",
         Barrage => "获得2(3)点临时集中，然后触发所有充能球的被动一次",
-        BeamCell => "0费施加1(2)层锁定，不再造成伤害或施加易伤",
+        BeamCell => "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤",
         ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
         ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
         GoForTheEyes => "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱",
@@ -233,7 +233,7 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case BeamCell:
-                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 4m : 3m);
+                SetDynamic(card, "Damage", plus ? 4m : 3m);
                 // Reuse the vanilla Vulnerable DynamicVar as the visible
                 // 1(2) amount while the custom play route applies Lock-On.
                 SetDynamic(card, "VulnerablePower", plus ? 2m : 1m);
@@ -466,7 +466,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 3m : 7m);
                 break;
             case BeamCell:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
+                UpgradeDynamicTo(card, "Damage", 4m);
                 UpgradeDynamicTo(card, "VulnerablePower", 2m);
                 break;
             case ChargeBattery:
@@ -621,7 +621,7 @@ internal static class BdCardVersionUpgrades
                 SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
                 break;
             case "CARD.BEAM_CELL":
-                SetDynamic(card, "Damage", upgradedVersion ? 0m : plus ? 4m : 3m);
+                SetDynamic(card, "Damage", plus ? 4m : 3m);
                 SetDynamic(card, "VulnerablePower", plus ? 2m : 1m);
                 break;
             case "CARD.CHARGE_BATTERY":
@@ -758,7 +758,7 @@ internal static class BdCardVersionUpgrades
         {
             case "CARD.BARRAGE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 3m : 7m); break;
             case "CARD.BEAM_CELL":
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 0m : 4m);
+                UpgradeDynamicTo(card, "Damage", 4m);
                 UpgradeDynamicTo(card, "VulnerablePower", 2m);
                 break;
             case "CARD.CHARGE_BATTERY": UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m); break;
@@ -1060,6 +1060,9 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayBeamCell(BeamCell card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
+            .Execute(choiceContext);
         await Bd.ApplyPower<BdLockOnPower>(
             choiceContext,
             cardPlay.Target,

@@ -186,6 +186,17 @@ def main() -> int:
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
+    common_play = class_body(versions, "BdCustomCommonCardPlayPatch")
+    beam_start = common_play.find("private static async Task PlayBeamCell")
+    beam_end = common_play.find("private static async Task PlayChargeBattery", beam_start)
+    beam_route = common_play[beam_start:beam_end]
+    check(
+        "Beam Cell transformed route deals 3(4) damage before Lock-On",
+        'SetDynamic(card, "Damage", plus ? 4m : 3m)' in versions
+        and 'UpgradeDynamicTo(card, "Damage", 4m)' in versions
+        and "DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)" in beam_route
+        and beam_route.find("DamageCmd.Attack") < beam_route.find("Bd.ApplyPower<BdLockOnPower>"),
+    )
     check(
         "Barrage transformed temporary Focus is two and upgrades to three",
         'upgradedVersion ? plus ? 3m : 2m : plus ? 7m : 5m' in versions
@@ -268,6 +279,10 @@ def main() -> int:
     check(
         "Barrage transformed description says temporary Focus and one passive trigger",
         "获得{Damage:diff()}点[gold]临时集中[/gold]，然后触发你的所有充能球的被动一次。" in localization,
+    )
+    check(
+        "Beam Cell transformed description includes damage and Lock-On",
+        '"造成{Damage:diff()}点伤害。\\n给予{VulnerablePower:diff()}层[gold]锁定[/gold]。"' in localization,
     )
     check("custom uncommon-card descriptions follow their switches", all(token in localization for token in (
         "chaosCustom", "doubleEnergyCustom", "fightThroughCustom", "skimCustom", "tempestCustom",
@@ -361,7 +376,7 @@ def main() -> int:
     check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.10", '"version":  "0.10.10"' in manifest)
+    check("manifest is v0.10.11", '"version":  "0.10.11"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -377,7 +392,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.10 offline audit",
+        "BetterDefect v0.10.11 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

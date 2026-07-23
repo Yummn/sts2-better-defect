@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.11](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.11): enhances transformed Beam Cell. It remains zero-cost, now deals 3 damage (4 when upgraded), then applies 1 Lock-On (2 when upgraded), while still replacing the vanilla Vulnerable effect. Values, combat behavior, transformation summary and Chinese card description are synchronized. Both targets compile successfully; offline regression audit 146/146 and PC startup validation reports no BetterDefect errors.
+
 - [v0.10.10](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.10): fixes restored Self Repair not healing after combat. Combat powers are removed before `AfterCombatVictory`, so its heal now runs from `AfterCombatEnd` while the power is still registered. Android v0.103.2 and PC v0.107.1 use the same lifecycle. Both targets compile successfully; offline regression audit 144/144, and PC startup validation reports no BetterDefect errors.
 
 - [v0.10.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.9): fixes transformed Smokestack and Subroutine not drawing on Android v0.103.2. Their Harmony patches now consume the original callback arguments by position, covering Android's `bool addedByPlayer` Smokestack callback and the parameter-name differences between Android v103 and PC v107.1. Both targets compile successfully; offline regression audit 143/143, and PC startup confirms both patches attach without errors.

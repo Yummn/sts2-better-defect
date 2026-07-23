@@ -189,7 +189,7 @@ internal static class BdLocalization
                 : "当前每有一个[gold]充能球[/gold]，造成{Damage:diff()}点伤害。{InCombat:\n（命中{CalculatedHits:diff()}次）|}",
 
             ["BEAM_CELL.description"] = beamCellCustom
-                ? "给予{VulnerablePower:diff()}层[gold]锁定[/gold]。"
+                ? "造成{Damage:diff()}点伤害。\n给予{VulnerablePower:diff()}层[gold]锁定[/gold]。"
                 : "造成{Damage:diff()}点伤害。\n给予{VulnerablePower:diff()}层[gold]易伤[/gold]。",
 
             ["CHARGE_BATTERY.description"] = chargeBatteryCustom

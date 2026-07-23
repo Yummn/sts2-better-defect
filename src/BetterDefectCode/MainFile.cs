@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.10: Self Repair now heals during combat-end hooks before powers are removed.");
+        Logger.Info("[BetterDefect] loaded v0.10.11: transformed Beam Cell deals 3(4) damage and applies 1(2) Lock-On.");
     }
 
     internal static bool IsAndroidRuntime()
