@@ -997,7 +997,9 @@ internal sealed class BdDynamicOddsConfig
 
 internal sealed class BdDynamicOddsWeights
 {
-    public int Version { get; set; } = 3;
+    private const string RemovedAmplifyId = "CARD.BD_AMPLIFY";
+
+    public int Version { get; set; } = 4;
     public Dictionary<string, Dictionary<string, float>> WeightsByRarity { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, string> Rarities { get; set; } = new(StringComparer.Ordinal);
     public List<string> DisabledCards { get; set; } = new();
@@ -1015,7 +1017,17 @@ internal sealed class BdDynamicOddsWeights
         DisabledCards ??= new List<string>();
         EnabledStates ??= new Dictionary<string, bool>(StringComparer.Ordinal);
         UpgradedCards ??= new List<string>();
-        Version = Math.Max(Version, 3);
+        Version = Math.Max(Version, 4);
+
+        // v0.10.12 replaces the restored StS1 Amplify with Seek. Purge the
+        // removed card from every persisted table so an invisible Amplify
+        // disable entry cannot keep consuming one of the 35 card points.
+        foreach (var weights in WeightsByRarity.Values.Where(weights => weights != null))
+            weights.Remove(RemovedAmplifyId);
+        Rarities.Remove(RemovedAmplifyId);
+        DisabledCards.RemoveAll(key => string.Equals(key, RemovedAmplifyId, StringComparison.Ordinal));
+        EnabledStates.Remove(RemovedAmplifyId);
+        UpgradedCards.RemoveAll(key => string.Equals(key, RemovedAmplifyId, StringComparison.Ordinal));
 
         foreach (var key in EnabledStates.Keys.ToList())
         {

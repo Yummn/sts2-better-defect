@@ -24,7 +24,6 @@ internal static class BdPowerIconPathPatch
         [typeof(BdHeatsinksPower)] = new[] { "HEATSINKS_POWER", "FOCUS_POWER" },
         [typeof(BdSelfRepairPower)] = new[] { "REGEN_POWER" },
         [typeof(BdStaticDischargePower)] = new[] { "THORNS_POWER", "LIGHTNING_ROD_POWER" },
-        [typeof(BdAmplifyPower)] = new[] { "BURST_POWER" },
         [typeof(BdElectrodynamicsPower)] = new[] { "LIGHTNING_ROD_POWER", "FOCUS_POWER" },
         [typeof(BdLockOnPower)] = new[] { "VULNERABLE_POWER" },
     };

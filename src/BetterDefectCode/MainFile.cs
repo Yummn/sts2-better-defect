@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.11: transformed Beam Cell deals 3(4) damage and applies 1(2) Lock-On.");
+        Logger.Info("[BetterDefect] loaded v0.10.12: Amplify removed; StS1 Seek restored (draw-pile choice 1/2, Exhaust).");
     }
 
     internal static bool IsAndroidRuntime()

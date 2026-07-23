@@ -76,7 +76,7 @@ def main() -> int:
         "BdAutoShields", "BdBlizzard", "BdBullseye", "BdConsume",
         "BdDoomAndGloom", "BdForceField", "BdHeatsinks", "BdMelter",
         "BdRecycle", "BdReinforcedBody", "BdReprogram", "BdSelfRepair",
-        "BdStaticDischarge", "BdAmplify", "BdCoreSurge", "BdElectrodynamics",
+        "BdStaticDischarge", "BdSeek", "BdCoreSurge", "BdElectrodynamics",
         "BdFission", "BdThunderStrike",
     ]
     check("restored registry contains exactly 26 cards", registered == hidden + recreated, repr(registered))
@@ -101,7 +101,7 @@ def main() -> int:
         "BdReprogram": ('new DynamicVar("Focus", 1)', "new PowerVar<StrengthPower>(1)", "new PowerVar<DexterityPower>(1)", "-DynamicVars", "ApplyPower<StrengthPower>", "ApplyPower<DexterityPower>"),
         "BdSelfRepair": ("new HealVar(7)", "ApplyPower<BdSelfRepairPower>", "Heal.UpgradeValueBy(3)"),
         "BdStaticDischarge": ('new DynamicVar("Amount", 1)', "ApplyPower<BdStaticDischargePower>", 'DynamicVars["Amount"].UpgradeValueBy(1)'),
-        "BdAmplify": ('new DynamicVar("Amount", 1)', "CardKeyword.Exhaust", "ApplyPower<BdAmplifyPower>", 'DynamicVars["Amount"].UpgradeValueBy(1)'),
+        "BdSeek": ('new DynamicVar("Amount", 1)', "CardKeyword.Exhaust", "base(0, CardType.Skill, CardRarity.Rare", "PileType.Draw.GetPile", "CardSelectCmd.FromSimpleGrid", "CardPileCmd.Add(card, PileType.Hand)", 'DynamicVars["Amount"].UpgradeValueBy(1)'),
         "BdCoreSurge": ("new DamageVar(11", "CardKeyword.Exhaust", "ApplyPower<ArtifactPower>", "Damage.UpgradeValueBy(4)"),
         "BdElectrodynamics": ('new DynamicVar("Amount", 2)', "ApplyPower<BdElectrodynamicsPower>", "OrbCmd.Channel<LightningOrb>", 'DynamicVars["Amount"].UpgradeValueBy(1)'),
         "BdFission": ("base(0, CardType.Skill, CardRarity.Rare", "CardKeyword.Exhaust", "OrbCmd.EvokeNext", "RemoveOrbWithoutEvoke", "GainEnergy(1)", "CardPileCmd.Draw"),
@@ -133,7 +133,6 @@ def main() -> int:
     power_specs = {
         "BdHeatsinksPower": ("AfterCardPlayed", "CardType.Power", "CardPileCmd.Draw"),
         "BdSelfRepairPower": ("AfterCombatEnd", "CreatureCmd.Heal"),
-        "BdAmplifyPower": ("ModifyCardPlayCount", "playCount + 1", "AfterModifyingCardPlayCount", "PowerCmd.Decrement", "AfterSideTurnEnd", "PowerCmd.Remove"),
     }
     for class_name, tokens in power_specs.items():
         body = class_body(cards, class_name)
@@ -291,7 +290,7 @@ def main() -> int:
         "subroutineCustom",
     )))
     check("Feral custom text includes every zero-energy card type", '? "你每回合第一次打出的耗能为0' in localization and '的牌，会放回你的[gold]手牌[/gold]' in localization)
-    check("Amplify text and power both expire this turn", "本回合下 {Amount" in localization and "AfterSideTurnEnd" in class_body(cards, "BdAmplifyPower"))
+    check("Seek selects one or two draw-pile cards and exhausts", "从你的抽牌堆中选择 {Amount:diff()} 张牌放入手牌" in localization and "CardKeyword.Exhaust" in class_body(cards, "BdSeek"))
     check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
     helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
@@ -362,21 +361,23 @@ def main() -> int:
     )
     for power_id in (
         "BD_HEATSINKS_POWER", "BD_SELF_REPAIR_POWER", "BD_STATIC_DISCHARGE_POWER",
-        "BD_AMPLIFY_POWER", "BD_ELECTRODYNAMICS_POWER", "BD_LOCK_ON_POWER",
+        "BD_ELECTRODYNAMICS_POWER", "BD_LOCK_ON_POWER",
     ):
         check(f"{power_id} has a smart combat description", f'power/{power_id}.smartDescription' in localization or f'powers/{power_id}.smartDescription' in localization)
     for power_type in (
         "BdHeatsinksPower", "BdSelfRepairPower", "BdStaticDischargePower",
-        "BdAmplifyPower", "BdElectrodynamicsPower", "BdLockOnPower",
+        "BdElectrodynamicsPower", "BdLockOnPower",
     ):
         check(f"{power_type} redirects its missing power icon", f"typeof({power_type})" in power_icons)
     check("power icon redirect patches status and large icons", "PackedIconPath" in power_icons and "BigIconPath" in power_icons)
     check("power icon redirect validates bundled resources", "ResourceLoader.Exists(candidate)" in power_icons)
     check("Android patches final power texture getter", '[HarmonyPatch(typeof(PowerModel), "get_Icon")]' in power_icons)
-    check("injected powers validate all six status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
+    check("injected powers validate all five status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    check("manifest is v0.10.11", '"version":  "0.10.11"' in manifest)
+    dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
+    check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
+    check("manifest is v0.10.12", '"version":  "0.10.12"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -392,7 +393,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.11 offline audit",
+        "BetterDefect v0.10.12 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

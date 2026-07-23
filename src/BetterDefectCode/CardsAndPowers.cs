@@ -700,12 +700,24 @@ public sealed class BdStaticDischarge : CardModel
     protected override void OnUpgrade() => DynamicVars["Amount"].UpgradeValueBy(1);
 }
 
-public sealed class BdAmplify : CardModel
+public sealed class BdSeek : CardModel
 {
     protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new DynamicVar("Amount", 1) };
     public override IEnumerable<CardKeyword> CanonicalKeywords => new[] { CardKeyword.Exhaust };
-    public BdAmplify() : base(1, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
-    protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) => Bd.ApplyPower<BdAmplifyPower>(choiceContext, Owner.Creature, DynamicVars["Amount"].BaseValue, Owner.Creature, this);
+    public BdSeek() : base(0, CardType.Skill, CardRarity.Rare, TargetType.Self) { }
+    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        var drawPile = PileType.Draw.GetPile(Owner);
+        var count = (int)DynamicVars["Amount"].BaseValue;
+        var selected = (await CardSelectCmd.FromSimpleGrid(
+            choiceContext,
+            drawPile.Cards,
+            Owner,
+            new CardSelectorPrefs(SelectionScreenPrompt, count))).ToList();
+
+        foreach (var card in selected)
+            await CardPileCmd.Add(card, PileType.Hand);
+    }
     protected override void OnUpgrade() => DynamicVars["Amount"].UpgradeValueBy(1);
 }
 
@@ -814,30 +826,6 @@ public sealed class BdStaticDischargePower : PowerModel
         if (target != Owner || result.UnblockedDamage <= 0 || dealer == null) return;
         if ((props & ValueProp.Move) == 0 || (props & (ValueProp.Unpowered | ValueProp.Unblockable)) != 0) return;
         for (var i = 0; i < Amount; i++) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner.Player);
-    }
-}
-
-public sealed class BdAmplifyPower : PowerModel
-{
-    public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Counter;
-    public override int ModifyCardPlayCount(CardModel card, Creature? target, int playCount)
-    {
-        if (Amount > 0 && card.Owner?.Creature == Owner && card.Type == CardType.Power && card is not BdAmplify)
-            return playCount + 1;
-        return playCount;
-    }
-    public override Task AfterModifyingCardPlayCount(CardModel card)
-    {
-        if (Amount > 0 && card.Owner?.Creature == Owner && card.Type == CardType.Power && card is not BdAmplify)
-            return PowerCmd.Decrement(this);
-        return Task.CompletedTask;
-    }
-
-    public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)
-    {
-        if (side == Owner.Side)
-            await PowerCmd.Remove(this);
     }
 }
 

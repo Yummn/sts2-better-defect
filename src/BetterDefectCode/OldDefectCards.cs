@@ -18,12 +18,12 @@ internal static class OldDefectCards
         // Hidden in v103 but omitted from the visible Defect pool.
         typeof(HelloWorld), typeof(Rebound), typeof(RipAndTear), typeof(Stack),
 
-        // Recreated StS1 Defect cards. Equilibrium and Seek intentionally excluded by user request.
+        // Recreated StS1 Defect cards. Equilibrium remains intentionally excluded.
         typeof(BdRecursion), typeof(BdSteamBarrier), typeof(BdStreamline), typeof(BdAggregate),
         typeof(BdAutoShields), typeof(BdBlizzard), typeof(BdBullseye), typeof(BdConsume),
         typeof(BdDoomAndGloom), typeof(BdForceField), typeof(BdHeatsinks), typeof(BdMelter),
         typeof(BdRecycle), typeof(BdReinforcedBody), typeof(BdReprogram), typeof(BdSelfRepair),
-        typeof(BdStaticDischarge), typeof(BdAmplify), typeof(BdCoreSurge), typeof(BdElectrodynamics),
+        typeof(BdStaticDischarge), typeof(BdSeek), typeof(BdCoreSurge), typeof(BdElectrodynamics),
         typeof(BdFission), typeof(BdThunderStrike),
     };
 
@@ -171,7 +171,7 @@ internal static class OldDefectPowers
     public static readonly Type[] Types =
     {
         typeof(BdHeatsinksPower), typeof(BdSelfRepairPower), typeof(BdStaticDischargePower),
-        typeof(BdAmplifyPower), typeof(BdElectrodynamicsPower), typeof(BdLockOnPower),
+        typeof(BdElectrodynamicsPower), typeof(BdLockOnPower),
     };
 }
 
