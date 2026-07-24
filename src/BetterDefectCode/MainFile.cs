@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace BetterDefect;
 
@@ -19,6 +20,7 @@ public partial class MainFile : Node
     {
         var harmony = new Harmony(ModId);
         var android = IsAndroidRuntime();
+        var androidCardBridgeInstalled = android && TryInstallAndroidCardPlayBridge();
         var patchTypes = new List<Type>();
         foreach (var type in Assembly.GetExecutingAssembly().GetTypes()
                      .Where(t => t.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
@@ -104,31 +106,105 @@ public partial class MainFile : Node
                 // PC can redirect both small and large paths before loading.
                 continue;
             }
+            if (!android && type == typeof(BdAndroidCentralCardPlayPatch))
+            {
+                // PC's Harmony backend is stable and retains the existing
+                // per-card patches. The central async-state-machine route is
+                // only needed to reduce ARM64 native detours on v103.
+                continue;
+            }
+            if (android && androidCardBridgeInstalled && type == typeof(BdAndroidCentralCardPlayPatch))
+            {
+                Logger.Info("[BetterDefect] Android core card-play bridge active; Harmony async-state-machine transpiler is not needed.");
+                continue;
+            }
+            if (android && IsReplacedByAndroidCentralCardPlayPatch(type))
+            {
+                Logger.Warn($"[BetterDefect] skipping per-card Android hook {type.FullName}; behavior is routed through one central OnPlay dispatcher.");
+                continue;
+            }
             patchTypes.Add(type);
+        }
+
+        BdDynamicOdds.InitializeStorage();
+        BdLocalization.MergeIntoLocManager();
+        BdDynamicOddsStatsHud.EnsureInstalled();
+
+        if (android && TryScheduleAndroidPatches(harmony, patchTypes))
+        {
+            Logger.Info($"[BetterDefect] loaded v0.11.4: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            return;
         }
 
         foreach (var type in patchTypes)
         {
-            try
-            {
-                Logger.Info($"[BetterDefect] patching {type.FullName}");
-                harmony.CreateClassProcessor(type).Patch();
-                Logger.Info($"[BetterDefect] patched {type.FullName}");
-            }
-            catch (Exception ex)
-            {
-                // Do not let one cross-version card hook abort the rest of the
-                // mod initializer.  On Android v103 a single missing renamed
-                // method previously stopped the encyclopedia watcher/HUD from
-                // being installed, which made the point bar and all in-card
-                // controls disappear even though the mod was listed as loaded.
-                Logger.Warn($"[BetterDefect] patch skipped after failure in {type.FullName}: {ex.GetType().Name}: {ex.Message}");
-            }
+            PatchOne(harmony, type);
         }
-        BdDynamicOdds.InitializeStorage();
-        BdLocalization.MergeIntoLocManager();
-        BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.11.2: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points; Android v103 detour-stability fixes retained.");
+        Logger.Info("[BetterDefect] loaded v0.11.4: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+    }
+
+    private static bool TryInstallAndroidCardPlayBridge()
+    {
+        try
+        {
+            var bridgeType = typeof(MegaCrit.Sts2.Core.Models.CardModel).Assembly.GetType(
+                "MegaCrit.Sts2.Core.Modding.AndroidCardPlayBridge",
+                throwOnError: false);
+            var handlerField = bridgeType?.GetField(
+                "Handler",
+                BindingFlags.Public | BindingFlags.Static);
+            var dispatcher = typeof(BdAndroidCardPlayDispatcher).GetMethod(
+                nameof(BdAndroidCardPlayDispatcher.OnPlay),
+                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            if (handlerField is null || dispatcher is null)
+                return false;
+
+            var handler = Delegate.CreateDelegate(handlerField.FieldType, dispatcher);
+            handlerField.SetValue(null, handler);
+            Logger.Info("[BetterDefect] Android core card-play bridge registered; transformed card effects use one detour-free dispatcher.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[BetterDefect] Android core card-play bridge unavailable; using Harmony fallback: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static bool TryScheduleAndroidPatches(Harmony harmony, IReadOnlyList<Type> patchTypes)
+    {
+        try
+        {
+            if (Engine.GetMainLoop() is not SceneTree tree || tree.Root is null)
+                return false;
+
+            var installer = new AndroidPatchInstaller();
+            installer.Configure(harmony, patchTypes);
+            tree.Root.CallDeferred("add_child", installer);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[BetterDefect] Android deferred patch queue unavailable; falling back to synchronous install: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    internal static void PatchOne(Harmony harmony, Type type)
+    {
+        try
+        {
+            Logger.Info($"[BetterDefect] patching {type.FullName}");
+            harmony.CreateClassProcessor(type).Patch();
+            Logger.Info($"[BetterDefect] patched {type.FullName}");
+        }
+        catch (Exception ex)
+        {
+            // Do not let one cross-version card hook abort the rest of the
+            // mod initializer. On Android v103 a single missing renamed method
+            // previously stopped the encyclopedia watcher/HUD from loading.
+            Logger.Warn($"[BetterDefect] patch skipped after failure in {type.FullName}: {ex}");
+        }
     }
 
     internal static bool IsAndroidRuntime()
@@ -162,6 +238,83 @@ public partial class MainFile : Node
         type == typeof(BdDynamicOddsCardReloadPatch) ||
         type == typeof(BdDynamicOddsCardUpdateVisualsScopePatch) ||
         type == typeof(BdDynamicOddsCardExitTreeScopePatch);
+
+    private static bool IsReplacedByAndroidCentralCardPlayPatch(Type type) =>
+        type == typeof(BdPowerPlayTrackerPatch) ||
+        type == typeof(BdCustomCommonCardPlayPatch) ||
+        type == typeof(BdCustomRareAdaptiveStrikePlayPatch) ||
+        type == typeof(BdCustomRareAllForOnePlayPatch) ||
+        type == typeof(BdCustomRareBufferPlayPatch) ||
+        type == typeof(BdCustomRareFlakCannonPlayPatch) ||
+        type == typeof(BdCustomRareMeteorStrikePlayPatch) ||
+        type == typeof(BdCustomRareMultiCastPlayPatch) ||
+        type == typeof(BdCustomRareRainbowPlayPatch) ||
+        type == typeof(BdCardVersionShatterPlayPatch) ||
+        type == typeof(BdCardVersionTeslaCoilPlayPatch) ||
+        type == typeof(BdCardVersionFuelPlayPatch) ||
+        type == typeof(BdCardVersionScrapePlayPatch);
+}
+
+/// <summary>
+/// v0.103.2's ARM64 MonoMod backend can segfault when dozens of native
+/// trampolines are emitted in one uninterrupted initializer burst. Installing
+/// one Harmony class at a time on the Godot main thread, with a short frame
+/// interval, avoids racing the runtime's method preparation and instruction
+/// cache maintenance while retaining the complete gameplay patch set.
+/// </summary>
+internal partial class AndroidPatchInstaller : Node
+{
+    private const double InitialDelaySeconds = 0.75;
+    private const double PatchIntervalSeconds = 0.25;
+
+    private readonly Queue<Type> _pending = new();
+    private Harmony? _harmony;
+    private double _remaining = InitialDelaySeconds;
+    private int _total;
+    private int _completed;
+
+    internal void Configure(Harmony harmony, IReadOnlyList<Type> patchTypes)
+    {
+        _harmony = harmony;
+        foreach (var type in patchTypes)
+            _pending.Enqueue(type);
+        _total = _pending.Count;
+        ProcessMode = ProcessModeEnum.Always;
+    }
+
+    public override void _Ready()
+    {
+        SetProcess(true);
+        MainFile.Logger.Info($"[BetterDefect] Android patch queue attached; {_total} classes pending.");
+    }
+
+    public override void _Process(double delta)
+    {
+        _remaining -= delta;
+        if (_remaining > 0)
+            return;
+
+        _remaining = PatchIntervalSeconds;
+        if (_harmony is null || _pending.Count == 0)
+        {
+            Finish();
+            return;
+        }
+
+        var type = _pending.Dequeue();
+        MainFile.PatchOne(_harmony, type);
+        _completed++;
+
+        if (_pending.Count == 0)
+            Finish();
+    }
+
+    private void Finish()
+    {
+        SetProcess(false);
+        MainFile.Logger.Info($"[BetterDefect] Android patch queue complete: {_completed}/{_total} classes installed.");
+        QueueFree();
+    }
 }
 
 

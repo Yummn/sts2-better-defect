@@ -1,10 +1,12 @@
 # BetterDefect
 
-Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 35-point historical card-version upgrade system, and the Fission orb visual fix.
+Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 50-point three-stage card transformation system, and the Fission orb visual fix.
 
 Compatibility: Android v103 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
+
+- [v0.11.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.4): fixes the remaining Android v0.103.2 random startup crash. Mobile transformed-card execution now uses a detour-free core bridge supplied by the companion stable-bridge APK, while the remaining 34 Harmony classes install one at a time with a conservative 250 ms interval. REDMI K80 Pro completed 5/5 repeated cold starts plus one final v0.11.4 cold start; every run reached the main menu, completed the 34/34 patch queue and produced no SIGSEGV/SIGABRT. PC and Android builds succeed and the offline behavior audit passes 170/170.
 
 - [v0.11.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.2): raises the shared disabled-card/transformation budget from 35 to 50 points. The Encyclopedia HUD now contains 25 blue Normal points, 10 yellow Overclock points and 15 red Overload points, with visible gaps between tiers and a matching stage label. Both Android v0.103.2 and PC v0.107.1 compile; the dual-binary offline regression audit passes 172/172, and REDMI K80 Pro startup validation loads v0.11.2 with BetterDefect initialization complete.
 
@@ -178,7 +180,9 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Install
 
-Download `BetterDefect-v0.10.0-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.10.0-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.11.4-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.4-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+
+Android v103 should first install the same release's `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`. This preserves application data when the currently installed build uses the same AOSP testkey signature. Do not uninstall the game before updating.
 
 The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.
 

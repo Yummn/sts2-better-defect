@@ -1246,32 +1246,47 @@ internal static class BdCustomCommonCardPlayPatch
         CardPlay cardPlay,
         ref Task __result)
     {
-        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance))
+        if (!TryPlay(__instance, choiceContext, cardPlay, out var task))
             return true;
+        __result = task;
+        return false;
+    }
 
-        __result = __instance switch
+    internal static bool TryPlay(
+        CardModel card,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        out Task task)
+    {
+        task = Task.CompletedTask;
+        if (!BdCardVersionUpgrades.IsVersionEnabled(card))
+            return false;
+
+        task = card switch
         {
-            Barrage card => PlayBarrage(card, choiceContext),
-            BeamCell card => PlayBeamCell(card, choiceContext, cardPlay),
-            ChargeBattery card => PlayChargeBattery(card, choiceContext, cardPlay),
-            ColdSnap card => PlayColdSnap(card, choiceContext, cardPlay),
-            Coolheaded card => PlayCoolheaded(card, choiceContext),
-            GoForTheEyes card => PlayGoForTheEyes(card, choiceContext, cardPlay),
-            GunkUp card => PlayGunkUp(card, choiceContext, cardPlay),
-            Leap card => PlayLeap(card, cardPlay),
-            LightningRod card => PlayLightningRod(card, choiceContext, cardPlay),
-            Uproar card => PlayUproar(card, choiceContext, cardPlay),
-            Chaos card => PlayChaos(card, choiceContext),
-            DoubleEnergy card => PlayDoubleEnergy(card, choiceContext),
-            FightThrough card => PlayFightThrough(card, choiceContext, cardPlay),
-            Skim card => PlaySkim(card, choiceContext),
-            Tempest card => PlayTempest(card, choiceContext),
-            WhiteNoise card => PlayWhiteNoise(card, choiceContext),
-            Ftl card => PlayFtl(card, choiceContext, cardPlay),
-            Null card => PlayNull(card, choiceContext, cardPlay),
+            Barrage typed => PlayBarrage(typed, choiceContext),
+            BeamCell typed => PlayBeamCell(typed, choiceContext, cardPlay),
+            ChargeBattery typed => PlayChargeBattery(typed, choiceContext, cardPlay),
+            ColdSnap typed => PlayColdSnap(typed, choiceContext, cardPlay),
+            Coolheaded typed => PlayCoolheaded(typed, choiceContext),
+            GoForTheEyes typed => PlayGoForTheEyes(typed, choiceContext, cardPlay),
+            GunkUp typed => PlayGunkUp(typed, choiceContext, cardPlay),
+            Leap typed => PlayLeap(typed, cardPlay),
+            LightningRod typed => PlayLightningRod(typed, choiceContext, cardPlay),
+            Uproar typed => PlayUproar(typed, choiceContext, cardPlay),
+            Chaos typed => PlayChaos(typed, choiceContext),
+            DoubleEnergy typed => PlayDoubleEnergy(typed, choiceContext),
+            FightThrough typed => PlayFightThrough(typed, choiceContext, cardPlay),
+            Skim typed => PlaySkim(typed, choiceContext),
+            Tempest typed => PlayTempest(typed, choiceContext),
+            WhiteNoise typed => PlayWhiteNoise(typed, choiceContext),
+            Ftl typed => PlayFtl(typed, choiceContext, cardPlay),
+            Null typed => PlayNull(typed, choiceContext, cardPlay),
             _ => Task.CompletedTask
         };
-        return false;
+        return card is Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or
+            GoForTheEyes or GunkUp or Leap or LightningRod or Uproar or Chaos or
+            DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null;
     }
 
     private static async Task PlayBarrage(Barrage card, PlayerChoiceContext choiceContext)
@@ -2321,7 +2336,7 @@ internal static class BdCardVersionShatterPlayPatch
         return false;
     }
 
-    private static async Task Play(Shatter card, PlayerChoiceContext choiceContext)
+    internal static async Task Play(Shatter card, PlayerChoiceContext choiceContext)
     {
         var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card);
         if (Cards.Bd.TryTargetAllOpponents(attack, card))
@@ -2361,7 +2376,7 @@ internal static class BdCardVersionTeslaCoilPlayPatch
         return false;
     }
 
-    private static async Task Play(TeslaCoil card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task Play(TeslaCoil card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
@@ -2388,7 +2403,7 @@ internal static class BdCardVersionFuelPlayPatch
         return false;
     }
 
-    private static async Task Play(Fuel card, PlayerChoiceContext choiceContext)
+    internal static async Task Play(Fuel card, PlayerChoiceContext choiceContext)
     {
         await PlayerCmd.GainEnergy(card.DynamicVars.Energy.BaseValue, card.Owner);
         var draw = card.DynamicVars["Cards"].IntValue;
@@ -2408,7 +2423,7 @@ internal static class BdCardVersionScrapePlayPatch
         return false;
     }
 
-    private static async Task Play(Scrape card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task Play(Scrape card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
