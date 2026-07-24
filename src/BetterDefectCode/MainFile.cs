@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.4: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            Logger.Info($"[BetterDefect] loaded v0.11.5: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.4: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+        Logger.Info("[BetterDefect] loaded v0.11.5: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -154,14 +154,13 @@ public partial class MainFile : Node
                 "Handler",
                 BindingFlags.Public | BindingFlags.Static);
             var dispatcher = typeof(BdAndroidCardPlayDispatcher).GetMethod(
-                nameof(BdAndroidCardPlayDispatcher.OnPlay),
+                nameof(BdAndroidCardPlayDispatcher.TryOnPlay),
                 BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             if (handlerField is null || dispatcher is null)
                 return false;
 
-            var handler = Delegate.CreateDelegate(handlerField.FieldType, dispatcher);
-            handlerField.SetValue(null, handler);
-            Logger.Info("[BetterDefect] Android core card-play bridge registered; transformed card effects use one detour-free dispatcher.");
+            handlerField.SetValue(null, dispatcher);
+            Logger.Info("[BetterDefect] Android core card-play bridge registered; transformed cards use reflection-safe dispatch and normal cards retain native virtual OnPlay.");
             return true;
         }
         catch (Exception ex)

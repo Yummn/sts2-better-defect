@@ -59,7 +59,12 @@ internal static class BdAndroidCardPlayDispatcher
         [typeof(PlayerChoiceContext), typeof(CardPlay)])
         ?? throw new MissingMethodException(typeof(CardModel).FullName, "OnPlay");
 
-    internal static Task OnPlay(CardModel card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    /// <summary>
+    /// Returns a replacement task only when BetterDefect owns this card play.
+    /// A null result tells the Android core bridge to perform the game's real
+    /// protected virtual CardModel.OnPlay call, preserving normal card logic.
+    /// </summary>
+    internal static Task? TryOnPlay(CardModel card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         // The old wrapper-prefix tracker counted a power card once even when a
         // replay effect made the wrapper execute OnPlay more than once.
@@ -107,6 +112,20 @@ internal static class BdAndroidCardPlayDispatcher
                     return BdCustomRareCardPlay.PlayRainbow(typed, choiceContext);
             }
         }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Harmony-only compatibility path for unpatched Android cores. The stable
+    /// bridge calls TryOnPlay instead so normal cards retain native virtual
+    /// dispatch and never go through reflection.
+    /// </summary>
+    internal static Task OnPlay(CardModel card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        var replacement = TryOnPlay(card, choiceContext, cardPlay);
+        if (replacement is not null)
+            return replacement;
 
         return (Task)(OriginalOnPlay.Invoke(card, [choiceContext, cardPlay])
             ?? Task.CompletedTask);
