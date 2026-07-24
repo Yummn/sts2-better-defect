@@ -135,6 +135,11 @@ internal static class OldDefectCardRarityPatch
 {
     private static void Postfix(CardModel __instance, ref CardRarity __result)
     {
+        if (BdCardVersionUpgrades.TryGetTransformedRarity(__instance, out var transformed))
+        {
+            __result = transformed;
+            return;
+        }
         if (OldDefectCards.TryGetRarity(__instance, out var rarity)) __result = rarity;
     }
 }

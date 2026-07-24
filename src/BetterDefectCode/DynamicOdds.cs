@@ -521,6 +521,7 @@ internal static class BdDynamicOdds
             lock (StateLock)
             {
                 var data = _persistedWeights ??= LoadWeights();
+                var oldRarity = card.Rarity;
                 data.UpgradedCards ??= new List<string>();
                 var wasUpgraded = data.UpgradedCards.Contains(key, StringComparer.Ordinal);
                 if (wasUpgraded)
@@ -543,6 +544,8 @@ internal static class BdDynamicOdds
                     MainFile.Logger.Info($"[BetterDefect] card version upgrade enabled for {SafeId(card)}; card points={used + 1}/{MaxCardPointBudget}.");
                 }
 
+                var newRarity = card.Rarity;
+                MoveWeightToTransformedRarity(data, key, oldRarity, newRarity);
                 data.LastUpdatedUtc = DateTimeOffset.UtcNow;
                 SaveWeights(data);
                 return true;
@@ -553,6 +556,38 @@ internal static class BdDynamicOdds
             MainFile.Logger.Warn($"[BetterDefect] failed to toggle card version upgrade: {ex.GetType().Name}: {ex.Message}");
             return false;
         }
+    }
+
+    private static void MoveWeightToTransformedRarity(
+        BdDynamicOddsWeights data,
+        string cardKey,
+        CardRarity oldRarity,
+        CardRarity newRarity)
+    {
+        if (oldRarity == newRarity || IsUnsupportedRarity(newRarity)) return;
+        var oldKey = RarityKey(oldRarity);
+        var newKey = RarityKey(newRarity);
+        var weight = Config.DefaultWeight;
+        if (data.WeightsByRarity.TryGetValue(oldKey, out var oldWeights) &&
+            oldWeights.TryGetValue(cardKey, out var oldWeight))
+        {
+            weight = oldWeight;
+            oldWeights.Remove(cardKey);
+        }
+
+        if (!data.WeightsByRarity.TryGetValue(newKey, out var newWeights))
+        {
+            newWeights = new Dictionary<string, float>(StringComparer.Ordinal);
+            data.WeightsByRarity[newKey] = newWeights;
+        }
+        newWeights[cardKey] = data.DisabledCards.Contains(cardKey, StringComparer.Ordinal)
+            ? 0f
+            : Math.Clamp(weight, Config.MinWeight, Config.MaxWeight);
+        data.Rarities[cardKey] = newKey;
+
+        if (!IsUnsupportedRarity(oldRarity))
+            NormalizeKnownRarityToZeroSum(data, oldRarity, Config);
+        NormalizeKnownRarityToZeroSum(data, newRarity, Config);
     }
 
     public static bool ToggleCardDisabled(CardModel? card)

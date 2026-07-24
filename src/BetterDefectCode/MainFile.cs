@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.13: transformed Coolheaded draws 2 then channels Frost and Exhausts until upgraded; transformed Chaos channels 2 and Exhausts until upgraded.");
+        Logger.Info("[BetterDefect] loaded v0.11.0: 17 approved rare-card transformations added, including selectable rewrites and rarity migration.");
     }
 
     internal static bool IsAndroidRuntime()

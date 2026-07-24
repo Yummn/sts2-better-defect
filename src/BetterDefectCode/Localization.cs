@@ -158,6 +158,17 @@ internal static class BdLocalization
         var smokestackCustom = IsVersionEnabled<Smokestack>();
         var stormCustom = IsVersionEnabled<Storm>();
         var subroutineCustom = IsVersionEnabled<Subroutine>();
+        var adaptiveStrikeCustom = IsVersionEnabled<AdaptiveStrike>();
+        var allForOneCustom = IsVersionEnabled<AllForOne>();
+        var bufferCustom = IsVersionEnabled<MegaCrit.Sts2.Core.Models.Cards.Buffer>();
+        var consumingShadowCustom = IsVersionEnabled<ConsumingShadow>();
+        var coolantCustom = IsVersionEnabled<Coolant>();
+        var creativeAiCustom = IsVersionEnabled<CreativeAi>();
+        var echoFormCustom = IsVersionEnabled<EchoForm>();
+        var flakCannonCustom = IsVersionEnabled<FlakCannon>();
+        var meteorStrikeCustom = IsVersionEnabled<MeteorStrike>();
+        var multiCastCustom = IsVersionEnabled<MultiCast>();
+        var rainbowCustom = IsVersionEnabled<Rainbow>();
 
         var descriptions = new Dictionary<string, string>
         {
@@ -298,9 +309,82 @@ internal static class BdLocalization
             ["SUBROUTINE.description"] = subroutineCustom
                 ? "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。每回合第一次触发时，额外抽1张牌。"
                 : "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。",
+
+            ["ADAPTIVE_STRIKE.description"] = adaptiveStrikeCustom
+                ? "造成{Damage:diff()}点伤害。\n将一张耗能为0{energyPrefix:energyIcons(1)}且具有[gold]虚无[/gold]的复制品加入你的[gold]抽牌堆[/gold]。"
+                : "造成{Damage:diff()}点伤害。\n将一张耗能为0{energyPrefix:energyIcons(1)}的复制品加入你的[gold]弃牌堆[/gold]。",
+
+            ["ALL_FOR_ONE.description"] = allForOneCustom
+                ? "造成{Damage:diff()}点伤害。\n从你的[gold]弃牌堆[/gold]中选择至多{IfUpgraded:show:3|2}张当前耗能为0{energyPrefix:energyIcons(1)}的牌加入手牌。"
+                : "造成{Damage:diff()}点伤害。\n将你的[gold]弃牌堆[/gold]中所有当前耗能为0{energyPrefix:energyIcons(1)}的牌放回手牌。",
+
+            ["BUFFER.description"] = bufferCustom
+                ? "获得{BufferPower:diff()}层[gold]缓冲[/gold]和10点[gold]格挡[/gold]。"
+                : "获得{BufferPower:diff()}层[gold]缓冲[/gold]。",
+
+            ["CONSUMING_SHADOW.description"] = consumingShadowCustom
+                ? "[gold]生成[/gold]{Repeat:diff()}个[gold]黑暗[/gold]充能球。\n在你的回合结束时，触发所有[gold]黑暗[/gold]充能球的被动一次。"
+                : "[gold]生成[/gold]{Repeat:diff()}个[gold]黑暗[/gold]充能球。\n在你的回合结束时，[gold]激发[/gold]最右侧的充能球。",
+
+            ["COOLANT.description"] = coolantCustom
+                ? "在你的回合结束时，每有一种不同的充能球，获得{CoolantPower:diff()}点[gold]格挡[/gold]。"
+                : "在你的回合开始时，每有一种不同的充能球，获得{CoolantPower:diff()}点[gold]格挡[/gold]。",
+
+            ["CREATIVE_AI.description"] = creativeAiCustom
+                ? "每回合开始时，从3张随机机器人能力牌中选择1张加入手牌。该牌本回合耗能为0。"
+                : "每回合开始时，将1张随机能力牌加入你的[gold]手牌[/gold]。",
+
+            ["ECHO_FORM.description"] = echoFormCustom
+                ? "每回合打出的第2张牌额外打出一次。"
+                : "每回合打出的第1张牌额外打出一次。",
+
+            ["FLAK_CANNON.description"] = flakCannonCustom
+                ? "[gold]消耗[/gold]所有尚未被消耗的状态牌。\n你的[gold]消耗牌堆[/gold]中每有1张牌，对指定敌人造成{Damage:diff()}点伤害。"
+                : "[gold]消耗[/gold]所有状态牌。\n每消耗1张，对随机敌人造成{Damage:diff()}点伤害。",
+
+            ["METEOR_STRIKE.description"] = meteorStrikeCustom
+                ? "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]2个[gold]等离子[/gold]充能球。"
+                : "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]3个[gold]等离子[/gold]充能球。",
+
+            ["MULTI_CAST.description"] = multiCastCustom
+                ? "[gold]激发[/gold]{IfUpgraded:show:X+1|X}个充能球；每次激发后重新[gold]生成[/gold]相同类型的充能球。"
+                : "[gold]激发[/gold]下一个充能球{IfUpgraded:show:X+1|X}次。",
+
+            ["RAINBOW.description"] = rainbowCustom
+                ? "依次[gold]生成[/gold]闪电、冰霜、黑暗、玻璃和等离子充能球。"
+                : "依次[gold]生成[/gold]闪电、冰霜和黑暗充能球。",
         };
 
         manager.GetTable("cards").MergeWith(descriptions);
+
+        var powerDescriptions = new Dictionary<string, string>
+        {
+            ["CONSUMING_SHADOW_POWER.description"] = consumingShadowCustom
+                ? "你的回合结束时，触发所有黑暗充能球的被动一次。"
+                : "你的回合结束时，激发最右侧的充能球。",
+            ["CONSUMING_SHADOW_POWER.smartDescription"] = consumingShadowCustom
+                ? "你的回合结束时，触发所有[gold]黑暗[/gold]充能球的被动[blue]{Amount}[/blue]次。"
+                : "你的回合结束时，[gold]激发[/gold]最右侧的充能球[blue]{Amount}[/blue]次。",
+            ["COOLANT_POWER.description"] = coolantCustom
+                ? "回合结束时，每有一种不同充能球，获得格挡。"
+                : "回合开始时，每有一种不同充能球，获得格挡。",
+            ["COOLANT_POWER.smartDescription"] = coolantCustom
+                ? "回合结束时，每有一种不同充能球，获得[blue]{Amount}[/blue]点[gold]格挡[/gold]。"
+                : "回合开始时，每有一种不同充能球，获得[blue]{Amount}[/blue]点[gold]格挡[/gold]。",
+            ["CREATIVE_AI_POWER.description"] = creativeAiCustom
+                ? "回合开始时，从3张随机机器人能力牌中选择1张，本回合免费。"
+                : "回合开始时，将1张随机能力牌加入手牌。",
+            ["CREATIVE_AI_POWER.smartDescription"] = creativeAiCustom
+                ? "回合开始时，从3张随机机器人能力牌中选择[blue]{Amount}[/blue]次；选择的牌本回合免费。"
+                : "回合开始时，将[blue]{Amount}[/blue]张随机能力牌加入手牌。",
+            ["ECHO_FORM_POWER.description"] = echoFormCustom
+                ? "每回合第2张牌额外打出一次。"
+                : "每回合第1张牌额外打出一次。",
+            ["ECHO_FORM_POWER.smartDescription"] = echoFormCustom
+                ? "每回合第2张牌额外打出[blue]{Amount}[/blue]次。"
+                : "每回合前[blue]{Amount}[/blue]张牌各额外打出一次。",
+        };
+        manager.GetTable("powers").MergeWith(powerDescriptions);
     }
 
     private static bool IsVersionEnabled<T>() where T : CardModel

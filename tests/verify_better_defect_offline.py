@@ -4,7 +4,8 @@
 These checks deliberately do not start Slay the Spire 2.  They verify the
 restored-card registry, every recreated StS1 card's defining values/behavior,
 the four audited power fixes, 14 historical-version routes, 11 additional
-custom common-card transformations, and 16 custom uncommon-card transformations.
+custom common-card transformations, 16 custom uncommon-card transformations,
+and 17 custom rare-card transformations.
 """
 
 from __future__ import annotations
@@ -156,8 +157,12 @@ def main() -> int:
         "Chaos", "DoubleEnergy", "FightThrough", "Skim", "Tempest", "WhiteNoise",
         "Ftl", "Null", "Refract", "Feral", "Hailstorm", "Iteration", "Loop",
         "Smokestack", "Storm", "Subroutine",
+        "AdaptiveStrike", "AllForOne", "BufferCard", "ConsumingShadow", "Coolant",
+        "CreativeAi", "EchoForm", "FlakCannon", "GeneticAlgorithm", "IceLance",
+        "Defragment", "BiasedCognition", "MeteorStrike", "MultiCast", "Rainbow",
+        "BdThunderStrike", "BdCoreSurge",
     ]
-    check("card-transformation registry contains exactly 42 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 59 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -274,6 +279,23 @@ def main() -> int:
         'SetDynamic(card, "Cards", upgradedVersion ? 2m' in versions
         and 'SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus)' in versions,
     )
+    rare_behavior_checks = {
+        "Adaptive Strike adds an Ethereal zero-cost copy to draw pile": "clone.AddKeyword(CardKeyword.Ethereal)",
+        "All for One selects up to two or three zero-cost discard cards": "CardSelectCmd.FromSimpleGrid",
+        "Buffer also grants ten block": "GainBlock(card.Owner.Creature, 10m",
+        "Consuming Shadow triggers every Dark passive": "Orbs.OfType<DarkOrb>()",
+        "Coolant transformed route runs at turn end": "BdCustomCoolantEndPatch",
+        "Creative AI offers three power choices": "BdCustomCreativeAiPowerPatch",
+        "Echo Form duplicates the second card": "if (priorPlays == 1)",
+        "Flak Cannon targets one chosen enemy using exhaust-pile count": "var hitCount = PileType.Exhaust.GetPile(card.Owner).Cards.Count",
+        "Meteor Strike channels exactly two Plasma": "PlayMeteorStrike",
+        "Multi-Cast recreates each evoked orb type": "ChannelSameType",
+        "Rainbow channels all five requested orb types": "PlayRainbow",
+        "rare rarity transformations are routed": "TryGetTransformedRarity",
+        "rarity-changing cards migrate persisted odds": "MoveWeightToTransformedRarity",
+    }
+    for name, token in rare_behavior_checks.items():
+        check(name, token in versions or token in read("BetterDefectCode/DynamicOdds.cs"))
     smokestack_patch = class_body(versions, "BdCustomSmokestackPowerPatch")
     subroutine_patch = class_body(versions, "BdCustomSubroutinePowerPatch")
     check(
@@ -409,7 +431,7 @@ def main() -> int:
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
     dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.10.13", '"version":  "0.10.13"' in manifest)
+    check("manifest is v0.11.0", '"version":  "0.11.0"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -425,7 +447,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.13 offline audit",
+        "BetterDefect v0.11.0 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
