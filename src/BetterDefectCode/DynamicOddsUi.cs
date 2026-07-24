@@ -429,7 +429,7 @@ internal static class BdDynamicOddsCardUi
             : budgetFull ? "改造：点数已满" : "改造：关闭";
         button.TooltipText = budgetFull
             ? $"BetterDefect：改造点数已满（{usedPoints}/{BdDynamicOdds.MaxCardPointBudget}），先重新启用一张已禁用卡或关闭一个历史改造。"
-            : $"BetterDefect：消耗1点改造点数，切换到 {targetLabel}。效果：{BdCardVersionUpgrades.GetTargetEffectSummary(card)}。与禁用卡牌共享35点上限。";
+            : $"BetterDefect：消耗1点改造点数，切换到 {targetLabel}。效果：{BdCardVersionUpgrades.GetTargetEffectSummary(card)}。与禁用卡牌共享50点上限：25点正常、10点超频、15点过载。";
         ApplyVersionUpgradeStyle(button, enabled);
         button.Visible = true;
     }

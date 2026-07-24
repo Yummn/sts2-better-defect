@@ -128,7 +128,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.11.1: 17 approved rare-card transformations plus Android v103 detour-stability fixes.");
+        Logger.Info("[BetterDefect] loaded v0.11.2: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points; Android v103 detour-stability fixes retained.");
     }
 
     internal static bool IsAndroidRuntime()

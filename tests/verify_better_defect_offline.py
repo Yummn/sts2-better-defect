@@ -455,8 +455,31 @@ def main() -> int:
     )
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
     dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
+    check(
+        "card-point budget is 50 with 25 Normal and 10 Overclock points",
+        "MaxCardPointBudget = 50" in dynamic_odds
+        and "NormalPointLimit = 25" in dynamic_odds
+        and "OverclockPointLimit = 35" in dynamic_odds,
+    )
+    check(
+        "point HUD has blue yellow and red segment tiers",
+        "new StyleBoxFlat[2, 3]" in hud
+        and "i < BlueLimit ? 0 : i < YellowLimit ? 1 : 2" in hud
+        and "NormalOverclockGap" in hud
+        and "OverclockOverloadGap" in hud,
+    )
+    check(
+        "point HUD labels Normal Overclock and Overload stages",
+        '0 => "正常"' in hud
+        and '1 => "超频"' in hud
+        and '_ => "过载"' in hud,
+    )
+    check(
+        "upgrade tooltip explains the 50-point three-stage budget",
+        "共享50点上限：25点正常、10点超频、15点过载" in ui,
+    )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.1", '"version":  "0.11.1"' in manifest)
+    check("manifest is v0.11.2", '"version":  "0.11.2"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -472,7 +495,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.1 offline audit",
+        "BetterDefect v0.11.2 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

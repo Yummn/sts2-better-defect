@@ -24,7 +24,9 @@ namespace BetterDefect;
 /// </summary>
 internal static class BdDynamicOdds
 {
-    public const int MaxCardPointBudget = 35;
+    public const int NormalPointLimit = 25;
+    public const int OverclockPointLimit = 35;
+    public const int MaxCardPointBudget = 50;
     private const string ConfigFileName = "BetterDefect.DynamicOdds.cfg";
     // Do not use a top-level *.json file for learned weights: on Android the
     // built-in mod scanner treats every json file under a mod folder as a
@@ -1056,7 +1058,7 @@ internal sealed class BdDynamicOddsWeights
 
         // v0.10.12 replaces the restored StS1 Amplify with Seek. Purge the
         // removed card from every persisted table so an invisible Amplify
-        // disable entry cannot keep consuming one of the 35 card points.
+        // disable entry cannot keep consuming one of the 50 card points.
         foreach (var weights in WeightsByRarity.Values.Where(weights => weights != null))
             weights.Remove(RemovedAmplifyId);
         Rarities.Remove(RemovedAmplifyId);

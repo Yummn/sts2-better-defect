@@ -9,7 +9,8 @@ internal static partial class BdDynamicOddsStatsHud
     private const string LayerName = "BetterDefectDisableStatsLayer";
     private const string HudName = "BetterDefectDisableStatsHud";
     private const int MaxPoints = BdDynamicOdds.MaxCardPointBudget;
-    private const int BlueLimit = 25;
+    private const int BlueLimit = BdDynamicOdds.NormalPointLimit;
+    private const int YellowLimit = BdDynamicOdds.OverclockPointLimit;
 
     private static CanvasLayer? _layer;
     private static DisableStatsHud? _hud;
@@ -349,7 +350,7 @@ internal static partial class BdDynamicOddsStatsHud
     private sealed partial class DisableStatsHud : PanelContainer
     {
         private readonly List<Panel> _segments = [];
-        private readonly StyleBoxFlat[,] _segmentStyles = new StyleBoxFlat[2, 2];
+        private readonly StyleBoxFlat[,] _segmentStyles = new StyleBoxFlat[2, 3];
         private Label? _title;
         private Label? _counter;
         private double _scanTimer;
@@ -372,10 +373,11 @@ internal static partial class BdDynamicOddsStatsHud
             SetProcess(false);
 
             AddThemeStyleboxOverride("panel", MakePanelStyle());
-            _segmentStyles[0, 0] = MakeSegmentStyle(filled: false, danger: false);
-            _segmentStyles[0, 1] = MakeSegmentStyle(filled: false, danger: true);
-            _segmentStyles[1, 0] = MakeSegmentStyle(filled: true, danger: false);
-            _segmentStyles[1, 1] = MakeSegmentStyle(filled: true, danger: true);
+            for (var tier = 0; tier < 3; tier++)
+            {
+                _segmentStyles[0, tier] = MakeSegmentStyle(filled: false, tier);
+                _segmentStyles[1, tier] = MakeSegmentStyle(filled: true, tier);
+            }
 
             var root = new VBoxContainer
             {
@@ -401,7 +403,7 @@ internal static partial class BdDynamicOddsStatsHud
             _title.SizeFlagsHorizontal = SizeFlags.ExpandFill;
             header.AddChild(_title);
 
-            _counter = MakeLabel("0/35", 13, HorizontalAlignment.Right);
+            _counter = MakeLabel("0/50", 13, HorizontalAlignment.Right);
             header.AddChild(_counter);
             header.AddChild(MakeOrnament("◆"));
 
@@ -426,6 +428,15 @@ internal static partial class BdDynamicOddsStatsHud
 
             for (var i = 0; i < MaxPoints; i++)
             {
+                if (i == BlueLimit || i == YellowLimit)
+                {
+                    bar.AddChild(new Control
+                    {
+                        Name = i == BlueLimit ? "NormalOverclockGap" : "OverclockOverloadGap",
+                        MouseFilter = MouseFilterEnum.Ignore,
+                        CustomMinimumSize = new Vector2(7f, 0f)
+                    });
+                }
                 var segment = new Panel
                 {
                     Name = $"Segment{i + 1}",
@@ -479,31 +490,43 @@ internal static partial class BdDynamicOddsStatsHud
             _lastDisabledCount = disabledCount;
             _lastUpgradeCount = upgradeCount;
 
-            var danger = clamped > BlueLimit;
+            var stage = clamped <= BlueLimit ? 0 : clamped <= YellowLimit ? 1 : 2;
+            var stageName = stage switch
+            {
+                0 => "正常",
+                1 => "超频",
+                _ => "过载"
+            };
+            var stageColor = stage switch
+            {
+                0 => new Color(0.70f, 0.86f, 1f, 1f),
+                1 => new Color(1f, 0.82f, 0.30f, 1f),
+                _ => new Color(1f, 0.48f, 0.34f, 1f)
+            };
+            var counterColor = stage switch
+            {
+                0 => new Color(0.77f, 0.92f, 1f, 1f),
+                1 => new Color(1f, 0.88f, 0.40f, 1f),
+                _ => new Color(1f, 0.55f, 0.36f, 1f)
+            };
 
             if (_title is not null)
             {
-                _title.Text = danger
-                    ? $"机器人改造点数  禁用{disabledCount}·升级{upgradeCount}  过载"
-                    : $"机器人改造点数  禁用{disabledCount}·升级{upgradeCount}";
-                _title.AddThemeColorOverride("font_color", danger
-                    ? new Color(1f, 0.48f, 0.34f, 1f)
-                    : new Color(0.70f, 0.86f, 1f, 1f));
+                _title.Text = $"机器人改造点数  禁用{disabledCount}·升级{upgradeCount}  {stageName}";
+                _title.AddThemeColorOverride("font_color", stageColor);
             }
 
             if (_counter is not null)
             {
                 _counter.Text = $"{clamped}/{MaxPoints}";
-                _counter.AddThemeColorOverride("font_color", danger
-                    ? new Color(1f, 0.55f, 0.36f, 1f)
-                    : new Color(0.77f, 0.92f, 1f, 1f));
+                _counter.AddThemeColorOverride("font_color", counterColor);
             }
 
             for (var i = 0; i < _segments.Count; i++)
             {
                 var filled = i < clamped;
-                var segmentDanger = i >= BlueLimit;
-                _segments[i].AddThemeStyleboxOverride("panel", _segmentStyles[filled ? 1 : 0, segmentDanger ? 1 : 0]);
+                var segmentTier = i < BlueLimit ? 0 : i < YellowLimit ? 1 : 2;
+                _segments[i].AddThemeStyleboxOverride("panel", _segmentStyles[filled ? 1 : 0, segmentTier]);
             }
         }
 
@@ -552,19 +575,24 @@ internal static partial class BdDynamicOddsStatsHud
             };
         }
 
-        private static StyleBoxFlat MakeSegmentStyle(bool filled, bool danger)
+        private static StyleBoxFlat MakeSegmentStyle(bool filled, int tier)
         {
-            var bg = filled
-                ? danger
-                    ? new Color(0.82f, 0.18f, 0.10f, 0.96f)
-                    : new Color(0.18f, 0.47f, 0.86f, 0.94f)
-                : danger
-                    ? new Color(0.24f, 0.075f, 0.05f, 0.58f)
-                    : new Color(0.055f, 0.14f, 0.22f, 0.56f);
+            var bg = (filled, tier) switch
+            {
+                (true, 0) => new Color(0.18f, 0.47f, 0.86f, 0.94f),
+                (true, 1) => new Color(0.94f, 0.63f, 0.10f, 0.96f),
+                (true, _) => new Color(0.82f, 0.18f, 0.10f, 0.96f),
+                (false, 0) => new Color(0.055f, 0.14f, 0.22f, 0.56f),
+                (false, 1) => new Color(0.25f, 0.16f, 0.035f, 0.58f),
+                _ => new Color(0.24f, 0.075f, 0.05f, 0.58f)
+            };
 
-            var border = danger
-                ? new Color(0.50f, 0.14f, 0.08f, 0.78f)
-                : new Color(0.14f, 0.32f, 0.50f, 0.78f);
+            var border = tier switch
+            {
+                0 => new Color(0.14f, 0.32f, 0.50f, 0.78f),
+                1 => new Color(0.62f, 0.39f, 0.08f, 0.82f),
+                _ => new Color(0.50f, 0.14f, 0.08f, 0.78f)
+            };
 
             return new StyleBoxFlat
             {
