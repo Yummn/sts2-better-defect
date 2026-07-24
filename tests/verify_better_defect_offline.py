@@ -151,13 +151,13 @@ def main() -> int:
     expected_version_types = [
         "Hotfix", "RocketPunch", "Voltaic", "Hyperbeam", "Shatter", "TeslaCoil", "Uproar",
         "Fusion", "Synthesis", "Compact", "MomentumStrike", "Scrape", "Sunder", "TrashToTreasure",
-        "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "GoForTheEyes", "GunkUp", "Leap",
+        "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "Coolheaded", "GoForTheEyes", "GunkUp", "Leap",
         "LightningRod", "SweepingBeam", "BdRecursion", "BdStreamline",
         "Chaos", "DoubleEnergy", "FightThrough", "Skim", "Tempest", "WhiteNoise",
         "Ftl", "Null", "Refract", "Feral", "Hailstorm", "Iteration", "Loop",
         "Smokestack", "Storm", "Subroutine",
     ]
-    check("card-transformation registry contains exactly 41 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 42 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -176,6 +176,7 @@ def main() -> int:
         "Beam Cell custom route applies BetterDefect Lock-On": "Bd.ApplyPower<BdLockOnPower>",
         "Charge Battery custom route draws next turn": "Bd.ApplyPower<DrawCardsNextTurnPower>",
         "Cold Snap custom route channels two Frost": "await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);\n        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);",
+        "Coolheaded custom route draws two before channeling Frost": "PlayCoolheaded",
         "Go for the Eyes custom route always applies Weak": "PlayGoForTheEyes",
         "Gunk Up custom route generates Slimed into hand": "AddGeneratedCardToCombat(slimed, PileType.Hand",
         "Leap custom route becomes zero cost for combat": "card.EnergyCost.SetThisCombat(0)",
@@ -223,6 +224,7 @@ def main() -> int:
     )
     uncommon_behavior_checks = {
         "Chaos prioritizes missing orb types": "missing.Count > 0 ? missing : canonical",
+        "Chaos custom baseline channels two": 'SetDynamic(card, "Repeat", upgradedVersion ? 2m',
         "Double Energy draws one card": "PlayDoubleEnergy",
         "Fight Through generates Dazed": "Bd.CreateCard<Dazed>",
         "Skim discards before drawing": "PlaySkim",
@@ -242,6 +244,36 @@ def main() -> int:
     }
     for name, token in uncommon_behavior_checks.items():
         check(name, token in versions)
+    check(
+        "Chaos custom baseline Exhausts until upgraded",
+        'SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus)' in versions,
+    )
+    check(
+        "Chaos ID fallback upgrade removes Exhaust",
+        'case "CARD.CHAOS":\n                UpgradeDynamicTo(card, "Repeat", 2m);\n                SetKeyword(card, CardKeyword.Exhaust, false);'
+        in versions,
+    )
+    check(
+        "Chaos encyclopedia summary says two orbs and Exhaust removal",
+        '["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球，优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗")'
+        in versions,
+    )
+    coolheaded_route = re.search(
+        r"private static async Task PlayCoolheaded\(.*?\)\s*\{(?P<body>.*?)\n    \}",
+        versions,
+        re.S,
+    )
+    coolheaded_body = coolheaded_route.group("body") if coolheaded_route else ""
+    check(
+        "Coolheaded custom route draws before channeling Frost",
+        coolheaded_body.find("CardPileCmd.Draw") >= 0
+        and coolheaded_body.find("OrbCmd.Channel<FrostOrb>") > coolheaded_body.find("CardPileCmd.Draw"),
+    )
+    check(
+        "Coolheaded transformed values draw two and Exhaust until upgraded",
+        'SetDynamic(card, "Cards", upgradedVersion ? 2m' in versions
+        and 'SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus)' in versions,
+    )
     smokestack_patch = class_body(versions, "BdCustomSmokestackPowerPatch")
     subroutine_patch = class_body(versions, "BdCustomSubroutinePowerPatch")
     check(
@@ -271,7 +303,7 @@ def main() -> int:
     check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
     check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/DynamicOddsUi.cs"))
     check("custom common-card descriptions follow their switches", all(token in localization for token in (
-        "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "goForTheEyesCustom",
+        "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "coolheadedCustom", "goForTheEyesCustom",
         "gunkUpCustom", "leapCustom", "lightningRodCustom", "sweepingBeamCustom", "uproarCustom",
         "recursionCustom", "streamlineCustom",
     )))
@@ -377,7 +409,7 @@ def main() -> int:
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
     dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.10.12", '"version":  "0.10.12"' in manifest)
+    check("manifest is v0.10.13", '"version":  "0.10.13"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -393,7 +425,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.10.12 offline audit",
+        "BetterDefect v0.10.13 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.10.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.13): adds an optional transformed Coolheaded: 1 energy, draw 2, then channel 1 Frost; the base card Exhausts and its normal upgrade removes Exhaust. Transformed Chaos now costs 1, channels 2 random orbs with missing orb types preferred, Exhausts at base, and removes Exhaust when upgraded. Android v0.103.2 starts successfully with all relevant Harmony patches attached; dual-target offline regression audit 151/151.
+
 - [v0.10.12](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.12): removes the restored rare card Amplify because Signal Boost now covers the same role, and restores the Slay the Spire 1 rare skill Seek. Seek costs 0, exhausts, and moves 1 card from the draw pile to the hand (2 when upgraded). Existing Amplify dynamic-odds, disabled and historical-upgrade state is purged so the removed card cannot consume the shared 35-point budget. Android v0.103.2 live validation confirmed the selection grid, draw-pile transfer and exhaust behavior; dual-target offline regression audit 144/144.
 
 - [v0.10.11](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.11): enhances transformed Beam Cell. It remains zero-cost, now deals 3 damage (4 when upgraded), then applies 1 Lock-On (2 when upgraded), while still replacing the vanilla Vulnerable effect. Values, combat behavior, transformation summary and Chinese card description are synchronized. Both targets compile successfully; offline regression audit 146/146 and PC startup validation reports no BetterDefect errors.

@@ -133,6 +133,7 @@ internal static class BdLocalization
         var beamCellCustom = IsVersionEnabled<BeamCell>();
         var chargeBatteryCustom = IsVersionEnabled<ChargeBattery>();
         var coldSnapCustom = IsVersionEnabled<ColdSnap>();
+        var coolheadedCustom = IsVersionEnabled<Coolheaded>();
         var goForTheEyesCustom = IsVersionEnabled<GoForTheEyes>();
         var gunkUpCustom = IsVersionEnabled<GunkUp>();
         var leapCustom = IsVersionEnabled<Leap>();
@@ -197,6 +198,10 @@ internal static class BdLocalization
             ["COLD_SNAP.description"] = coldSnapCustom
                 ? "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]2个[gold]冰霜[/gold]充能球。"
                 : "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。",
+
+            ["COOLHEADED.description"] = coolheadedCustom
+                ? "抽{Cards:diff()}张牌。\n[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。"
+                : "[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。\n抽{Cards:diff()}张牌。",
 
             ["GO_FOR_THE_EYES.description"] = goForTheEyesCustom
                 ? "造成{Damage:diff()}点伤害。\n给予{WeakPower:diff()}层[gold]虚弱[/gold]。"

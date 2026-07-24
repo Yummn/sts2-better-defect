@@ -40,7 +40,7 @@ internal static class BdCardVersionUpgrades
         // Custom common-card transformations selected by the user. These use
         // the same persistent 35-point system as historical versions, but are
         // deliberately labelled as custom transformations in the Encyclopedia.
-        typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
+        typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
         typeof(SweepingBeam), typeof(BdRecursion), typeof(BdStreamline),
 
@@ -74,6 +74,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BEAM_CELL"] = ("改造：自定义", "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤"),
             ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
             ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
+            ["CARD.COOLHEADED"] = ("改造：自定义", "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗"),
             ["CARD.GO_FOR_THE_EYES"] = ("改造：自定义", "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱"),
             ["CARD.GUNK_UP"] = ("改造：自定义", "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆"),
             ["CARD.LEAP"] = ("改造：自定义", "获得8(11)格挡；打出后本场战斗变为0费"),
@@ -81,7 +82,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
             ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费"),
-            ["CARD.CHAOS"] = ("改造：自定义", "1费生成1(2)个随机充能球，优先生成当前栏位中没有的种类"),
+            ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球，优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
             ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
             ["CARD.FIGHT_THROUGH"] = ("改造：自定义", "1费获得12(18)格挡，将2张眩晕加入弃牌堆"),
             ["CARD.SKIM"] = ("改造：自定义", "1费先弃1张手牌，再抽3(4)张牌"),
@@ -127,7 +128,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "v0.108",
         Sunder => "v0.109",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or ColdSnap or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine => "改造：自定义",
         _ => VersionedCardSpecs.TryGetValue(SafeCardId(card), out var spec) ? spec.Version : "历史版本"
     };
@@ -152,6 +153,7 @@ internal static class BdCardVersionUpgrades
         BeamCell => "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤",
         ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
         ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
+        Coolheaded => "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗",
         GoForTheEyes => "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱",
         GunkUp => "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆",
         Leap => "获得8(11)格挡；打出后本场战斗变为0费",
@@ -252,6 +254,12 @@ internal static class BdCardVersionUpgrades
                     : plus ? 9m : 6m);
                 break;
 
+            case Coolheaded:
+                SetEnergy(card, 1);
+                SetDynamic(card, "Cards", upgradedVersion ? 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus);
+                break;
+
             case GoForTheEyes:
                 SetDynamic(card, "Damage", plus ? 4m : 3m);
                 SetDynamic(card, "WeakPower", plus ? 2m : 1m);
@@ -281,7 +289,8 @@ internal static class BdCardVersionUpgrades
 
             case Chaos:
                 SetEnergy(card, 1);
-                SetDynamic(card, "Repeat", plus ? 2m : 1m);
+                SetDynamic(card, "Repeat", upgradedVersion ? 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus);
                 break;
 
             case DoubleEnergy:
@@ -475,6 +484,10 @@ internal static class BdCardVersionUpgrades
             case ColdSnap:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m);
                 break;
+            case Coolheaded:
+                UpgradeDynamicTo(card, "Cards", 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
+                break;
             case GoForTheEyes:
                 UpgradeDynamicTo(card, "Damage", 4m);
                 UpgradeDynamicTo(card, "WeakPower", 2m);
@@ -494,6 +507,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case Chaos:
                 UpgradeDynamicTo(card, "Repeat", 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
                 break;
             case DoubleEnergy:
                 SetEnergy(card, 0);
@@ -631,6 +645,11 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, upgradedVersion ? 2 : 1);
                 SetDynamic(card, "Damage", upgradedVersion ? plus ? 18m : 12m : plus ? 9m : 6m);
                 break;
+            case "CARD.COOLHEADED":
+                SetEnergy(card, 1);
+                SetDynamic(card, "Cards", upgradedVersion ? 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus);
+                break;
             case "CARD.GO_FOR_THE_EYES":
                 SetDynamic(card, "Damage", plus ? 4m : 3m);
                 SetDynamic(card, "WeakPower", plus ? 2m : 1m);
@@ -649,7 +668,8 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.CHAOS":
                 SetEnergy(card, 1);
-                SetDynamic(card, "Repeat", plus ? 2m : 1m);
+                SetDynamic(card, "Repeat", upgradedVersion ? 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus);
                 break;
             case "CARD.DOUBLE_ENERGY":
                 SetEnergy(card, plus ? 0 : 1);
@@ -763,6 +783,10 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.CHARGE_BATTERY": UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m); break;
             case "CARD.COLD_SNAP": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m); break;
+            case "CARD.COOLHEADED":
+                UpgradeDynamicTo(card, "Cards", 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
+                break;
             case "CARD.GO_FOR_THE_EYES":
                 UpgradeDynamicTo(card, "Damage", 4m);
                 UpgradeDynamicTo(card, "WeakPower", 2m);
@@ -774,7 +798,10 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", 9m);
                 UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);
                 break;
-            case "CARD.CHAOS": UpgradeDynamicTo(card, "Repeat", 2m); break;
+            case "CARD.CHAOS":
+                UpgradeDynamicTo(card, "Repeat", 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
+                break;
             case "CARD.DOUBLE_ENERGY": SetEnergy(card, 0); break;
             case "CARD.FIGHT_THROUGH": UpgradeDynamicTo(card, "Block", upgradedVersion ? 18m : 17m); break;
             case "CARD.SKIM": UpgradeDynamicTo(card, "Cards", 4m); break;
@@ -971,7 +998,7 @@ internal static class BdCustomCommonCardPlayPatch
     {
         Type[] types =
         [
-            typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap),
+            typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
             typeof(Uproar), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null)
@@ -998,6 +1025,7 @@ internal static class BdCustomCommonCardPlayPatch
             BeamCell card => PlayBeamCell(card, choiceContext, cardPlay),
             ChargeBattery card => PlayChargeBattery(card, choiceContext, cardPlay),
             ColdSnap card => PlayColdSnap(card, choiceContext, cardPlay),
+            Coolheaded card => PlayCoolheaded(card, choiceContext),
             GoForTheEyes card => PlayGoForTheEyes(card, choiceContext, cardPlay),
             GunkUp card => PlayGunkUp(card, choiceContext, cardPlay),
             Leap card => PlayLeap(card, cardPlay),
@@ -1085,6 +1113,13 @@ internal static class BdCustomCommonCardPlayPatch
             .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
+        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
+    }
+
+    private static async Task PlayCoolheaded(Coolheaded card, PlayerChoiceContext choiceContext)
+    {
+        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
+        await CardPileCmd.Draw(choiceContext, card.DynamicVars.Cards.BaseValue, card.Owner);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
     }
 

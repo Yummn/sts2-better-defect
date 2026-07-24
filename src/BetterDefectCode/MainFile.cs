@@ -107,7 +107,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.10.12: Amplify removed; StS1 Seek restored (draw-pile choice 1/2, Exhaust).");
+        Logger.Info("[BetterDefect] loaded v0.10.13: transformed Coolheaded draws 2 then channels Frost and Exhausts until upgraded; transformed Chaos channels 2 and Exhausts until upgraded.");
     }
 
     internal static bool IsAndroidRuntime()
