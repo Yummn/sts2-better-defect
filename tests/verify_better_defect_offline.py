@@ -428,10 +428,35 @@ def main() -> int:
     check("Android patches final power texture getter", '[HarmonyPatch(typeof(PowerModel), "get_Icon")]' in power_icons)
     check("injected powers validate all five status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
+    main_file = read("BetterDefectCode/MainFile.cs")
+    check(
+        "Android skips redundant unlocked-card-pool detour",
+        "type == typeof(DefectCardPoolUnlockedCardsPatch)" in main_file
+        and "GenerateAllCards remains extended" in main_file,
+    )
+    check(
+        "Android skips two non-gameplay tooltip detours",
+        "type == typeof(BdCustomBeamCellHoverTipsPatch)" in main_file
+        and "type == typeof(BdCustomFightThroughHoverTipsPatch)" in main_file,
+    )
+    check(
+        "rare-card Android play hooks are independently patchable",
+        "class BdCustomRareAdaptiveStrikePlayPatch" in versions
+        and "class BdCustomRareAllForOnePlayPatch" in versions
+        and "class BdCustomRareBufferPlayPatch" in versions
+        and "class BdCustomRareFlakCannonPlayPatch" in versions
+        and "class BdCustomRareMeteorStrikePlayPatch" in versions
+        and "class BdCustomRareMultiCastPlayPatch" in versions
+        and "class BdCustomRareRainbowPlayPatch" in versions,
+    )
+    check(
+        "obsolete grouped rare-card Harmony patch is removed",
+        "[HarmonyPatch]\ninternal static class BdCustomRareCardPlayPatch" not in versions,
+    )
     hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
     dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.0", '"version":  "0.11.0"' in manifest)
+    check("manifest is v0.11.1", '"version":  "0.11.1"' in manifest)
     check("encyclopedia context is owned by the current scene", "IsUnderCurrentScene(library)" in ui)
     check("full pooled-card cleanup exists", "internal static void CleanupAllTouchedCards()" in ui)
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
@@ -447,7 +472,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.0 offline audit",
+        "BetterDefect v0.11.1 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

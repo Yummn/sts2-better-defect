@@ -1533,47 +1533,112 @@ internal static class BdCustomCommonCardPlayPatch
     }
 }
 
-[HarmonyPatch]
-internal static class BdCustomRareCardPlayPatch
+[HarmonyPatch(typeof(AdaptiveStrike), "OnPlay")]
+internal static class BdCustomRareAdaptiveStrikePlayPatch
 {
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        Type[] types =
-        [
-            typeof(AdaptiveStrike), typeof(AllForOne), typeof(BufferCard), typeof(FlakCannon),
-            typeof(MeteorStrike), typeof(MultiCast), typeof(Rainbow)
-        ];
-        foreach (var type in types)
-        {
-            var method = AccessTools.DeclaredMethod(type, "OnPlay");
-            if (method != null) yield return method;
-        }
-    }
-
     private static bool Prefix(
-        CardModel __instance,
+        AdaptiveStrike __instance,
         PlayerChoiceContext choiceContext,
         CardPlay cardPlay,
         ref Task __result)
     {
-        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance))
-            return true;
-
-        __result = __instance switch
-        {
-            AdaptiveStrike card => PlayAdaptiveStrike(card, choiceContext, cardPlay),
-            AllForOne card => PlayAllForOne(card, choiceContext, cardPlay),
-            BufferCard card => PlayBuffer(card, choiceContext, cardPlay),
-            FlakCannon card => PlayFlakCannon(card, choiceContext, cardPlay),
-            MeteorStrike card => PlayMeteorStrike(card, choiceContext, cardPlay),
-            MultiCast card => PlayMultiCast(card, choiceContext),
-            Rainbow card => PlayRainbow(card, choiceContext),
-            _ => Task.CompletedTask
-        };
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayAdaptiveStrike(__instance, choiceContext, cardPlay);
         return false;
     }
+}
 
-    private static async Task PlayAdaptiveStrike(AdaptiveStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+[HarmonyPatch(typeof(AllForOne), "OnPlay")]
+internal static class BdCustomRareAllForOnePlayPatch
+{
+    private static bool Prefix(
+        AllForOne __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayAllForOne(__instance, choiceContext, cardPlay);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(BufferCard), "OnPlay")]
+internal static class BdCustomRareBufferPlayPatch
+{
+    private static bool Prefix(
+        BufferCard __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayBuffer(__instance, choiceContext, cardPlay);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(FlakCannon), "OnPlay")]
+internal static class BdCustomRareFlakCannonPlayPatch
+{
+    private static bool Prefix(
+        FlakCannon __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayFlakCannon(__instance, choiceContext, cardPlay);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(MeteorStrike), "OnPlay")]
+internal static class BdCustomRareMeteorStrikePlayPatch
+{
+    private static bool Prefix(
+        MeteorStrike __instance,
+        PlayerChoiceContext choiceContext,
+        CardPlay cardPlay,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayMeteorStrike(__instance, choiceContext, cardPlay);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(MultiCast), "OnPlay")]
+internal static class BdCustomRareMultiCastPlayPatch
+{
+    private static bool Prefix(
+        MultiCast __instance,
+        PlayerChoiceContext choiceContext,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayMultiCast(__instance, choiceContext);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(Rainbow), "OnPlay")]
+internal static class BdCustomRareRainbowPlayPatch
+{
+    private static bool Prefix(
+        Rainbow __instance,
+        PlayerChoiceContext choiceContext,
+        ref Task __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled(__instance)) return true;
+        __result = BdCustomRareCardPlay.PlayRainbow(__instance, choiceContext);
+        return false;
+    }
+}
+
+internal static class BdCustomRareCardPlay
+{
+    internal static async Task PlayAdaptiveStrike(AdaptiveStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
@@ -1585,7 +1650,7 @@ internal static class BdCustomRareCardPlayPatch
         CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(clone, PileType.Draw, card.Owner));
     }
 
-    private static async Task PlayAllForOne(AllForOne card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task PlayAllForOne(AllForOne card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
@@ -1605,7 +1670,7 @@ internal static class BdCustomRareCardPlayPatch
         await CardPileCmd.Add(selected, PileType.Hand);
     }
 
-    private static async Task PlayBuffer(BufferCard card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task PlayBuffer(BufferCard card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
         await Bd.ApplyPower<BufferPower>(
@@ -1617,7 +1682,7 @@ internal static class BdCustomRareCardPlayPatch
         await CreatureCmd.GainBlock(card.Owner.Creature, 10m, ValueProp.Move, cardPlay);
     }
 
-    private static async Task PlayFlakCannon(FlakCannon card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task PlayFlakCannon(FlakCannon card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         var statuses = card.Owner.PlayerCombatState.AllCards
@@ -1634,7 +1699,7 @@ internal static class BdCustomRareCardPlayPatch
             .Execute(choiceContext);
     }
 
-    private static async Task PlayMeteorStrike(MeteorStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    internal static async Task PlayMeteorStrike(MeteorStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
@@ -1644,7 +1709,7 @@ internal static class BdCustomRareCardPlayPatch
         await OrbCmd.Channel<PlasmaOrb>(choiceContext, card.Owner);
     }
 
-    private static async Task PlayMultiCast(MultiCast card, PlayerChoiceContext choiceContext)
+    internal static async Task PlayMultiCast(MultiCast card, PlayerChoiceContext choiceContext)
     {
         await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
         var count = card.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
@@ -1668,7 +1733,7 @@ internal static class BdCustomRareCardPlayPatch
         else if (orbType == typeof(GlassOrb)) await OrbCmd.Channel<GlassOrb>(choiceContext, player);
     }
 
-    private static async Task PlayRainbow(Rainbow card, PlayerChoiceContext choiceContext)
+    internal static async Task PlayRainbow(Rainbow card, PlayerChoiceContext choiceContext)
     {
         await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
         await OrbCmd.Channel<LightningOrb>(choiceContext, card.Owner);

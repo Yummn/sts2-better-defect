@@ -63,6 +63,27 @@ public partial class MainFile : Node
                 Logger.Warn($"[BetterDefect] skipping redundant Android beta-portrait hook {type.FullName}.");
                 continue;
             }
+            if (android && type == typeof(DefectCardPoolUnlockedCardsPatch))
+            {
+                // DefectCardPool.GetUnlockedCards ultimately consumes
+                // GenerateAllCards, which is already extended by
+                // DefectCardPoolGenerateAllCardsPatch. Detouring the inherited
+                // GetUnlockedCards method a second time is redundant on v103
+                // and can push the ARM64 MonoMod backend past its stable
+                // trampoline budget during startup.
+                Logger.Warn($"[BetterDefect] skipping redundant Android pool hook {type.FullName}; GenerateAllCards remains extended.");
+                continue;
+            }
+            if (android && (type == typeof(BdCustomBeamCellHoverTipsPatch) ||
+                            type == typeof(BdCustomFightThroughHoverTipsPatch)))
+            {
+                // These two patches only add duplicate keyword tooltips; the
+                // transformed card descriptions already contain the same
+                // information. Keep the mobile build lean by avoiding two
+                // non-gameplay ARM64 detours.
+                Logger.Warn($"[BetterDefect] skipping nonessential Android tooltip hook {type.FullName}.");
+                continue;
+            }
             if (android && type == typeof(BdPowerIconPathPatch))
             {
                 // Calls to PackedIconPath are inlined by the Android runtime,
@@ -107,7 +128,7 @@ public partial class MainFile : Node
         BdDynamicOdds.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
         BdDynamicOddsStatsHud.EnsureInstalled();
-        Logger.Info("[BetterDefect] loaded v0.11.0: 17 approved rare-card transformations added, including selectable rewrites and rarity migration.");
+        Logger.Info("[BetterDefect] loaded v0.11.1: 17 approved rare-card transformations plus Android v103 detour-stability fixes.");
     }
 
     internal static bool IsAndroidRuntime()
