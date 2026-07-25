@@ -103,10 +103,10 @@ internal static class BdCardVersionUpgrades
             ["CARD.FERAL"] = ("改造：自定义", "2(1)费；每回合第一次打出的0费牌返回手牌"),
             ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害"),
             ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
-            ["CARD.LOOP"] = ("改造：自定义", "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次"),
-            ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每回合首次触发额外抽1张"),
+            ["CARD.LOOP"] = ("改造：自定义", "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次"),
+            ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张"),
             ["CARD.STORM"] = ("改造：自定义", "1费固有；每打出能力牌生成1(2)个闪电球"),
-            ["CARD.SUBROUTINE"] = ("改造：自定义", "1(0)费；打出能力牌获得1能量，每回合首次触发额外抽1张"),
+            ["CARD.SUBROUTINE"] = ("改造：自定义", "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张"),
             ["CARD.ADAPTIVE_STRIKE"] = ("改造：自定义", "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆"),
             ["CARD.ALL_FOR_ONE"] = ("改造：自定义", "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌"),
             ["CARD.BUFFER"] = ("改造：自定义", "2费获得1(2)层缓冲和10点格挡"),
@@ -201,10 +201,10 @@ internal static class BdCardVersionUpgrades
         Feral => "2(1)费；每回合第一次打出的0费牌返回手牌",
         Hailstorm => "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害",
         Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
-        Loop => "1(0)费；回合开始时分别触发最左侧与最右侧充能球被动一次",
-        Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每回合首次触发额外抽1张",
+        Loop => "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次",
+        Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张",
         Storm => "1费固有；每打出能力牌生成1(2)个闪电球",
-        Subroutine => "1(0)费；打出能力牌获得1能量，每回合首次触发额外抽1张",
+        Subroutine => "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张",
         AdaptiveStrike => "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆",
         AllForOne => "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌",
         BufferCard => "2费获得1(2)层缓冲和10点格挡",
@@ -2174,14 +2174,17 @@ internal static class BdCustomLoopPowerPatch
     private static async Task Trigger(LoopPower power, PlayerChoiceContext choiceContext, Player player)
     {
         if (player != power.Owner.Player) return;
-        var orbs = player.PlayerCombatState.OrbQueue.Orbs.ToList();
-        if (orbs.Count == 0) return;
-        await OrbCmd.Passive(choiceContext, orbs[0], null);
-        await Cmd.Wait(0.25f);
-        if (orbs.Count > 1 && player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1]))
+        for (var repeat = 0; repeat < power.Amount; repeat++)
         {
-            await OrbCmd.Passive(choiceContext, orbs[^1], null);
+            var orbs = player.PlayerCombatState.OrbQueue.Orbs.ToList();
+            if (orbs.Count == 0) return;
+            await OrbCmd.Passive(choiceContext, orbs[0], null);
             await Cmd.Wait(0.25f);
+            if (orbs.Count > 1 && player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1]))
+            {
+                await OrbCmd.Passive(choiceContext, orbs[^1], null);
+                await Cmd.Wait(0.25f);
+            }
         }
     }
 }
@@ -2245,8 +2248,33 @@ internal static class BdCustomSmokestackPowerPatch
         if (!state.Drew)
         {
             state.Drew = true;
-            await CardPileCmd.Draw(context, 1m, power.Owner.Player);
+            await CardPileCmd.Draw(context, GetStackCount(power), power.Owner.Player);
         }
+    }
+
+    private static int GetStackCount(SmokestackPower power)
+    {
+        try
+        {
+            // Smokestack uses Amount for its accumulated damage (4/6 per
+            // card), so Amount cannot also represent how many copies were
+            // applied. PowerReceivedEntry records every successful stack,
+            // including mixed normal/upgraded copies and Echo Form repeats.
+            var applied = CombatManager.Instance.History.Entries
+                .OfType<PowerReceivedEntry>()
+                .Count(entry =>
+                    ReferenceEquals(entry.Power, power)
+                    && entry.Actor == power.Owner
+                    && entry.Amount > 0);
+            if (applied > 0)
+                return applied;
+        }
+        catch { }
+
+        // A resumed combat can have a power before any runtime history has
+        // been rebuilt. Preserve the old single-stack behavior rather than
+        // suppressing the bonus draw entirely.
+        return 1;
     }
 }
 
@@ -2264,21 +2292,21 @@ internal static class BdCustomSubroutinePowerPatch
 
     private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(SubroutinePower), "AfterCardPlayed");
 
-    private static void Prefix(SubroutinePower __instance, object[] __args, out bool __state)
+    private static void Prefix(SubroutinePower __instance, object[] __args, out int __state)
     {
         var cardPlay = __args.Length > 1 ? __args[1] as CardPlay : null;
-        __state = BdCardVersionUpgrades.IsVersionEnabled<Subroutine>()
-            && cardPlay != null
-            && WasTrackedByVanilla(__instance, cardPlay.Card);
+        __state = BdCardVersionUpgrades.IsVersionEnabled<Subroutine>() && cardPlay != null
+            ? GetTrackedStackAmount(__instance, cardPlay.Card)
+            : 0;
     }
 
     private static void Postfix(
         SubroutinePower __instance,
         object[] __args,
-        bool __state,
+        int __state,
         ref Task __result)
     {
-        if (!__state) return;
+        if (__state <= 0) return;
         if (__args.Length == 0 || __args[0] is not PlayerChoiceContext choiceContext)
             return;
         var state = States.GetOrCreateValue(__instance);
@@ -2290,24 +2318,34 @@ internal static class BdCustomSubroutinePowerPatch
         }
         if (state.Drew) return;
         state.Drew = true;
-        __result = FinishAndDraw(__result, choiceContext, __instance.Owner.Player);
+        __result = FinishAndDraw(
+            __result,
+            choiceContext,
+            __instance.Owner.Player,
+            __state);
     }
 
-    private static bool WasTrackedByVanilla(SubroutinePower power, CardModel card)
+    private static int GetTrackedStackAmount(SubroutinePower power, CardModel card)
     {
         try
         {
             var data = InternalDataField?.GetValue(power);
             var field = data == null ? null : AccessTools.Field(data.GetType(), "amountsForPlayedCards");
-            return field?.GetValue(data) is IDictionary dictionary && dictionary.Contains(card);
+            if (field?.GetValue(data) is not IDictionary dictionary || !dictionary.Contains(card))
+                return 0;
+            return dictionary[card] is int amount ? Math.Max(0, amount) : 0;
         }
-        catch { return false; }
+        catch { return 0; }
     }
 
-    private static async Task FinishAndDraw(Task original, PlayerChoiceContext choiceContext, Player player)
+    private static async Task FinishAndDraw(
+        Task original,
+        PlayerChoiceContext choiceContext,
+        Player player,
+        int drawCount)
     {
         await original;
-        await CardPileCmd.Draw(choiceContext, 1m, player);
+        await CardPileCmd.Draw(choiceContext, drawCount, player);
     }
 }
 

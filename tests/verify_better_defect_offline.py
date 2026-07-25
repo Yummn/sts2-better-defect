@@ -321,6 +321,26 @@ def main() -> int:
         and "__args[1] as CardPlay" in subroutine_patch
         and "__args[0] is not PlayerChoiceContext choiceContext" in subroutine_patch,
     )
+    loop_patch = class_body(versions, "BdCustomLoopPowerPatch")
+    check(
+        "Loop transformed edge passives scale with stacked copies",
+        "repeat < power.Amount" in loop_patch
+        and "OrbCmd.Passive(choiceContext, orbs[0], null)" in loop_patch
+        and "OrbCmd.Passive(choiceContext, orbs[^1], null)" in loop_patch,
+    )
+    check(
+        "Smokestack transformed first-trigger draw scales by applied copies",
+        "GetStackCount(power)" in smokestack_patch
+        and "OfType<PowerReceivedEntry>()" in smokestack_patch
+        and "entry.Amount > 0" in smokestack_patch,
+    )
+    check(
+        "Subroutine transformed first-trigger draw uses pre-play stack amount",
+        "GetTrackedStackAmount(__instance, cardPlay.Card)" in subroutine_patch
+        and "dictionary[card] is int amount" in subroutine_patch
+        and "FinishAndDraw(" in subroutine_patch
+        and "__state);" in subroutine_patch,
+    )
     check("Recursion custom route double-evokes the leftmost orb", "OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false)" in cards)
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
@@ -489,7 +509,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.6", '"version":  "0.11.6"' in manifest)
+    check("manifest is v0.11.7", '"version":  "0.11.7"' in manifest)
     android_dispatch = read("BetterDefectCode/AndroidCentralCardPlay.cs")
     check("Android bridge handler returns null for native card dispatch", "internal static Task? TryOnPlay" in android_dispatch and "return null;" in android_dispatch)
     check("Android bridge registration stores MethodInfo without a generic Func delegate", "handlerField.SetValue(null, dispatcher)" in main_file and "Delegate.CreateDelegate" not in main_file)
@@ -508,7 +528,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.6 offline audit",
+        "BetterDefect v0.11.7 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

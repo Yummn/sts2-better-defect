@@ -295,11 +295,11 @@ internal static class BdLocalization
                 : "每回合你第一次抽到状态牌时，抽{IterationPower:diff()}张牌。",
 
             ["LOOP.description"] = loopCustom
-                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动一次。同一个充能球只触发一次。"
+                ? "在你的回合开始时，每层分别触发最左侧和最右侧充能球的被动一次。同一个充能球每层只触发一次。"
                 : "在你的回合开始时，触发你最右侧的一个充能球的被动能力{IfUpgraded:show:2次}。",
 
             ["SMOKESTACK.description"] = smokestackCustom
-                ? "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。每回合第一次触发时，额外抽1张牌。"
+                ? "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。每层在每回合第一次触发时，额外抽1张牌。"
                 : "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。",
 
             ["STORM.description"] = stormCustom
@@ -307,7 +307,7 @@ internal static class BdLocalization
                 : "每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。",
 
             ["SUBROUTINE.description"] = subroutineCustom
-                ? "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。每回合第一次触发时，额外抽1张牌。"
+                ? "当你打出一张能力牌时，每层获得{energyPrefix:energyIcons(1)}。每层在每回合第一次触发时，额外抽1张牌。"
                 : "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。",
 
             ["ADAPTIVE_STRIKE.description"] = adaptiveStrikeCustom

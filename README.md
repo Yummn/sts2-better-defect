@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.7): fixes stacked transformed powers whose secondary effects were still hardcoded to one activation. Two transformed Smokestacks now deal 8 damage and draw 2 cards on the first Status generation each turn; two Subroutines grant 2 energy and draw 2 cards on their first Power trigger; two Loops trigger the left and right edge orb passives four times total. PC v0.107.1 live regression passed all three cases. PC and Android v0.103.2 binaries compile separately; offline audit passes 178/178.
+
 - [v0.11.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.6): fixes transformed Iteration locking the combat action queue after drawing its first Status card. The old hook exhausted that Status from inside `IterationPower.AfterCardDrawn`, before the game's draw command could run `CardModel.InvokeDrawn()` and finish its visual/action lifecycle. The new route waits for the full outer draw task—including Iteration's extra draws—to complete, then exhausts the first Status only if it is still in hand. PC v0.107.1 live regression confirmed Iteration, Dazed exhaustion, its extra draws and a subsequent Zap all resolve normally. PC and Android v0.103.2 binaries compile separately; offline audit passes 174/174.
 
 - [v0.11.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.5): fixes cards becoming unplayable on Android v0.103.2. The v0.11.4 bridge called a `Func<CardModel, ..., Task>.Invoke` specialization missing from the Android AOT image, so every card ended in `MissingMethodException`. The bridge now stores a `MethodInfo`, uses the AOT-safe non-generic reflection entrypoint only to ask BetterDefect whether it owns the card, and falls back to the game's native virtual `OnPlay` for ordinary cards. Live REDMI K80 Pro validation confirmed both Ball Lightning and Strike spend energy, leave the hand and deal their expected 7/6 damage without play-action exceptions. Offline audit passes 173/173.
@@ -184,7 +186,7 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Install
 
-Download `BetterDefect-v0.11.4-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.4-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.11.7-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.7-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 Android v103 should first install the same release's `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`. This preserves application data when the currently installed build uses the same AOSP testkey signature. Do not uninstall the game before updating.
 
