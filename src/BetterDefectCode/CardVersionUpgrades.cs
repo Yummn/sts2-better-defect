@@ -2098,40 +2098,63 @@ internal static class BdCustomHailstormPowerV103Patch
 }
 
 [HarmonyPatch]
-internal static class BdCustomIterationPowerPatch
+internal static class BdCustomIterationDrawCompletionPatch
 {
-    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(IterationPower), "AfterCardDrawn");
+    private static MethodBase? TargetMethod() => AccessTools.Method(
+        typeof(CardPileCmd),
+        nameof(CardPileCmd.Draw),
+        new[] { typeof(PlayerChoiceContext), typeof(decimal), typeof(Player), typeof(bool) });
 
     private static void Postfix(
-        IterationPower __instance,
         PlayerChoiceContext choiceContext,
-        CardModel card,
-        bool fromHandDraw,
-        ref Task __result)
+        ref Task<IEnumerable<CardModel>> __result)
     {
-        if (!BdCardVersionUpgrades.IsVersionEnabled<Iteration>() || card.Owner.Creature != __instance.Owner || card.Type != CardType.Status)
-            return;
-
-        var firstStatus = CombatManager.Instance.History.Entries.OfType<CardDrawnEntry>().Count(entry =>
-            entry.HappenedThisTurn(__instance.CombatState)
-            && entry.Actor == __instance.Owner
-            && entry.Card.Type == CardType.Status) <= 1;
-        if (firstStatus)
-            __result = FinishAndExhaust(__result, choiceContext, card);
+        __result = FinishDrawAndExhaust(__result, choiceContext);
     }
 
-    private static async Task FinishAndExhaust(Task original, PlayerChoiceContext choiceContext, CardModel card)
+    private static async Task<IEnumerable<CardModel>> FinishDrawAndExhaust(
+        Task<IEnumerable<CardModel>> original,
+        PlayerChoiceContext choiceContext)
     {
-        await original;
+        var drawnCards = (await original).ToList();
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Iteration>())
+            return drawnCards;
+
+        var iterationPower = drawnCards
+            .Select(card => card.Owner.Creature)
+            .Distinct()
+            .Select(owner => owner.GetPower<IterationPower>())
+            .FirstOrDefault(power => power != null);
+        if (iterationPower == null)
+            return drawnCards;
+
+        // CardPileCmd.Draw records history and invokes every AfterCardDrawn
+        // hook before it calls CardModel.InvokeDrawn(). Moving the status card
+        // from inside IterationPower.AfterCardDrawn therefore interrupts the
+        // card's draw lifecycle and leaves the combat action queue blocked.
+        // Wait for the complete (possibly nested) Draw command, then exhaust
+        // the first Status recorded for this owner during the current turn.
+        var firstStatus = CombatManager.Instance.History.Entries
+            .OfType<CardDrawnEntry>()
+            .FirstOrDefault(entry =>
+                entry.HappenedThisTurn(iterationPower.CombatState)
+                && entry.Actor == iterationPower.Owner
+                && entry.Card.Type == CardType.Status)
+            ?.Card;
+        if (firstStatus == null || !drawnCards.Contains(firstStatus))
+            return drawnCards;
+
         try
         {
-            if (card.Pile?.Type == PileType.Hand)
-                await CardCmd.Exhaust(choiceContext, card);
+            if (firstStatus.Pile?.Type == PileType.Hand)
+                await CardCmd.Exhaust(choiceContext, firstStatus);
         }
         catch (Exception ex)
         {
-            MainFile.Logger.Warn($"[BetterDefect] Iteration could not exhaust drawn status: {ex.GetType().Name}: {ex.Message}");
+            MainFile.Logger.Warn($"[BetterDefect] Iteration could not exhaust drawn status after draw completion: {ex.GetType().Name}: {ex.Message}");
         }
+
+        return drawnCards;
     }
 }
 

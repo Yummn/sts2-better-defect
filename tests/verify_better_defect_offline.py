@@ -241,7 +241,7 @@ def main() -> int:
         "Feral custom card costs two and upgrades to one": 'SetEnergy(card, plus ? 1 : 2)',
         "Feral custom power returns any zero-energy card": "BdCustomFeralPowerResultPatch",
         "Hailstorm scales with Frost count": "power.Amount * frostCount",
-        "Iteration exhausts the first drawn status": "FinishAndExhaust",
+        "Iteration defers status exhaustion until the draw command completes": "BdCustomIterationDrawCompletionPatch",
         "Loop triggers both edge orbs": "BdCustomLoopPowerPatch",
         "Smokestack draws on its first trigger": "BdCustomSmokestackPowerPatch",
         "Storm gains Innate when transformed": "SetKeyword(card, CardKeyword.Innate, upgradedVersion)",
@@ -249,6 +249,16 @@ def main() -> int:
     }
     for name, token in uncommon_behavior_checks.items():
         check(name, token in versions)
+    iteration_draw_patch = class_body(versions, "BdCustomIterationDrawCompletionPatch")
+    check(
+        "Iteration never moves the status card during AfterCardDrawn",
+        "FinishDrawAndExhaust" in iteration_draw_patch
+        and "var drawnCards = (await original).ToList();" in iteration_draw_patch
+        and "firstStatus.Pile?.Type == PileType.Hand" in iteration_draw_patch
+        and "CardCmd.Exhaust(choiceContext, firstStatus)" in iteration_draw_patch
+        and "BdCustomIterationPowerPatch" not in versions
+        and "FinishAndExhaust(__result" not in versions,
+    )
     check(
         "Chaos custom baseline Exhausts until upgraded",
         'SetKeyword(card, CardKeyword.Exhaust, upgradedVersion && !plus)' in versions,
@@ -479,7 +489,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.5", '"version":  "0.11.5"' in manifest)
+    check("manifest is v0.11.6", '"version":  "0.11.6"' in manifest)
     android_dispatch = read("BetterDefectCode/AndroidCentralCardPlay.cs")
     check("Android bridge handler returns null for native card dispatch", "internal static Task? TryOnPlay" in android_dispatch and "return null;" in android_dispatch)
     check("Android bridge registration stores MethodInfo without a generic Func delegate", "handlerField.SetValue(null, dispatcher)" in main_file and "Delegate.CreateDelegate" not in main_file)
@@ -498,7 +508,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.5 offline audit",
+        "BetterDefect v0.11.6 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

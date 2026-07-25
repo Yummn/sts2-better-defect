@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.5: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            Logger.Info($"[BetterDefect] loaded v0.11.6: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); Iteration draw-completion fix enabled; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.5: 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+        Logger.Info("[BetterDefect] loaded v0.11.6: Iteration draw-completion fix enabled; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
