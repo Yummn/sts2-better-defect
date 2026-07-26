@@ -537,7 +537,17 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.9", '"version":  "0.11.9"' in manifest)
+    check("manifest is v0.11.10", '"version":  "0.11.10"' in manifest)
+    check(
+        "card transformation normalization reapplies enchantment last",
+        "ReapplyEnchantmentAsFinalModifier(card);" in versions
+        and "card.Enchantment.ModifyCard();" in versions,
+    )
+    check(
+        "enchantment refresh is limited to eligible transformed cards",
+        "if (!IsEligible(card) && card is not Fuel) return;" in versions
+        and "if (!card.IsMutable || card.Enchantment == null) return;" in versions,
+    )
     check(
         "Iteration waits one process frame and removes stale hand visuals",
         "WaitForIterationVisualCleanupFrame" in versions
@@ -563,7 +573,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.9 offline audit",
+        "BetterDefect v0.11.10 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

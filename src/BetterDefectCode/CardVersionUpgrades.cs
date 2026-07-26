@@ -270,6 +270,7 @@ internal static class BdCardVersionUpgrades
     internal static void ApplyToModel(CardModel? card)
     {
         if (card == null) return;
+        if (!IsEligible(card) && card is not Fuel) return;
 
         var upgradedVersion = IsVersionEnabled(card);
         var plus = card.IsUpgraded;
@@ -574,6 +575,18 @@ internal static class BdCardVersionUpgrades
         // fallback so the button and the actual effect cannot diverge.
         if (!VersionedCardTypeSet.Contains(card.GetType()) && card is not Fuel)
             ApplyVersionById(card, upgradedVersion, plus);
+
+        // A transformation is the card's base rule set, while an enchantment is
+        // the final per-card modifier. ToMutable clones an already-enchanted
+        // card before this postfix runs, and save deserialization applies the
+        // enchantment before normal upgrades. In both paths the normalization
+        // above can otherwise overwrite enchantment-owned cost/keyword changes
+        // (most visibly an enchantment which removes Exhaust).
+        //
+        // EnchantmentModel.ModifyCard is explicitly the game's refresh API for
+        // this situation (the base game uses it after DowngradeInternal). Run it
+        // last so enchantments always win over historical/custom transforms.
+        ReapplyEnchantmentAsFinalModifier(card);
     }
 
     internal static void ApplyNormalUpgrade(CardModel card)
@@ -1186,6 +1199,21 @@ internal static class BdCardVersionUpgrades
             }
         }
         catch { }
+    }
+
+    private static void ReapplyEnchantmentAsFinalModifier(CardModel card)
+    {
+        if (!card.IsMutable || card.Enchantment == null) return;
+        try
+        {
+            card.Enchantment.ModifyCard();
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn(
+                $"[BetterDefect] could not reapply final enchantment modifier for {SafeCardId(card)}: " +
+                $"{ex.GetType().Name}: {ex.Message}");
+        }
     }
 }
 
