@@ -557,7 +557,21 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.14", '"version":  "0.11.14"' in manifest)
+    check("manifest is v0.11.15", '"version":  "0.11.15"' in manifest)
+    check(
+        "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
+        "class BdCardVersionPersistedStatePatch" in versions
+        and "class BdCardVersionRunReadyPatch" not in versions
+        and "class BdCardVersionPlayerSyncPatch" not in versions
+        and "class BdCardVersionDowngradePatch" not in versions,
+    )
+    check(
+        "Android rarity transformations avoid native CardModel getter detours",
+        "type == typeof(OldDefectCardPoolPatch)" in main_file
+        and "type == typeof(OldDefectCardRarityPatch)" in main_file
+        and '"<Rarity>k__BackingField"' in versions
+        and "ApplyAndroidRarityWithoutDetour(card, upgradedVersion);" in versions,
+    )
     check(
         "card transformation normalization reapplies enchantment last",
         "ReapplyEnchantmentAsFinalModifier(card);" in versions
@@ -576,16 +590,24 @@ def main() -> int:
         and "ApplyToModel(card);" in versions,
     )
     check(
-        "run-ready patch restores transformed values after full deserialization",
-        "class BdCardVersionRunReadyPatch" in versions
-        and "[HarmonyPatch(typeof(NRun), nameof(NRun._Ready))]" in versions
-        and 'ReapplyPersistedTransformationsToLoadedCards("run ready")' in versions,
+        "merged persisted-state patch restores transformed values after full deserialization",
+        "class BdCardVersionPersistedStatePatch" in versions
+        and "AccessTools.Method(typeof(NRun), nameof(NRun._Ready))" in versions
+        and '? "run ready"' in versions
+        and "ReapplyPersistedTransformationsToLoadedCards(source);" in versions,
     )
     check(
-        "player-sync patch restores transformed values after run synchronization",
-        "class BdCardVersionPlayerSyncPatch" in versions
-        and "[HarmonyPatch(typeof(Player), nameof(Player.SyncWithSerializedPlayer))]" in versions
-        and 'ReapplyPersistedTransformationsToLoadedCards("player sync")' in versions,
+        "merged persisted-state patch restores transformed values after run synchronization",
+        "class BdCardVersionPersistedStatePatch" in versions
+        and "AccessTools.Method(typeof(Player), nameof(Player.SyncWithSerializedPlayer))" in versions
+        and '"player sync"' in versions,
+    )
+    check(
+        "normal upgrade and downgrade share one Android-safe patch class",
+        "class BdCardVersionNormalUpgradePatch" in versions
+        and "nameof(CardModel.UpgradeInternal)" in versions
+        and "nameof(CardModel.DowngradeInternal)" in versions
+        and "class BdCardVersionDowngradePatch" not in versions,
     )
     check(
         "Android delayed patch completion refreshes canonical and loaded cards",
@@ -617,7 +639,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.14 offline audit",
+        "BetterDefect v0.11.15 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

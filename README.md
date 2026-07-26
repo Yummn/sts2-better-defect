@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.15): stabilizes Android v0.103.2 startup by consolidating persisted-state/upgrade hooks and replacing native card-pool/rarity getter detours with direct data updates. The Android queue is now 32 classes and completed 3/3 repeated cold starts plus a final production start after restoring the user's save/settings. Transformed Consuming Shadow+ was also played through the phone's real command path and produced three Dark orbs. Dual-platform binary regression audit passes 198/198.
+
 - [v0.11.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.14): improves transformed Consuming Shadow's normal upgrade from 1 (2) to 1 (3) Dark orbs while keeping its end-of-turn trigger for every Dark-orb passive unchanged. PC v0.107.1 live regression upgraded and actually played the card, producing three Dark orbs; source, behavior-route, manifest and compiled-binary offline audit passes 194/194.
 
 - [v0.11.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.13): removes transformed Loop's one-trigger restriction when only one orb is present. A sole orb now counts as both leftmost and rightmost, so every Loop stack triggers it twice; multi-orb behavior is unchanged. PC v0.107.1 live regression measured two production passive calls on the same sole Frost orb; Android v0.103.2 compiles separately; dual-platform offline audit passes 194/194.

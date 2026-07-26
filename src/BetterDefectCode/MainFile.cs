@@ -76,6 +76,18 @@ public partial class MainFile : Node
                 Logger.Warn($"[BetterDefect] skipping redundant Android pool hook {type.FullName}; GenerateAllCards remains extended.");
                 continue;
             }
+            if (android && (type == typeof(OldDefectCardPoolPatch) ||
+                            type == typeof(OldDefectCardRarityPatch)))
+            {
+                // Both are virtual property-getter detours and are the final
+                // recurring source of ARM64 SIGABRT/SIGSEGV during v103 cold
+                // starts. Restored cards are already appended to the Defect
+                // pool and construct with their correct rarity. Optional
+                // rarity transformations write CardModel's backing field
+                // directly, so neither native getter trampoline is needed.
+                Logger.Warn($"[BetterDefect] skipping Android-unsafe metadata getter {type.FullName}; pool membership and transformed rarity use detour-free data updates.");
+                continue;
+            }
             if (android && (type == typeof(BdCustomBeamCellHoverTipsPatch) ||
                             type == typeof(BdCustomFightThroughHoverTipsPatch)))
             {
@@ -132,7 +144,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.14: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Consuming Shadow+ generates three Dark orbs.");
+            Logger.Info($"[BetterDefect] loaded v0.11.15: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); metadata getters use detour-free data updates.");
             return;
         }
 
@@ -140,7 +152,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.14: transformed Consuming Shadow+ generates three Dark orbs.");
+        Logger.Info("[BetterDefect] loaded v0.11.15: transformed Consuming Shadow+ generates three Dark orbs.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

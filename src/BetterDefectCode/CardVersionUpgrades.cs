@@ -38,6 +38,11 @@ namespace BetterDefect;
 /// </summary>
 internal static class BdCardVersionUpgrades
 {
+    private static readonly FieldInfo? CardRarityBackingField =
+        typeof(CardModel).GetField(
+            "<Rarity>k__BackingField",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
     private static readonly Type[] VersionedCardTypes =
     [
         typeof(Hotfix), typeof(RocketPunch), typeof(Voltaic), typeof(Hyperbeam),
@@ -311,6 +316,7 @@ internal static class BdCardVersionUpgrades
 
         var upgradedVersion = IsVersionEnabled(card);
         var plus = card.IsUpgraded;
+        ApplyAndroidRarityWithoutDetour(card, upgradedVersion);
 
         switch (card)
         {
@@ -1157,6 +1163,23 @@ internal static class BdCardVersionUpgrades
         }
     }
 
+    private static void ApplyAndroidRarityWithoutDetour(CardModel card, bool transformed)
+    {
+        if (!MainFile.IsAndroidRuntime() || CardRarityBackingField == null)
+            return;
+
+        CardRarity? rarity = card switch
+        {
+            GeneticAlgorithm => transformed ? CardRarity.Uncommon : CardRarity.Rare,
+            IceLance => transformed ? CardRarity.Uncommon : CardRarity.Rare,
+            Defragment => transformed ? CardRarity.Uncommon : CardRarity.Rare,
+            BiasedCognition => transformed ? CardRarity.Rare : CardRarity.Ancient,
+            _ => null
+        };
+        if (rarity.HasValue)
+            CardRarityBackingField.SetValue(card, rarity.Value);
+    }
+
     private static bool IsCompactVersionEnabled()
     {
         try { return BdDynamicOdds.IsCardVersionUpgraded(ModelDb.AllCards.OfType<Compact>().FirstOrDefault()); }
@@ -1260,28 +1283,29 @@ internal static class BdCardVersionModelDbInitPatch
     private static void Postfix() => BdCardVersionUpgrades.RefreshAllCanonicalModels();
 }
 
-[HarmonyPatch(typeof(NRun), nameof(NRun._Ready))]
-internal static class BdCardVersionRunReadyPatch
+[HarmonyPatch]
+internal static class BdCardVersionPersistedStatePatch
 {
-    private static void Postfix()
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var runReady = AccessTools.Method(typeof(NRun), nameof(NRun._Ready));
+        if (runReady != null) yield return runReady;
+        var playerSync = AccessTools.Method(typeof(Player), nameof(Player.SyncWithSerializedPlayer));
+        if (playerSync != null) yield return playerSync;
+    }
+
+    private static void Postfix(MethodBase __originalMethod)
     {
         // CardModel.FromSerializable first clones the transformed canonical
         // model, then SavedProperties.Fill restores values written by the
-        // previous process.  That second step can put vanilla values back onto
-        // an otherwise enabled transformation.  Reapply persisted rules after
-        // the complete run has been deserialized.
-        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("run ready");
-    }
-}
-
-[HarmonyPatch(typeof(Player), nameof(Player.SyncWithSerializedPlayer))]
-internal static class BdCardVersionPlayerSyncPatch
-{
-    private static void Postfix()
-    {
-        // Multiplayer/run synchronization uses the same serialized-card
-        // pipeline and needs the same final normalization.
-        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("player sync");
+        // previous process. Run loading and multiplayer synchronization both
+        // use that pipeline, so normalize after either operation. Keeping the
+        // two targets in one Harmony class also preserves Android v103's
+        // stable patch-class budget.
+        var source = __originalMethod.DeclaringType == typeof(NRun)
+            ? "run ready"
+            : "player sync";
+        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards(source);
     }
 }
 
@@ -1291,20 +1315,21 @@ internal static class BdCardVersionToMutablePatch
     private static void Postfix(ref CardModel __result) => BdCardVersionUpgrades.ApplyToModel(__result);
 }
 
-[HarmonyPatch(typeof(CardModel), nameof(CardModel.DowngradeInternal))]
-internal static class BdCardVersionDowngradePatch
-{
-    private static void Postfix(CardModel __instance) => BdCardVersionUpgrades.ApplyToModel(__instance);
-}
-
-[HarmonyPatch(typeof(CardModel), nameof(CardModel.UpgradeInternal))]
+[HarmonyPatch]
 internal static class BdCardVersionNormalUpgradePatch
 {
+    private static IEnumerable<MethodBase> TargetMethods()
+    {
+        var upgrade = AccessTools.Method(typeof(CardModel), nameof(CardModel.UpgradeInternal));
+        if (upgrade != null) yield return upgrade;
+        var downgrade = AccessTools.Method(typeof(CardModel), nameof(CardModel.DowngradeInternal));
+        if (downgrade != null) yield return downgrade;
+    }
+
     // One base upgrade pipeline hook replaces fifteen per-card OnUpgrade
-    // detours. Let the game perform its normal upgrade first, then normalize
-    // the final values to the selected historical version. Besides producing
-    // the same result, this greatly reduces ARM64 MonoMod trampoline pressure
-    // during Android startup.
+    // detours. The matching downgrade route uses the same final normalization,
+    // so both targets share one Harmony class to reduce Android startup
+    // discovery and trampoline pressure.
     private static void Postfix(CardModel __instance) =>
         BdCardVersionUpgrades.ApplyToModel(__instance);
 }
