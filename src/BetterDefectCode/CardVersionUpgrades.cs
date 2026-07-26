@@ -105,7 +105,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.NULL"] = ("改造：自定义", "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个"),
             ["CARD.REFRACT"] = ("改造：自定义", "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费"),
             ["CARD.FERAL"] = ("改造：自定义", "2(1)费；每回合第一次打出的0费牌返回手牌"),
-            ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害"),
+            ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每个冰霜分别对所有敌人造成2(3)伤害"),
             ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
             ["CARD.LOOP"] = ("改造：自定义", "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次"),
             ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张"),
@@ -203,7 +203,7 @@ internal static class BdCardVersionUpgrades
         Null => "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个",
         Refract => "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费",
         Feral => "2(1)费；每回合第一次打出的0费牌返回手牌",
-        Hailstorm => "1费；回合结束时每有1个冰霜，对所有敌人造成2(3)伤害",
+        Hailstorm => "1费；回合结束时每个冰霜分别对所有敌人造成2(3)伤害",
         Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
         Loop => "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次",
         Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张",
@@ -2049,21 +2049,30 @@ internal static class BdCustomHailstormPowerPatch
     {
         if (!BdCardVersionUpgrades.IsVersionEnabled<Hailstorm>())
             return true;
-        __result = Trigger(__instance, choiceContext, participants);
+        __result = side == __instance.Owner.Side && participants.Contains(__instance.Owner)
+            ? Trigger(__instance, choiceContext)
+            : Task.CompletedTask;
         return false;
     }
 
-    private static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext, IEnumerable<Creature> participants)
+    internal static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext)
     {
-        if (!participants.Contains(power.Owner)) return;
         var frostCount = power.Owner.Player.PlayerCombatState.OrbQueue.Orbs.Count(orb => orb is FrostOrb);
         if (frostCount <= 0) return;
-        await CreatureCmd.Damage(
-            choiceContext,
-            power.CombatState.HittableEnemies,
-            power.Amount * frostCount,
-            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
-            power.Owner);
+
+        // The transformed card says "for each Frost orb", so each orb must
+        // create its own damage event. Combining Amount * frostCount into one
+        // hit made the trigger differ from the card face and changed all
+        // mechanics that observe individual damage instances.
+        for (var frost = 0; frost < frostCount; frost++)
+        {
+            await CreatureCmd.Damage(
+                choiceContext,
+                power.CombatState.HittableEnemies,
+                power.Amount,
+                MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
+                power.Owner);
+        }
     }
 }
 
@@ -2083,21 +2092,9 @@ internal static class BdCustomHailstormPowerV103Patch
         if (!BdCardVersionUpgrades.IsVersionEnabled<Hailstorm>())
             return true;
         __result = side == __instance.Owner.Side
-            ? Trigger(__instance, choiceContext)
+            ? BdCustomHailstormPowerPatch.Trigger(__instance, choiceContext)
             : Task.CompletedTask;
         return false;
-    }
-
-    private static async Task Trigger(HailstormPower power, PlayerChoiceContext choiceContext)
-    {
-        var frostCount = power.Owner.Player.PlayerCombatState.OrbQueue.Orbs.Count(orb => orb is FrostOrb);
-        if (frostCount <= 0) return;
-        await CreatureCmd.Damage(
-            choiceContext,
-            power.CombatState.HittableEnemies,
-            power.Amount * frostCount,
-            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
-            power.Owner);
     }
 }
 

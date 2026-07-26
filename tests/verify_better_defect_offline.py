@@ -240,7 +240,7 @@ def main() -> int:
         "Refract costs two with Glass": "Math.Min(originalCost, 2m)",
         "Feral custom card costs two and upgrades to one": 'SetEnergy(card, plus ? 1 : 2)',
         "Feral custom power returns any zero-energy card": "BdCustomFeralPowerResultPatch",
-        "Hailstorm scales with Frost count": "power.Amount * frostCount",
+        "Hailstorm creates one damage event per Frost orb": "for (var frost = 0; frost < frostCount; frost++)",
         "Iteration defers status exhaustion until the draw command completes": "BdCustomIterationDrawCompletionPatch",
         "Loop triggers both edge orbs": "BdCustomLoopPowerPatch",
         "Smokestack draws on its first trigger": "BdCustomSmokestackPowerPatch",
@@ -374,6 +374,34 @@ def main() -> int:
         "subroutineCustom",
     )))
     check("Feral custom text includes every zero-energy card type", '? "你每回合第一次打出的耗能为0' in localization and '的牌，会放回你的[gold]手牌[/gold]' in localization)
+    transformed_power_text = {
+        "Feral power bar includes every zero-energy card type": (
+            '"FERAL_POWER.smartDescription"' in localization
+            and "次打出0{energyPrefix:energyIcons(1)}牌时" in localization
+        ),
+        "Hailstorm power bar describes per-Frost damage": (
+            '"HAILSTORM_POWER.smartDescription"' in localization
+            and "每有1个[gold]冰霜[/gold]充能球，就分别对所有敌人造成[blue]{Amount}[/blue]点伤害" in localization
+        ),
+        "Iteration power bar includes status exhaustion": (
+            '"ITERATION_POWER.smartDescription"' in localization
+            and "然后[gold]消耗[/gold]该状态牌" in localization
+        ),
+        "Loop power bar includes both edge orbs": (
+            '"LOOP_POWER.smartDescription"' in localization
+            and "分别触发最左侧和最右侧充能球" in localization
+        ),
+        "Smokestack power bar includes first-trigger draw": (
+            '"SMOKESTACK_POWER.smartDescription"' in localization
+            and "每层在每回合第一次触发时，额外抽1张牌" in localization
+        ),
+        "Subroutine power bar includes first-trigger draw": (
+            '"SUBROUTINE_POWER.smartDescription"' in localization
+            and "每层在每回合第一次触发时，额外抽1张牌" in localization
+        ),
+    }
+    for name, condition in transformed_power_text.items():
+        check(name, condition)
     check("Seek selects one or two draw-pile cards and exhausts", "从你的抽牌堆中选择 {Amount:diff()} 张牌放入手牌" in localization and "CardKeyword.Exhaust" in class_body(cards, "BdSeek"))
     check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
     ui = read("BetterDefectCode/DynamicOddsUi.cs")
@@ -509,7 +537,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.8", '"version":  "0.11.8"' in manifest)
+    check("manifest is v0.11.9", '"version":  "0.11.9"' in manifest)
     check(
         "Iteration waits one process frame and removes stale hand visuals",
         "WaitForIterationVisualCleanupFrame" in versions
@@ -535,7 +563,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.8 offline audit",
+        "BetterDefect v0.11.9 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

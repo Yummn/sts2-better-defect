@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.8: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); Iteration visual-lifecycle cleanup enabled; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            Logger.Info($"[BetterDefect] loaded v0.11.9: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); Hailstorm per-Frost triggers and transformed power descriptions synchronized; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.8: Iteration visual-lifecycle cleanup enabled; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+        Logger.Info("[BetterDefect] loaded v0.11.9: Hailstorm per-Frost triggers and transformed power descriptions synchronized; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

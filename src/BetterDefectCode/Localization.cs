@@ -287,7 +287,7 @@ internal static class BdLocalization
                 : "你每回合打出的{FeralPower:choose(1):第一张|前{FeralPower:diff()}张}\n耗能为0{energyPrefix:energyIcons(1)}的攻击牌，\n会放回你的[gold]手牌[/gold]。",
 
             ["HAILSTORM.description"] = hailstormCustom
-                ? "在你的回合结束时，每有1个[gold]冰霜[/gold]充能球，就对所有敌人造成{HailstormPower:diff()}点伤害。"
+                ? "在你的回合结束时，每有1个[gold]冰霜[/gold]充能球，就分别对所有敌人造成{HailstormPower:diff()}点伤害。"
                 : "在你的回合结束时，如果你有[gold]冰霜[/gold]充能球，则对所有敌人造成{HailstormPower:diff()}点伤害。",
 
             ["ITERATION.description"] = iterationCustom
@@ -359,6 +359,42 @@ internal static class BdLocalization
 
         var powerDescriptions = new Dictionary<string, string>
         {
+            ["FERAL_POWER.description"] = feralCustom
+                ? "每回合你第一次打出0{energyPrefix:energyIcons(1)}牌时，将其放回你的[gold]手牌[/gold]中。"
+                : "每回合你第一次打出0{energyPrefix:energyIcons(1)}攻击牌时，将其放回你的[gold]手牌[/gold]中。",
+            ["FERAL_POWER.smartDescription"] = feralCustom
+                ? "每回合你前[blue]{Amount}[/blue]次打出0{energyPrefix:energyIcons(1)}牌时，将其放回你的[gold]手牌[/gold]中。"
+                : "每回合你前[blue]{Amount}[/blue]次打出0{energyPrefix:energyIcons(1)}攻击牌时，将其放回你的[gold]手牌[/gold]中。",
+            ["HAILSTORM_POWER.description"] = hailstormCustom
+                ? "在你的回合结束时，每有1个[gold]冰霜[/gold]充能球，就分别对所有敌人造成伤害。"
+                : "在你的回合结束时，如果你有[gold]冰霜[/gold]充能球，则对所有敌人造成[blue]6[/blue]点伤害。",
+            ["HAILSTORM_POWER.smartDescription"] = hailstormCustom
+                ? "在你的回合结束时，每有1个[gold]冰霜[/gold]充能球，就分别对所有敌人造成[blue]{Amount}[/blue]点伤害。"
+                : "在你的回合结束时，如果你有[gold]冰霜[/gold]充能球，则对所有敌人造成[blue]{Amount}[/blue]点伤害。",
+            ["ITERATION_POWER.description"] = iterationCustom
+                ? "每回合你第一次抽到状态牌时，抽更多牌，然后[gold]消耗[/gold]该状态牌。"
+                : "每回合你第一次抽到状态牌时，抽更多牌。",
+            ["ITERATION_POWER.smartDescription"] = iterationCustom
+                ? "每回合你第一次抽到状态牌时，抽[blue]{Amount}[/blue]张牌，然后[gold]消耗[/gold]该状态牌。"
+                : "每回合你第一次抽到状态牌时，抽[blue]{Amount}[/blue]张牌。",
+            ["LOOP_POWER.description"] = loopCustom
+                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动；同一个充能球只触发一次。"
+                : "在你的回合开始时，触发你最右侧充能球的被动能力。",
+            ["LOOP_POWER.smartDescription"] = loopCustom
+                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动[blue]{Amount}[/blue]次；同一个充能球每次只触发一次。"
+                : "在你的回合开始时，触发你最右侧充能球的被动能力[blue]{Amount}[/blue]次。",
+            ["SMOKESTACK_POWER.description"] = smokestackCustom
+                ? "每当你生成一张状态牌时，对所有敌人造成伤害。每层在每回合第一次触发时，额外抽1张牌。"
+                : "每当你生成一张状态牌时，对所有敌人造成伤害。",
+            ["SMOKESTACK_POWER.smartDescription"] = smokestackCustom
+                ? "每当你生成一张状态牌时，对所有敌人造成[blue]{Amount}[/blue]点伤害。每层在每回合第一次触发时，额外抽1张牌。"
+                : "每当你生成一张状态牌时，对所有敌人造成[blue]{Amount}[/blue]点伤害。",
+            ["SUBROUTINE_POWER.description"] = subroutineCustom
+                ? "你每次打出能力牌时，每层获得1{energyPrefix:energyIcons(1)}。每层在每回合第一次触发时，额外抽1张牌。"
+                : "你每次打出能力牌时，都获得[blue]1[/blue]{energyPrefix:energyIcons(1)}。",
+            ["SUBROUTINE_POWER.smartDescription"] = subroutineCustom
+                ? "你每次打出能力牌时，获得{Amount:energyIcons()}。每回合第一次触发时，额外抽[blue]{Amount}[/blue]张牌。"
+                : "你每次打出能力牌时，都获得[blue]{Amount}[/blue]{Amount:energyIcons()}。",
             ["CONSUMING_SHADOW_POWER.description"] = consumingShadowCustom
                 ? "你的回合结束时，触发所有黑暗充能球的被动一次。"
                 : "你的回合结束时，激发最右侧的充能球。",
