@@ -338,6 +338,11 @@ def main() -> int:
         and "OrbCmd.Passive(choiceContext, orbs[^1], null)" in loop_patch,
     )
     check(
+        "Loop treats one orb as both the leftmost and rightmost orb",
+        "orbs.Count > 1" not in loop_patch
+        and "player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1])" in loop_patch,
+    )
+    check(
         "Smokestack transformed first-trigger draw scales by applied copies",
         "GetStackCount(power)" in smokestack_patch
         and "OfType<PowerReceivedEntry>()" in smokestack_patch
@@ -546,7 +551,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.12", '"version":  "0.11.12"' in manifest)
+    check("manifest is v0.11.13", '"version":  "0.11.13"' in manifest)
     check(
         "card transformation normalization reapplies enchantment last",
         "ReapplyEnchantmentAsFinalModifier(card);" in versions
@@ -606,7 +611,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.12 offline audit",
+        "BetterDefect v0.11.13 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

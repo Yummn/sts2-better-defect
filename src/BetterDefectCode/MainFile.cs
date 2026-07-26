@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.12: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); persisted transformations are reapplied after delayed startup and run deserialization.");
+            Logger.Info($"[BetterDefect] loaded v0.11.13: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Loop can trigger a sole orb twice.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.12: persisted transformations are reapplied after run deserialization.");
+        Logger.Info("[BetterDefect] loaded v0.11.13: transformed Loop can trigger a sole orb twice.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
