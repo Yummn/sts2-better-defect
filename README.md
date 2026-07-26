@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.12](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.12): fixes transformed cards reverting to vanilla gameplay values after restart while the Encyclopedia still reports them enabled. Android now reapplies persisted transformations to canonical models and all loaded card piles after its delayed AOT-safe patch queue, full run loading and player synchronization. PC v0.107.1 live regression restored a stale enabled Cold Snap from 1 cost / 6 damage to 2 cost / 12 damage; Android v0.103.2 compiles separately; dual-platform offline audit passes 193/193.
+
 - [v0.11.11](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.11): fixes transformed Chaos being unable to generate Glass. Its random-orb selector now uses the complete five-orb pool instead of `ModelDb.Orbs`, while preserving missing-type priority. PC v0.107.1 live regression forced Glass to be the only missing type, selected `GlassOrb` and channeled it through the real `OrbCmd.Channel` path; Android v0.103.2 compiles separately; dual-platform offline audit passes 187/187.
 
 - [v0.11.10](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.10): fixes card transformations overriding enchantment-owned properties after cloning, loading or normal upgrades. BetterDefect now treats transformations as the base rule set and reapplies the game's official enchantment refresh route last, preserving enchantment changes to Exhaust and energy cost. PC v0.107.1 live regression passed both a remove-Exhaust enchantment on transformed Double Energy and official Tezcatara's Ember on transformed Feral; Android v0.103.2 compiles separately; dual-binary offline audit passes 187/187.

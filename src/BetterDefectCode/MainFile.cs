@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.11: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Chaos now includes Glass in its five-orb random pool; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            Logger.Info($"[BetterDefect] loaded v0.11.12: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); persisted transformations are reapplied after delayed startup and run deserialization.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.11: transformed Chaos now includes Glass in its five-orb random pool; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+        Logger.Info("[BetterDefect] loaded v0.11.12: persisted transformations are reapplied after run deserialization.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -312,6 +312,12 @@ internal partial class AndroidPatchInstaller : Node
     {
         SetProcess(false);
         MainFile.Logger.Info($"[BetterDefect] Android patch queue complete: {_completed}/{_total} classes installed.");
+        // ModelDb.Init can finish while Android is still installing Harmony
+        // classes.  In that case its postfix was not present when the
+        // canonical cards were created, which made the Encyclopedia show an
+        // enabled transformation while gameplay retained vanilla values.
+        BdCardVersionUpgrades.RefreshAllCanonicalModels();
+        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion");
         QueueFree();
     }
 }

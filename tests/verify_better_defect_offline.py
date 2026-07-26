@@ -546,7 +546,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.11", '"version":  "0.11.11"' in manifest)
+    check("manifest is v0.11.12", '"version":  "0.11.12"' in manifest)
     check(
         "card transformation normalization reapplies enchantment last",
         "ReapplyEnchantmentAsFinalModifier(card);" in versions
@@ -556,6 +556,30 @@ def main() -> int:
         "enchantment refresh is limited to eligible transformed cards",
         "if (!IsEligible(card) && card is not Fuel) return;" in versions
         and "if (!card.IsMutable || card.Enchantment == null) return;" in versions,
+    )
+    check(
+        "persisted transformations are reapplied to every loaded player pile",
+        "ReapplyPersistedTransformationsToLoadedCards" in versions
+        and "foreach (var player in state.Players)" in versions
+        and "foreach (var pile in player.Piles)" in versions
+        and "ApplyToModel(card);" in versions,
+    )
+    check(
+        "run-ready patch restores transformed values after full deserialization",
+        "class BdCardVersionRunReadyPatch" in versions
+        and "[HarmonyPatch(typeof(NRun), nameof(NRun._Ready))]" in versions
+        and 'ReapplyPersistedTransformationsToLoadedCards("run ready")' in versions,
+    )
+    check(
+        "player-sync patch restores transformed values after run synchronization",
+        "class BdCardVersionPlayerSyncPatch" in versions
+        and "[HarmonyPatch(typeof(Player), nameof(Player.SyncWithSerializedPlayer))]" in versions
+        and 'ReapplyPersistedTransformationsToLoadedCards("player sync")' in versions,
+    )
+    check(
+        "Android delayed patch completion refreshes canonical and loaded cards",
+        "BdCardVersionUpgrades.RefreshAllCanonicalModels();" in main_file
+        and 'ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion")' in main_file,
     )
     check(
         "Iteration waits one process frame and removes stale hand visuals",
@@ -582,7 +606,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.11 offline audit",
+        "BetterDefect v0.11.12 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

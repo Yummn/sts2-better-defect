@@ -19,10 +19,12 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using BufferCard = MegaCrit.Sts2.Core.Models.Cards.Buffer;
 
@@ -265,6 +267,41 @@ internal static class BdCardVersionUpgrades
             BdLocalization.RefreshVersionSensitiveCardDescriptions();
         }
         catch { }
+    }
+
+    internal static int ReapplyPersistedTransformationsToLoadedCards(string source)
+    {
+        var refreshed = 0;
+        try
+        {
+            var state = RunManager.Instance?.DebugOnlyGetState();
+            if (state == null)
+                return 0;
+
+            var seen = new HashSet<CardModel>(ReferenceEqualityComparer.Instance);
+            foreach (var player in state.Players)
+            {
+                foreach (var pile in player.Piles)
+                {
+                    foreach (var card in pile.Cards)
+                    {
+                        if (!seen.Add(card) || !IsEligible(card))
+                            continue;
+                        ApplyToModel(card);
+                        refreshed++;
+                    }
+                }
+            }
+
+            MainFile.Logger.Info(
+                $"[BetterDefect] reapplied persisted card transformations to {refreshed} loaded cards ({source}).");
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn(
+                $"[BetterDefect] failed to reapply persisted transformations after {source}: {ex.GetType().Name}: {ex.Message}");
+        }
+        return refreshed;
     }
 
     internal static void ApplyToModel(CardModel? card)
@@ -1221,6 +1258,31 @@ internal static class BdCardVersionUpgrades
 internal static class BdCardVersionModelDbInitPatch
 {
     private static void Postfix() => BdCardVersionUpgrades.RefreshAllCanonicalModels();
+}
+
+[HarmonyPatch(typeof(NRun), nameof(NRun._Ready))]
+internal static class BdCardVersionRunReadyPatch
+{
+    private static void Postfix()
+    {
+        // CardModel.FromSerializable first clones the transformed canonical
+        // model, then SavedProperties.Fill restores values written by the
+        // previous process.  That second step can put vanilla values back onto
+        // an otherwise enabled transformation.  Reapply persisted rules after
+        // the complete run has been deserialized.
+        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("run ready");
+    }
+}
+
+[HarmonyPatch(typeof(Player), nameof(Player.SyncWithSerializedPlayer))]
+internal static class BdCardVersionPlayerSyncPatch
+{
+    private static void Postfix()
+    {
+        // Multiplayer/run synchronization uses the same serialized-card
+        // pipeline and needs the same final normalization.
+        BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("player sync");
+    }
 }
 
 [HarmonyPatch(typeof(CardModel), nameof(CardModel.ToMutable))]
