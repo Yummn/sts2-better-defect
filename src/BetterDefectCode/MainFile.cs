@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.13: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Loop can trigger a sole orb twice.");
+            Logger.Info($"[BetterDefect] loaded v0.11.14: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Consuming Shadow+ generates three Dark orbs.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.13: transformed Loop can trigger a sole orb twice.");
+        Logger.Info("[BetterDefect] loaded v0.11.14: transformed Consuming Shadow+ generates three Dark orbs.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

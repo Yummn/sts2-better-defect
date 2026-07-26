@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.14): improves transformed Consuming Shadow's normal upgrade from 1 (2) to 1 (3) Dark orbs while keeping its end-of-turn trigger for every Dark-orb passive unchanged. PC v0.107.1 live regression upgraded and actually played the card, producing three Dark orbs; source, behavior-route, manifest and compiled-binary offline audit passes 194/194.
+
 - [v0.11.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.13): removes transformed Loop's one-trigger restriction when only one orb is present. A sole orb now counts as both leftmost and rightmost, so every Loop stack triggers it twice; multi-orb behavior is unchanged. PC v0.107.1 live regression measured two production passive calls on the same sole Frost orb; Android v0.103.2 compiles separately; dual-platform offline audit passes 194/194.
 
 - [v0.11.12](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.12): fixes transformed cards reverting to vanilla gameplay values after restart while the Encyclopedia still reports them enabled. Android now reapplies persisted transformations to canonical models and all loaded card piles after its delayed AOT-safe patch queue, full run loading and player synchronization. PC v0.107.1 live regression restored a stale enabled Cold Snap from 1 cost / 6 damage to 2 cost / 12 damage; Android v0.103.2 compiles separately; dual-platform offline audit passes 193/193.

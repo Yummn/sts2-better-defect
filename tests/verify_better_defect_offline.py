@@ -315,6 +315,12 @@ def main() -> int:
     }
     for name, token in rare_behavior_checks.items():
         check(name, token in versions or token in read("BetterDefectCode/DynamicOdds.cs"))
+    check(
+        "transformed Consuming Shadow upgrades from one to three Dark orbs",
+        'SetDynamic(card, "Repeat", upgradedVersion ? plus ? 3m : 1m' in versions
+        and 'case ConsumingShadow:\n                UpgradeDynamicTo(card, "Repeat", 3m);' in versions
+        and 'ConsumingShadow => "生成1(3)个黑暗' in versions,
+    )
     smokestack_patch = class_body(versions, "BdCustomSmokestackPowerPatch")
     subroutine_patch = class_body(versions, "BdCustomSubroutinePowerPatch")
     check(
@@ -551,7 +557,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.13", '"version":  "0.11.13"' in manifest)
+    check("manifest is v0.11.14", '"version":  "0.11.14"' in manifest)
     check(
         "card transformation normalization reapplies enchantment last",
         "ReapplyEnchantmentAsFinalModifier(card);" in versions
@@ -611,7 +617,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.13 offline audit",
+        "BetterDefect v0.11.14 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
