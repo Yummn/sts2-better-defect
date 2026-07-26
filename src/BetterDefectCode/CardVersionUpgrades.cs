@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using BetterDefect.Cards;
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
@@ -18,6 +19,9 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Nodes.Cards;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.ValueProps;
 using BufferCard = MegaCrit.Sts2.Core.Models.Cards.Buffer;
@@ -2147,7 +2151,20 @@ internal static class BdCustomIterationDrawCompletionPatch
         try
         {
             if (firstStatus.Pile?.Type == PileType.Hand)
+            {
                 await CardCmd.Exhaust(choiceContext, firstStatus);
+
+                // Exhausting a card in the same async continuation that
+                // completed its draw can leave the just-removed NCard or an
+                // empty hand holder alive until the next process frame. On
+                // slower Android devices that stale Control can be rendered
+                // as a transparent, non-interactive card and can also block
+                // cards behind it. Do not let Draw finish until Godot has
+                // processed the queued visual removals, then defensively
+                // remove only holders which no longer represent a hand card.
+                await WaitForIterationVisualCleanupFrame();
+                CleanupIterationHandVisuals(firstStatus.Owner);
+            }
         }
         catch (Exception ex)
         {
@@ -2155,6 +2172,36 @@ internal static class BdCustomIterationDrawCompletionPatch
         }
 
         return drawnCards;
+    }
+
+    private static async Task WaitForIterationVisualCleanupFrame()
+    {
+        var room = NCombatRoom.Instance;
+        var tree = room?.GetTree();
+        if (room != null && tree != null)
+            await room.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+    }
+
+    private static void CleanupIterationHandVisuals(Player owner)
+    {
+        var hand = NCombatRoom.Instance?.Ui?.Hand;
+        if (hand == null)
+            return;
+
+        var handCards = PileType.Hand.GetPile(owner).Cards.ToHashSet();
+        foreach (var holder in hand.CardHolderContainer.GetChildren().OfType<NHandCardHolder>().ToList())
+        {
+            var cardNode = holder.CardNode;
+            if (cardNode != null && handCards.Contains(cardNode.Model))
+                continue;
+
+            if (cardNode != null && GodotObject.IsInstanceValid(cardNode))
+            {
+                cardNode.MouseFilter = Control.MouseFilterEnum.Ignore;
+                cardNode.Visible = false;
+            }
+            hand.RemoveCardHolder(holder);
+        }
     }
 }
 

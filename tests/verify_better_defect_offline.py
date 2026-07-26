@@ -509,7 +509,14 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.7", '"version":  "0.11.7"' in manifest)
+    check("manifest is v0.11.8", '"version":  "0.11.8"' in manifest)
+    check(
+        "Iteration waits one process frame and removes stale hand visuals",
+        "WaitForIterationVisualCleanupFrame" in versions
+        and "SceneTree.SignalName.ProcessFrame" in versions
+        and "CleanupIterationHandVisuals" in versions
+        and "hand.RemoveCardHolder(holder)" in versions,
+    )
     android_dispatch = read("BetterDefectCode/AndroidCentralCardPlay.cs")
     check("Android bridge handler returns null for native card dispatch", "internal static Task? TryOnPlay" in android_dispatch and "return null;" in android_dispatch)
     check("Android bridge registration stores MethodInfo without a generic Func delegate", "handlerField.SetValue(null, dispatcher)" in main_file and "Delegate.CreateDelegate" not in main_file)
@@ -528,7 +535,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.7 offline audit",
+        "BetterDefect v0.11.8 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
