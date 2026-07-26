@@ -132,7 +132,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.10: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); enchantments now remain the final modifier after transformations; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+            Logger.Info($"[BetterDefect] loaded v0.11.11: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Chaos now includes Glass in its five-orb random pool; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
             return;
         }
 
@@ -140,7 +140,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.10: enchantments now remain the final modifier after transformations; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
+        Logger.Info("[BetterDefect] loaded v0.11.11: transformed Chaos now includes Glass in its five-orb random pool; 50 card points split into 25 Normal, 10 Overclock and 15 Overload points.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

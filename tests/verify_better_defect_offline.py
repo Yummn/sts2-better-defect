@@ -249,6 +249,15 @@ def main() -> int:
     }
     for name, token in uncommon_behavior_checks.items():
         check(name, token in versions)
+    check(
+        "Chaos complete random pool explicitly includes Glass",
+        "ModelDb.Orb<GlassOrb>()" in versions
+        and "ModelDb.Orbs.ToList()" not in versions,
+    )
+    check(
+        "Chaos transformed description explicitly includes Glass",
+        "随机充能球（包括玻璃）" in localization,
+    )
     iteration_draw_patch = class_body(versions, "BdCustomIterationDrawCompletionPatch")
     check(
         "Iteration never moves the status card during AfterCardDrawn",
@@ -270,7 +279,7 @@ def main() -> int:
     )
     check(
         "Chaos encyclopedia summary says two orbs and Exhaust removal",
-        '["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球，优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗")'
+        '["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗")'
         in versions,
     )
     coolheaded_route = re.search(
@@ -537,7 +546,7 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.10", '"version":  "0.11.10"' in manifest)
+    check("manifest is v0.11.11", '"version":  "0.11.11"' in manifest)
     check(
         "card transformation normalization reapplies enchantment last",
         "ReapplyEnchantmentAsFinalModifier(card);" in versions
@@ -573,7 +582,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.10 offline audit",
+        "BetterDefect v0.11.11 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

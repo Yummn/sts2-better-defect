@@ -247,7 +247,7 @@ internal static class BdLocalization
                 : "造成{Damage:diff()}点伤害。\n本场战斗中每次打出后费用减少1。",
 
             ["CHAOS.description"] = chaosCustom
-                ? "[gold]生成[/gold]{Repeat:diff()}个随机充能球。优先生成当前充能球栏位中没有的种类。"
+                ? "[gold]生成[/gold]{Repeat:diff()}个随机充能球（包括玻璃）。优先生成当前充能球栏位中没有的种类。"
                 : "[gold]生成[/gold]{Repeat:diff()}个随机充能球。",
 
             ["DOUBLE_ENERGY.description"] = doubleEnergyCustom

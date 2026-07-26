@@ -95,7 +95,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
             ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费"),
-            ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球，优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
+            ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
             ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
             ["CARD.FIGHT_THROUGH"] = ("改造：自定义", "1费获得12(18)格挡，将2张眩晕加入弃牌堆"),
             ["CARD.SKIM"] = ("改造：自定义", "1费先弃1张手牌，再抽3(4)张牌"),
@@ -193,7 +193,7 @@ internal static class BdCardVersionUpgrades
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
         BdStreamline => "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费",
-        Chaos => "1费生成1(2)个随机充能球，优先生成当前栏位中没有的种类",
+        Chaos => "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗",
         DoubleEnergy => "1(0)费消耗；将当前能量翻倍并抽1张牌",
         FightThrough => "1费获得12(18)格挡，将2张眩晕加入弃牌堆",
         Skim => "1费先弃1张手牌，再抽3(4)张牌",
@@ -1470,13 +1470,29 @@ internal static class BdCustomCommonCardPlayPatch
             var occupiedTypes = card.Owner.PlayerCombatState.OrbQueue.Orbs
                 .Select(orb => orb.GetType())
                 .ToHashSet();
-            var canonical = ModelDb.Orbs.ToList();
-            var missing = canonical.Where(orb => !occupiedTypes.Contains(orb.GetType())).ToList();
-            var pool = missing.Count > 0 ? missing : canonical;
-            var selected = pool.StableShuffle(card.Owner.RunState.Rng.CombatOrbGeneration).FirstOrDefault();
+            var selected = SelectChaosOrb(card, occupiedTypes);
             if (selected != null)
                 await OrbCmd.Channel(choiceContext, selected.ToMutable(), card.Owner);
         }
+    }
+
+    private static OrbModel? SelectChaosOrb(Chaos card, IReadOnlySet<Type> occupiedTypes)
+    {
+        // ModelDb.Orbs intentionally exposes only the four standard orb types
+        // even though vanilla Chaos uses OrbModel's five-entry random pool.
+        // Keep the complete gameplay pool explicit so the transformed
+        // missing-type preference can also select Glass.
+        var canonical = new OrbModel[]
+        {
+            ModelDb.Orb<LightningOrb>(),
+            ModelDb.Orb<FrostOrb>(),
+            ModelDb.Orb<DarkOrb>(),
+            ModelDb.Orb<PlasmaOrb>(),
+            ModelDb.Orb<GlassOrb>()
+        };
+        var missing = canonical.Where(orb => !occupiedTypes.Contains(orb.GetType())).ToList();
+        var pool = missing.Count > 0 ? missing : canonical.ToList();
+        return pool.StableShuffle(card.Owner.RunState.Rng.CombatOrbGeneration).FirstOrDefault();
     }
 
     private static async Task PlayDoubleEnergy(DoubleEnergy card, PlayerChoiceContext choiceContext)
