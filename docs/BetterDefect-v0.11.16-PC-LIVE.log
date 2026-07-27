@@ -1,0 +1,5 @@
+﻿[INFO] [CodexRecycleTransformTest] [CodexRecycleTransformTest] combat test hook installed.
+[INFO] [BetterDefect] [BetterDefect] card version upgrade enabled for CARD.BD_RECYCLE; card points=1/50.
+[INFO] [CodexRecycleTransformTest] [CodexRecycleTransformTest] auto-selected victim=ZAP
+[INFO] [CodexRecycleTransformTest] [CodexRecycleTransformTest] OBSERVE cost=1 rarity=Common capacity=4 victimExhausted=True recycleExhausted=True exhaustedDelta=2 energy=3->3
+[INFO] [CodexRecycleTransformTest] [CodexRecycleTransformTest] PASS: transformed Recycle exhausted one hand card, gained one Orb slot, did not refund energy, remained Exhaust/Common, and upgraded from 1 to 0 energy.

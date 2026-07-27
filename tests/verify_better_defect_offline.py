@@ -153,7 +153,7 @@ def main() -> int:
         "Hotfix", "RocketPunch", "Voltaic", "Hyperbeam", "Shatter", "TeslaCoil", "Uproar",
         "Fusion", "Synthesis", "Compact", "MomentumStrike", "Scrape", "Sunder", "TrashToTreasure",
         "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "Coolheaded", "GoForTheEyes", "GunkUp", "Leap",
-        "LightningRod", "SweepingBeam", "BdRecursion", "BdStreamline",
+        "LightningRod", "SweepingBeam", "BdRecursion", "BdRecycle", "BdStreamline",
         "Chaos", "DoubleEnergy", "FightThrough", "Skim", "Tempest", "WhiteNoise",
         "Ftl", "Null", "Refract", "Feral", "Hailstorm", "Iteration", "Loop",
         "Smokestack", "Storm", "Subroutine",
@@ -162,7 +162,7 @@ def main() -> int:
         "Defragment", "BiasedCognition", "MeteorStrike", "MultiCast", "Rainbow",
         "BdThunderStrike", "BdCoreSurge",
     ]
-    check("card-transformation registry contains exactly 59 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 60 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -188,6 +188,8 @@ def main() -> int:
         "Lightning Rod custom route channels now and once next turn": "Bd.ApplyPower<LightningRodPower>",
         "Sweeping Beam custom normal upgrade draws two": 'SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m)',
         "Uproar custom route prioritizes current two-cost attacks": "playableAttacks.Where(IsCurrentTwoCost)",
+        "Recycle transformed route exhausts a selected hand card": "private static async Task PlayRecycle(BdRecycle card",
+        "Recycle transformed route gains one Orb slot": "await OrbCmd.AddSlots(card.Owner, 1);",
     }
     for name, token in behavior_checks.items():
         check(name, token in versions)
@@ -226,6 +228,24 @@ def main() -> int:
         "Lightning Rod transformed Block is five and upgrades to six",
         'upgradedVersion\n                    ? plus ? 6m : 5m' in versions
         and 'upgradedVersion ? plus ? 6m : 5m : plus ? 7m : 4m' in versions,
+    )
+    recycle_start = common_play.find("private static async Task PlayRecycle")
+    recycle_end = common_play.find("private static async Task PlayChaos", recycle_start)
+    recycle_route = common_play[recycle_start:recycle_end]
+    check(
+        "Recycle transformation is 1(0) cost, Exhaust, Common Skill",
+        'case BdRecycle:' in versions
+        and 'SetEnergy(card, plus ? 0 : 1);' in versions
+        and 'SetKeyword(card, CardKeyword.Exhaust, true);' in versions
+        and 'transformed ? CardRarity.Common : CardRarity.Uncommon' in versions
+        and "base(1, CardType.Skill, CardRarity.Uncommon" in class_body(cards, "BdRecycle"),
+    )
+    check(
+        "Recycle transformed effect replaces energy gain with one Orb slot",
+        "CardSelectCmd.FromHand" in recycle_route
+        and "CardCmd.Exhaust(choiceContext, victim)" in recycle_route
+        and "OrbCmd.AddSlots(card.Owner, 1)" in recycle_route
+        and "GainEnergy" not in recycle_route,
     )
     uncommon_behavior_checks = {
         "Chaos prioritizes missing orb types": "missing.Count > 0 ? missing : canonical",
@@ -557,7 +577,13 @@ def main() -> int:
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
     check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
-    check("manifest is v0.11.15", '"version":  "0.11.15"' in manifest)
+    check("Recycle transformed localization matches its effect", '"BD_RECYCLE.description"' in localization and "获得1个[gold]充能球栏位[/gold]" in localization)
+    check(
+        "rarity migration uses explicit before and after transformation states",
+        "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
+        and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
+    )
+    check("manifest is v0.11.16", '"version":  "0.11.16"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -639,7 +665,7 @@ def main() -> int:
         check(f"compiled binary exists: {binary}", exists)
 
     lines = [
-        "BetterDefect v0.11.15 offline audit",
+        "BetterDefect v0.11.16 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

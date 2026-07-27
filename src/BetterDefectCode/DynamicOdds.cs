@@ -523,9 +523,9 @@ internal static class BdDynamicOdds
             lock (StateLock)
             {
                 var data = _persistedWeights ??= LoadWeights();
-                var oldRarity = card.Rarity;
                 data.UpgradedCards ??= new List<string>();
                 var wasUpgraded = data.UpgradedCards.Contains(key, StringComparer.Ordinal);
+                var oldRarity = BdCardVersionUpgrades.GetRarityForVersionState(card, wasUpgraded);
                 if (wasUpgraded)
                 {
                     data.UpgradedCards = data.UpgradedCards
@@ -546,7 +546,7 @@ internal static class BdDynamicOdds
                     MainFile.Logger.Info($"[BetterDefect] card version upgrade enabled for {SafeId(card)}; card points={used + 1}/{MaxCardPointBudget}.");
                 }
 
-                var newRarity = card.Rarity;
+                var newRarity = BdCardVersionUpgrades.GetRarityForVersionState(card, !wasUpgraded);
                 MoveWeightToTransformedRarity(data, key, oldRarity, newRarity);
                 data.LastUpdatedUtc = DateTimeOffset.UtcNow;
                 SaveWeights(data);

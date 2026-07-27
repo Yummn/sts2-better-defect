@@ -141,6 +141,7 @@ internal static class BdLocalization
         var sweepingBeamCustom = IsVersionEnabled<SweepingBeam>();
         var uproarCustom = IsVersionEnabled<Uproar>();
         var recursionCustom = IsVersionEnabled<Cards.BdRecursion>();
+        var recycleCustom = IsVersionEnabled<Cards.BdRecycle>();
         var streamlineCustom = IsVersionEnabled<Cards.BdStreamline>();
         var chaosCustom = IsVersionEnabled<Chaos>();
         var doubleEnergyCustom = IsVersionEnabled<DoubleEnergy>();
@@ -241,6 +242,10 @@ internal static class BdLocalization
             ["BD_RECURSION.description"] = recursionCustom
                 ? "[gold]激发[/gold]最左侧充能球两次，然后重新充能同类型充能球。"
                 : "[gold]激发[/gold]最左侧充能球一次，然后重新充能同类型充能球。",
+
+            ["BD_RECYCLE.description"] = recycleCustom
+                ? "选择并[gold]消耗[/gold]1张手牌。\n获得1个[gold]充能球栏位[/gold]。"
+                : "选择并[gold]消耗[/gold]1张手牌，获得等同其费用的[gold]能量[/gold]。X费牌按当前X值计算。",
 
             ["BD_STREAMLINE.description"] = streamlineCustom
                 ? "造成{Damage:diff()}点伤害。\n每次打出后，使本场战斗中所有[gold]精简改良[/gold]的费用减少1。"

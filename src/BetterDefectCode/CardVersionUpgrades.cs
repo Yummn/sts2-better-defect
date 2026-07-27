@@ -55,7 +55,7 @@ internal static class BdCardVersionUpgrades
         // deliberately labelled as custom transformations in the Encyclopedia.
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdStreamline),
+        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
 
         // User-approved uncommon-card transformations.
         typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough), typeof(Skim),
@@ -101,6 +101,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得5(6)格挡；立即生成1闪电，下回合再生成1闪电"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
+            ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡"),
             ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费"),
             ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
             ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
@@ -165,7 +166,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "v0.108",
         Sunder => "v0.109",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine or
         AdaptiveStrike or AllForOne or BufferCard or ConsumingShadow or Coolant or CreativeAi or EchoForm or FlakCannon or GeneticAlgorithm or IceLance or Defragment or BiasedCognition or
         MeteorStrike or MultiCast or Rainbow or BdThunderStrike or BdCoreSurge => "改造：自定义",
@@ -199,6 +200,7 @@ internal static class BdCardVersionUpgrades
         LightningRod => "获得5(6)格挡；立即生成1闪电，下回合再生成1闪电",
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
+        BdRecycle => "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡",
         BdStreamline => "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费",
         Chaos => "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗",
         DoubleEnergy => "1(0)费消耗；将当前能量翻倍并抽1张牌",
@@ -602,6 +604,11 @@ internal static class BdCardVersionUpgrades
 
             case BdRecursion:
                 SetEnergy(card, plus ? 0 : 1);
+                break;
+
+            case BdRecycle:
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
                 break;
 
             case BdStreamline:
@@ -1144,23 +1151,48 @@ internal static class BdCardVersionUpgrades
         catch { return false; }
     }
 
+    internal static CardRarity GetRarityForVersionState(CardModel card, bool transformed)
+    {
+        return TryGetVersionedRarity(card, transformed, out var rarity)
+            ? rarity
+            : card.Rarity;
+    }
+
     internal static bool TryGetTransformedRarity(CardModel card, out CardRarity rarity)
     {
         rarity = default;
         if (!IsVersionEnabled(card)) return false;
+        return TryGetVersionedRarity(card, transformed: true, out rarity);
+    }
+
+    private static bool TryGetVersionedRarity(CardModel card, bool transformed, out CardRarity rarity)
+    {
         switch (card)
         {
+            case BdRecycle:
+                rarity = transformed ? CardRarity.Common : CardRarity.Uncommon;
+                return true;
             case GeneticAlgorithm:
             case IceLance:
             case Defragment:
-                rarity = CardRarity.Uncommon;
+                rarity = transformed ? CardRarity.Uncommon : CardRarity.Rare;
                 return true;
             case BiasedCognition:
-                rarity = CardRarity.Rare;
+                rarity = transformed ? CardRarity.Rare : CardRarity.Ancient;
                 return true;
-            default:
-                return false;
         }
+
+        rarity = SafeCardId(card).ToUpperInvariant() switch
+        {
+            "CARD.BD_RECYCLE" => transformed ? CardRarity.Common : CardRarity.Uncommon,
+            "CARD.GENETIC_ALGORITHM" or "CARD.ICE_LANCE" or "CARD.DEFRAGMENT" =>
+                transformed ? CardRarity.Uncommon : CardRarity.Rare,
+            "CARD.BIASED_COGNITION" => transformed ? CardRarity.Rare : CardRarity.Ancient,
+            _ => default
+        };
+        return SafeCardId(card).ToUpperInvariant() is
+            "CARD.BD_RECYCLE" or "CARD.GENETIC_ALGORITHM" or
+            "CARD.ICE_LANCE" or "CARD.DEFRAGMENT" or "CARD.BIASED_COGNITION";
     }
 
     private static void ApplyAndroidRarityWithoutDetour(CardModel card, bool transformed)
@@ -1168,16 +1200,8 @@ internal static class BdCardVersionUpgrades
         if (!MainFile.IsAndroidRuntime() || CardRarityBackingField == null)
             return;
 
-        CardRarity? rarity = card switch
-        {
-            GeneticAlgorithm => transformed ? CardRarity.Uncommon : CardRarity.Rare,
-            IceLance => transformed ? CardRarity.Uncommon : CardRarity.Rare,
-            Defragment => transformed ? CardRarity.Uncommon : CardRarity.Rare,
-            BiasedCognition => transformed ? CardRarity.Rare : CardRarity.Ancient,
-            _ => null
-        };
-        if (rarity.HasValue)
-            CardRarityBackingField.SetValue(card, rarity.Value);
+        if (TryGetVersionedRarity(card, transformed, out var rarity))
+            CardRarityBackingField.SetValue(card, rarity);
     }
 
     private static bool IsCompactVersionEnabled()
@@ -1335,8 +1359,8 @@ internal static class BdCardVersionNormalUpgradePatch
 }
 
 /// <summary>
-/// Custom common-card play routes. A single Harmony patch class owns the nine
-/// affected vanilla OnPlay methods so Android performs one class-discovery
+/// Custom common-card play routes. A single Harmony patch class owns the
+/// affected OnPlay methods so Android performs one class-discovery
 /// pass, while each method still falls straight through to vanilla whenever
 /// its persistent Encyclopedia transformation is disabled.
 /// </summary>
@@ -1349,7 +1373,7 @@ internal static class BdCustomCommonCardPlayPatch
         [
             typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-            typeof(Uproar), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
+            typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null)
         ];
         foreach (var type in types)
@@ -1393,6 +1417,7 @@ internal static class BdCustomCommonCardPlayPatch
             Leap typed => PlayLeap(typed, cardPlay),
             LightningRod typed => PlayLightningRod(typed, choiceContext, cardPlay),
             Uproar typed => PlayUproar(typed, choiceContext, cardPlay),
+            BdRecycle typed => PlayRecycle(typed, choiceContext),
             Chaos typed => PlayChaos(typed, choiceContext),
             DoubleEnergy typed => PlayDoubleEnergy(typed, choiceContext),
             FightThrough typed => PlayFightThrough(typed, choiceContext, cardPlay),
@@ -1404,7 +1429,7 @@ internal static class BdCustomCommonCardPlayPatch
             _ => Task.CompletedTask
         };
         return card is Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or
-            GoForTheEyes or GunkUp or Leap or LightningRod or Uproar or Chaos or
+            GoForTheEyes or GunkUp or Leap or LightningRod or Uproar or BdRecycle or Chaos or
             DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null;
     }
 
@@ -1547,6 +1572,21 @@ internal static class BdCustomCommonCardPlayPatch
             .FirstOrDefault();
         if (selected != null)
             await CardCmd.AutoPlay(choiceContext, selected, null);
+    }
+
+    private static async Task PlayRecycle(BdRecycle card, PlayerChoiceContext choiceContext)
+    {
+        var victim = (await CardSelectCmd.FromHand(
+            choiceContext,
+            card.Owner,
+            new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1),
+            null,
+            card)).FirstOrDefault();
+        if (victim == null)
+            return;
+
+        await CardCmd.Exhaust(choiceContext, victim);
+        await OrbCmd.AddSlots(card.Owner, 1);
     }
 
     private static async Task PlayChaos(Chaos card, PlayerChoiceContext choiceContext)

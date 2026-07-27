@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.16](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.16): adds an optional transformed Recycle as a Common Skill costing 1 (0), Exhausting itself and one selected hand card to gain one Orb slot instead of refunding energy. PC v0.107.1 live regression confirmed cost, rarity, both exhaust moves, 3 to 4 Orb slots, no energy refund and the zero-cost normal upgrade. Rarity-changing transformation odds migration is also corrected; dual-platform binary regression audit passes 204/204.
+
 - [v0.11.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.15): stabilizes Android v0.103.2 startup by consolidating persisted-state/upgrade hooks and replacing native card-pool/rarity getter detours with direct data updates. The Android queue is now 32 classes and completed 3/3 repeated cold starts plus a final production start after restoring the user's save/settings. Transformed Consuming Shadow+ was also played through the phone's real command path and produced three Dark orbs. Dual-platform binary regression audit passes 198/198.
 
 - [v0.11.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.14): improves transformed Consuming Shadow's normal upgrade from 1 (2) to 1 (3) Dark orbs while keeping its end-of-turn trigger for every Dark-orb passive unchanged. PC v0.107.1 live regression upgraded and actually played the card, producing three Dark orbs; source, behavior-route, manifest and compiled-binary offline audit passes 194/194.
@@ -202,7 +204,7 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Install
 
-Download `BetterDefect-v0.11.7-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.7-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `BetterDefect-v0.11.16-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.16-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 Android v103 should first install the same release's `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`. This preserves application data when the currently installed build uses the same AOSP testkey signature. Do not uninstall the game before updating.
 
