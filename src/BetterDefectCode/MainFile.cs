@@ -144,7 +144,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.16: Android startup-safe patch queue scheduled ({patchTypes.Count} classes); transformed Recycle gains one Orb slot.");
+            Logger.Info($"[BetterDefect] loaded v0.11.17: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -152,7 +152,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.16: transformed Recycle gains one Orb slot.");
+        Logger.Info("[BetterDefect] loaded v0.11.17: PC v107.1 build; transformed Recycle gains one Orb slot.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

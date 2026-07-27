@@ -47,6 +47,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path)
     parser.add_argument("--binary", type=Path, action="append", default=[])
+    parser.add_argument(
+        "--mobile-binary",
+        type=Path,
+        action="append",
+        default=[],
+        help="Android v103 binary; additionally reject PC-only ICombatState metadata",
+    )
     args = parser.parse_args()
 
     cards = (PROJECT / "BetterDefectCode" / "CardsAndPowers.cs").read_text(encoding="utf-8")
@@ -583,7 +590,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.16", '"version":  "0.11.16"' in manifest)
+    check("manifest is v0.11.17", '"version":  "0.11.17"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -663,9 +670,18 @@ def main() -> int:
     for binary in args.binary:
         exists = binary.is_file() and binary.stat().st_size > 100_000
         check(f"compiled binary exists: {binary}", exists)
+    for binary in args.mobile_binary:
+        exists = binary.is_file() and binary.stat().st_size > 100_000
+        check(f"compiled mobile binary exists: {binary}", exists)
+        if exists:
+            data = binary.read_bytes()
+            check(
+                f"mobile binary has no PC-only ICombatState metadata: {binary}",
+                b"ICombatState" not in data,
+            )
 
     lines = [
-        "BetterDefect v0.11.16 offline audit",
+        "BetterDefect v0.11.17 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
