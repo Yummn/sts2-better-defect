@@ -36,6 +36,7 @@ internal static class BdDynamicOddsCardUi
     private static readonly Dictionary<Type, MethodInfo?> LabelSetTextAutoSizeByType = new();
     private static readonly FieldInfo? GridHolderBaseCardField = AccessTools.Field(typeof(NGridCardHolder), "_baseCard");
     private static readonly MethodInfo? GridHolderUpdateCardModelMethod = AccessTools.Method(typeof(NGridCardHolder), "UpdateCardModel");
+    private static readonly MethodInfo? LibraryUpdateFilterMethod = AccessTools.Method(typeof(NCardLibrary), "UpdateFilter");
     private static FieldInfo? _cardRowsField;
     private static FieldInfo? _libraryGridField;
     private static FieldInfo? _descriptionLabelField;
@@ -59,6 +60,20 @@ internal static class BdDynamicOddsCardUi
                 CleanupGridIfTouched(grid);
                 BdDynamicOddsStatsHud.Hide();
                 return;
+            }
+
+            if (OldDefectCards.RefreshCardLibraryGridIfStale(grid))
+            {
+                // Re-run the owning library's active filters after replacing
+                // the snapshot. Deferred execution avoids mutating rows while
+                // this watcher is iterating their current holders.
+                for (Node? current = grid.GetParent(); current != null; current = current.GetParent())
+                {
+                    if (current is not NCardLibrary library)
+                        continue;
+                    Callable.From(() => LibraryUpdateFilterMethod?.Invoke(library, [false])).CallDeferred();
+                    break;
+                }
             }
 
             var rows = GetCardRowsField()?.GetValue(grid) as IEnumerable<List<NGridCardHolder>>;

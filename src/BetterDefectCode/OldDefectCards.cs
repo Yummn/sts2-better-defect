@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using BetterDefect.Cards;
 
 namespace BetterDefect;
@@ -240,9 +241,56 @@ internal static class OldDefectCards
         }
     }
 
+    /// <summary>
+    /// The main-menu card library scene can run NCardLibraryGrid._Ready before
+    /// Android finishes its delayed patch queue. Its _allCards list then keeps
+    /// the pre-repair CardModel instances, so the Defect filter returns zero
+    /// even though ModelDb now contains the complete 114-card canonical set.
+    /// Replace that stale snapshot once the real encyclopedia grid is visible.
+    /// </summary>
+    public static bool RefreshCardLibraryGridIfStale(NCardLibraryGrid grid)
+    {
+        try
+        {
+            var allCardsField = AccessTools.Field(typeof(NCardLibraryGrid), "_allCards");
+            if (allCardsField?.GetValue(grid) is not List<CardModel> gridCards)
+                return false;
+
+            var canonical = ModelDb.AllCards
+                .Where(card => card.ShouldShowInCardLibrary)
+                .ToArray();
+            var canonicalDefect = canonical.Count(IsDefectPoolCard);
+            var gridDefect = gridCards.Count(IsDefectPoolCard);
+            var gridRestored = gridCards.Count(IsRestored);
+            if (gridCards.Count == canonical.Length &&
+                gridDefect == canonicalDefect &&
+                gridRestored == CardTypes.Length)
+                return false;
+
+            gridCards.Clear();
+            gridCards.AddRange(canonical);
+            grid.RefreshVisibility();
+            MainFile.Logger.Info(
+                $"[BetterDefect] refreshed stale encyclopedia card snapshot: " +
+                $"total={gridCards.Count}, defect={canonicalDefect}, restored={CardTypes.Length}.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] stale encyclopedia snapshot refresh failed: {ex.Message}");
+            return false;
+        }
+    }
+
     private static bool IsDefectPoolCard(CardModel card, CardPoolModel pool)
     {
         try { return ReferenceEquals(card.Pool, pool) || card.Pool is DefectCardPool; }
+        catch { return false; }
+    }
+
+    private static bool IsDefectPoolCard(CardModel card)
+    {
+        try { return card.Pool is DefectCardPool; }
         catch { return false; }
     }
 

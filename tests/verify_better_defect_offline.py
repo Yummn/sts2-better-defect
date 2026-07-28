@@ -590,7 +590,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.19", '"version":  "0.11.19"' in manifest)
+    check("manifest is v0.11.20", '"version":  "0.11.20"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -645,8 +645,16 @@ def main() -> int:
     check(
         "Android delayed patch completion refreshes canonical and loaded cards",
         "OldDefectCards.RefreshAfterDeferredPatchInstall();" in main_file
+        and "BdLocalization.MergeIntoLocManager();" in main_file
         and "BdCardVersionUpgrades.RefreshAllCanonicalModels();" in main_file
         and 'ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion")' in main_file,
+    )
+    check(
+        "Android delayed patch completion merges restored-card localization after LocManager initialization",
+        "LocManager.Initialize has also already finished" in main_file
+        and main_file.index("OldDefectCards.RefreshAfterDeferredPatchInstall();")
+        < main_file.index("BdLocalization.MergeIntoLocManager();", main_file.index("OldDefectCards.RefreshAfterDeferredPatchInstall();"))
+        < main_file.index("BdCardVersionUpgrades.RefreshAllCanonicalModels();"),
     )
     check(
         "Android delayed patch completion rebuilds and rebinds the cached Defect pool",
@@ -658,6 +666,15 @@ def main() -> int:
         and 'Field(typeof(ModelDb), "_allCards")?.SetValue(null, globalCards)' in old_cards
         and "globalRestored=" in old_cards
         and "globalDefect=" in old_cards,
+    )
+    check(
+        "visible Android encyclopedia replaces its stale pre-patch card snapshot",
+        "RefreshCardLibraryGridIfStale" in old_cards
+        and 'AccessTools.Field(typeof(NCardLibraryGrid), "_allCards")' in old_cards
+        and "grid.RefreshVisibility();" in old_cards
+        and "OldDefectCards.RefreshCardLibraryGridIfStale(grid)" in ui
+        and 'AccessTools.Method(typeof(NCardLibrary), "UpdateFilter")' in ui
+        and "LibraryUpdateFilterMethod?.Invoke(library, [false])" in ui,
     )
     check(
         "Iteration waits one process frame and removes stale hand visuals",
@@ -693,7 +710,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.19 offline audit",
+        "BetterDefect v0.11.20 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

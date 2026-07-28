@@ -144,7 +144,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.19: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.20: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -152,7 +152,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.19: PC v107.1 build; restored-card pool ownership/cache is rebuilt after deferred Android patching.");
+        Logger.Info("[BetterDefect] loaded v0.11.20: PC v107.1 build; restored-card pool ownership/cache and localization are rebuilt after deferred Android patching.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -329,6 +329,12 @@ internal partial class AndroidPatchInstaller : Node
         // canonical cards and Defect pool were created. Rebuild the cached
         // vanilla 88-card pool only after GenerateAllCards is patched.
         OldDefectCards.RefreshAfterDeferredPatchInstall();
+        // LocManager.Initialize has also already finished by the time Android's
+        // delayed Harmony queue installs our localization lifecycle patches.
+        // Merge the restored cards' titles/descriptions explicitly here;
+        // otherwise encyclopedia sorting throws on BD_*.title and the injected
+        // cards appear to be missing even though the Defect pool contains 114.
+        BdLocalization.MergeIntoLocManager();
         BdCardVersionUpgrades.RefreshAllCanonicalModels();
         BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion");
         QueueFree();
