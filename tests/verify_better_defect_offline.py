@@ -294,6 +294,26 @@ def main() -> int:
     }
     for name, token in uncommon_behavior_checks.items():
         check(name, token in versions)
+
+    feral_result_patch = class_body(versions, "BdCustomFeralPowerResultPatch")
+    feral_power_vfx_patch = class_body(versions, "BdCustomFeralPowerFlyVfxPatch")
+    check(
+        "Feral tracks a returned card until its play lifecycle finishes",
+        "ConditionalWeakTable<CardModel, ReturnMarker>" in feral_result_patch
+        and "MarkReturningCard(card)" in feral_result_patch
+        and 'typeof(CardModel).GetEvent(' in feral_result_patch
+        and '"Played"' in feral_result_patch,
+    )
+    check(
+        "Feral returning Power animates a clone and preserves the real hand card node",
+        'AccessTools.DeclaredMethod(typeof(CardModel), "PlayPowerCardFlyVfx")' in feral_power_vfx_patch
+        and "NCard.FindOnTable(card)" in feral_power_vfx_patch
+        and "card.ClonePreservingMutability()" in feral_power_vfx_patch
+        and "NCard.Create(visualCard)" in feral_power_vfx_patch
+        and "NCardFlyPowerVfx.Create(clone)" in feral_power_vfx_patch
+        and "TaskHelper.RunSafely(flyVfx.PlayAnim())" in feral_power_vfx_patch
+        and "original.QueueFree" not in feral_power_vfx_patch,
+    )
     check(
         "Chaos complete random pool explicitly includes Glass",
         "ModelDb.Orb<GlassOrb>()" in versions
@@ -620,7 +640,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.22", '"version":  "0.11.22"' in manifest)
+    check("manifest is v0.11.23", '"version":  "0.11.23"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -740,7 +760,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.22 offline audit",
+        "BetterDefect v0.11.23 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

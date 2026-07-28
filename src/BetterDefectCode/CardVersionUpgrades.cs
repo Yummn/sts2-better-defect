@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -22,6 +23,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.Runs;
@@ -2178,6 +2180,16 @@ internal static class BdCustomRefractCostPatch
 [HarmonyPatch]
 internal static class BdCustomFeralPowerResultPatch
 {
+    private sealed class ReturnMarker
+    {
+        public Action? PlayedHandler;
+    }
+
+    private static readonly ConditionalWeakTable<CardModel, ReturnMarker> ReturningCards = new();
+    private static readonly EventInfo? PlayedEvent = typeof(CardModel).GetEvent(
+        "Played",
+        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
     private static MethodBase? TargetMethod() =>
         AccessTools.DeclaredMethod(typeof(FeralPower), nameof(FeralPower.ModifyCardPlayResultPileTypeAndPosition));
 
@@ -2199,8 +2211,104 @@ internal static class BdCustomFeralPowerResultPatch
             __instance.DisplayAmount > 0)
         {
             __result = (PileType.Hand, CardPilePosition.Top);
+            MarkReturningCard(card);
         }
         return false;
+    }
+
+    internal static bool IsReturningToHand(CardModel card) =>
+        ReturningCards.TryGetValue(card, out _);
+
+    private static void MarkReturningCard(CardModel card)
+    {
+        if (ReturningCards.TryGetValue(card, out _))
+            return;
+
+        var marker = new ReturnMarker();
+        Action? playedHandler = null;
+        playedHandler = () =>
+        {
+            try
+            {
+                if (playedHandler != null)
+                    PlayedEvent?.RemoveEventHandler(card, playedHandler);
+            }
+            finally
+            {
+                ReturningCards.Remove(card);
+            }
+        };
+        marker.PlayedHandler = playedHandler;
+        ReturningCards.Add(card, marker);
+        PlayedEvent?.AddEventHandler(card, playedHandler);
+    }
+}
+
+/// <summary>
+/// A Power card normally flies into the player and the fly VFX frees the
+/// original NCard at the end. Transformed Feral can return that same Power to
+/// the hand, so freeing the original leaves its hand holder with a zero-scale
+/// or deleted card node. Run the fly animation on a visual clone instead and
+/// leave the real hand-bound node untouched.
+/// </summary>
+[HarmonyPatch]
+internal static class BdCustomFeralPowerFlyVfxPatch
+{
+    private static MethodBase? TargetMethod() =>
+        AccessTools.DeclaredMethod(typeof(CardModel), "PlayPowerCardFlyVfx");
+
+    private static bool Prefix(CardModel __instance, ref Task __result)
+    {
+        if (!BdCustomFeralPowerResultPatch.IsReturningToHand(__instance))
+            return true;
+
+        __result = PlayClone(__instance);
+        return false;
+    }
+
+    private static async Task PlayClone(CardModel card)
+    {
+        NCard? clone = null;
+        try
+        {
+            var room = NCombatRoom.Instance;
+            var container = room?.CombatVfxContainer;
+            if (room == null || container == null)
+                return;
+
+            var original = NCard.FindOnTable(card);
+            // The visual must use a different model reference. Otherwise
+            // CardPileCmd.Add may find this flying clone instead of the real
+            // card node when it moves the played card back into the hand.
+            var visualCard = (CardModel)card.ClonePreservingMutability();
+            clone = NCard.Create(visualCard);
+            if (clone == null)
+                return;
+
+            container.AddChildSafely(clone);
+            clone.GlobalPosition = original?.GlobalPosition ?? PileType.Play.GetTargetPosition(clone);
+            clone.Rotation = original?.Rotation ?? 0f;
+            clone.Scale = original?.Scale ?? Vector2.One * 0.8f;
+            clone.UpdateVisuals(PileType.Play, CardPreviewMode.Normal);
+
+            var flyVfx = NCardFlyPowerVfx.Create(clone);
+            if (flyVfx == null)
+            {
+                clone.QueueFreeSafely();
+                return;
+            }
+
+            container.AddChildSafely(flyVfx);
+            _ = TaskHelper.RunSafely(flyVfx.PlayAnim());
+            var duration = flyVfx.GetDuration();
+            await Cmd.CustomScaledWait(duration * 0.2f, duration);
+        }
+        catch (Exception ex)
+        {
+            if (clone != null && GodotObject.IsInstanceValid(clone))
+                clone.QueueFreeSafely();
+            MainFile.Logger.Warn($"[BetterDefect] Feral could not play its return-safe Power VFX: {ex.GetType().Name}: {ex.Message}");
+        }
     }
 }
 
