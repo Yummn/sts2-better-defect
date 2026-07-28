@@ -388,7 +388,19 @@ def main() -> int:
         and "FinishAndDraw(" in subroutine_patch
         and "__state);" in subroutine_patch,
     )
-    check("Recursion custom route double-evokes the leftmost orb", "OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false)" in cards)
+    recursion_body = class_body(cards, "BdRecursion")
+    check(
+        "Recursion custom route resolves the visual leftmost orb from the queue tail",
+        "Orbs.LastOrDefault()" in recursion_body
+        and "Orbs.FirstOrDefault()" in recursion_body
+        and "var transformed =" in recursion_body,
+    )
+    check(
+        "Recursion custom route double-evokes the selected leftmost orb",
+        "OrbCmd.EvokeLast(choiceContext, Owner, dequeue: false)" in recursion_body
+        and "OrbCmd.EvokeLast(choiceContext, Owner);" in recursion_body
+        and "var t = orb.GetType();" in recursion_body,
+    )
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
     check("Recycle localization describes selection", "选择并[gold]消耗[/gold] 1 张手牌" in localization)
@@ -590,7 +602,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.20", '"version":  "0.11.20"' in manifest)
+    check("manifest is v0.11.21", '"version":  "0.11.21"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -710,7 +722,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.20 offline audit",
+        "BetterDefect v0.11.21 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

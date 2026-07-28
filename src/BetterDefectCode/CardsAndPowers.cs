@@ -461,18 +461,22 @@ public sealed class BdRecursion : CardModel
     public BdRecursion() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
-        var orb = Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
+        var transformed = BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this);
+        // NOrbManager lays OrbQueue index 0 out on the visual right edge and
+        // the final queue entry on the visual left edge. The transformed card
+        // explicitly targets that leftmost orb, while vanilla Recursion keeps
+        // using the queue front/rightmost orb.
+        var orb = transformed
+            ? Owner.PlayerCombatState.OrbQueue.Orbs.LastOrDefault()
+            : Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
         if (orb == null) return;
         var t = orb.GetType();
-        if (BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this))
+        if (transformed)
         {
-            // Recursion explicitly operates on the left/front orb. EvokeNext
-            // uses OrbQueue.Orbs.First(), unlike EvokeLast used by effects
-            // that operate from the right side. The first call keeps the orb
-            // in place so the same object is evoked twice; the second removes
-            // it before the same orb type is re-channeled.
-            await OrbCmd.EvokeNext(choiceContext, Owner, dequeue: false);
-            await OrbCmd.EvokeNext(choiceContext, Owner);
+            // Keep the selected leftmost object in place for the first evoke,
+            // remove that same object on the second, then re-channel its type.
+            await OrbCmd.EvokeLast(choiceContext, Owner, dequeue: false);
+            await OrbCmd.EvokeLast(choiceContext, Owner);
         }
         else
         {
