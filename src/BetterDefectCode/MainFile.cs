@@ -135,7 +135,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.25: Android v103 API-safe build; encyclopedia snapshot restores vanilla pool/rarity/id ordering; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.26: Android v103 API-safe build; hidden v103 cards use normalized StS1 rarities; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -143,7 +143,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.25: PC v107.1 build; encyclopedia snapshot restores vanilla pool/rarity/id ordering.");
+        Logger.Info("[BetterDefect] loaded v0.11.26: PC v107.1 build; hidden v103 cards use normalized StS1 rarities.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

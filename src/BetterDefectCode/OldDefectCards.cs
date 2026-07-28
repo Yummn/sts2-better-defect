@@ -38,9 +38,12 @@ internal static class OldDefectCards
 
     private static readonly HashSet<Type> CardTypeSet = new(CardTypes);
     private static readonly Dictionary<Type, bool> RestoredTypeCache = new();
+    private static readonly FieldInfo? CardRarityBackingField =
+        AccessTools.Field(typeof(CardModel), "<Rarity>k__BackingField");
     private static CardModel[]? _cachedCards;
     private static bool _loggedAppendTo;
     private static bool _loggedLibraryOrdering;
+    private static bool _loggedRarityNormalization;
 
     private sealed class CardLibraryInitialComparer : IComparer<CardModel>
     {
@@ -141,10 +144,50 @@ internal static class OldDefectCards
         foreach (var type in CardTypes)
         {
             var card = FindCard(type);
-            if (card != null) cards.Add(card);
+            if (card != null)
+            {
+                NormalizeRestoredRarity(card);
+                cards.Add(card);
+            }
         }
         _cachedCards = cards.ToArray();
         return _cachedCards;
+    }
+
+    /// <summary>
+    /// v103 still ships Hello World, Rebound, Rip and Tear, and Stack, but
+    /// marks all four as Event cards. Their green Event banner therefore
+    /// survives on Android because native virtual-property detours are skipped
+    /// there for startup safety. Write the intended StS1 rarity into the
+    /// auto-property backing field so every consumer (banner material, filters,
+    /// sorting and reward rarity) sees the same corrected value without
+    /// depending on Harmony.
+    /// </summary>
+    private static bool NormalizeRestoredRarity(CardModel card)
+    {
+        if (!TryGetRarity(card, out var rarity))
+            return false;
+
+        try
+        {
+            if (CardRarityBackingField == null)
+            {
+                if (!_loggedRarityNormalization)
+                {
+                    _loggedRarityNormalization = true;
+                    MainFile.Logger.Warn("[BetterDefect] CardModel rarity backing field was not found; restored v103 cards may retain Event visuals.");
+                }
+                return false;
+            }
+
+            CardRarityBackingField.SetValue(card, rarity);
+            return card.Rarity == rarity;
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"[BetterDefect] failed to normalize restored rarity for {card.GetType().Name}: {ex.Message}");
+            return false;
+        }
     }
 
     private static CardModel? FindCard(Type type)
@@ -233,8 +276,13 @@ internal static class OldDefectCards
             // `card.Pool is DefectCardPool`. Bind all rebuilt canonical cards
             // explicitly instead of depending on a late lazy AllCardIds lookup.
             var cardPoolField = AccessTools.Field(typeof(CardModel), "_pool");
+            var normalizedRarities = 0;
             foreach (var card in rebuilt)
+            {
                 cardPoolField?.SetValue(card, pool);
+                if (NormalizeRestoredRarity(card))
+                    normalizedRarities++;
+            }
 
             AccessTools.Field(typeof(CardPoolModel), "_allCards")?.SetValue(pool, rebuilt);
             AccessTools.Field(typeof(CardPoolModel), "_allCardIds")?.SetValue(pool, null);
@@ -259,7 +307,7 @@ internal static class OldDefectCards
             MainFile.Logger.Info(
                 $"[BetterDefect] deferred old-card refresh complete: pool={rebuilt.Length}, " +
                 $"poolRestored={restored}/{CardTypes.Length}, globalRestored={globalRestored}/{CardTypes.Length}, " +
-                $"globalDefect={globalDefect}.");
+                $"globalDefect={globalDefect}, normalizedV103Rarities={normalizedRarities}/{Rarities.Count}.");
         }
         catch (Exception ex)
         {

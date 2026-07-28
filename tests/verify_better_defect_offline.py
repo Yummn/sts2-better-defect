@@ -642,7 +642,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.25", '"version": "0.11.25"' in manifest)
+    check("manifest is v0.11.26", '"version": "0.11.26"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -656,6 +656,17 @@ def main() -> int:
         and "type == typeof(OldDefectCardRarityPatch)" in main_file
         and '"<Rarity>k__BackingField"' in versions
         and "ApplyAndroidRarityWithoutDetour(card, upgradedVersion);" in versions,
+    )
+    check(
+        "hidden v103 cards normalize Event rarity without Android detours",
+        '"<Rarity>k__BackingField"' in old_cards
+        and "NormalizeRestoredRarity(card)" in old_cards
+        and "CardRarityBackingField.SetValue(card, rarity);" in old_cards
+        and "normalizedV103Rarities={normalizedRarities}/{Rarities.Count}" in old_cards
+        and "[typeof(HelloWorld)] = CardRarity.Uncommon" in old_cards
+        and "[typeof(Rebound)] = CardRarity.Common" in old_cards
+        and "[typeof(RipAndTear)] = CardRarity.Uncommon" in old_cards
+        and "[typeof(Stack)] = CardRarity.Common" in old_cards,
     )
     check(
         "card transformation normalization reapplies enchantment last",
@@ -768,7 +779,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.25 offline audit",
+        "BetterDefect v0.11.26 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

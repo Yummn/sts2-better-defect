@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.26](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.26): fixes the four hidden v103 first-generation Defect cards retaining the green Event-rarity presentation on Android. BetterDefect now directly normalizes Hello World and Rip and Tear to Uncommon, and Rebound and Stack to Common, without relying on the Android-disabled virtual-property detour. REDMI K80 Pro v0.103.2 live validation reports `normalizedV103Rarities=4/4`, 114 Defect cards and all 26 restored cards in canonical rarity order; dual-platform binary audit passes 213/213.
+
 - [v0.11.25](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.25): fixes the Encyclopedia card snapshot retaining the restored-card append order. BetterDefect now mirrors the game's vanilla pool, rarity and card-ID comparer, detects a complete-but-misordered cache and rebuilds it before reapplying the active filters. Android v0.103.2 live validation verified 597 total cards, 114 Defect cards and all 26 restored cards in canonical order; dual-platform offline audit passes 212/212.
 
 - [v0.11.24](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.24): changes transformed Consuming Shadow to generate 1 Dark orb before its normal upgrade and 2 afterward, while the non-transformed original remains 2 (3). Its end-of-turn effect still triggers every Dark-orb passive once. Android v0.103.2 and PC v0.107.1 compile separately; dual-platform offline audit passes 212/212.
