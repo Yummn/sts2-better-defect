@@ -642,7 +642,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.24", '"version": "0.11.24"' in manifest)
+    check("manifest is v0.11.25", '"version": "0.11.25"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -720,9 +720,15 @@ def main() -> int:
         and "globalDefect=" in old_cards,
     )
     check(
-        "visible Android encyclopedia replaces its stale pre-patch card snapshot",
+        "visible Android encyclopedia replaces and rarity-sorts its stale pre-patch card snapshot",
         "RefreshCardLibraryGridIfStale" in old_cards
         and 'AccessTools.Field(typeof(NCardLibraryGrid), "_allCards")' in old_cards
+        and "class CardLibraryInitialComparer" in old_cards
+        and "var rarityOrder = x.Rarity.CompareTo(y.Rarity);" in old_cards
+        and "canonical.Sort(new CardLibraryInitialComparer(ModelDb.AllCardPools.ToList()));" in old_cards
+        and "SequenceEqual(canonical.Select(SafeCardId), StringComparer.Ordinal)" in old_cards
+        and "encyclopedia card ordering verified:" in old_cards
+        and "rarityOrderRepaired={!orderMatches}" in old_cards
         and "grid.RefreshVisibility();" in old_cards
         and "OldDefectCards.RefreshCardLibraryGridIfStale(grid)" in ui
         and 'AccessTools.Method(typeof(NCardLibrary), "UpdateFilter")' in ui
@@ -762,7 +768,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.24 offline audit",
+        "BetterDefect v0.11.25 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

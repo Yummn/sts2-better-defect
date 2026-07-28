@@ -40,6 +40,32 @@ internal static class OldDefectCards
     private static readonly Dictionary<Type, bool> RestoredTypeCache = new();
     private static CardModel[]? _cachedCards;
     private static bool _loggedAppendTo;
+    private static bool _loggedLibraryOrdering;
+
+    private sealed class CardLibraryInitialComparer : IComparer<CardModel>
+    {
+        private readonly List<CardPoolModel> _cardPools;
+
+        public CardLibraryInitialComparer(List<CardPoolModel> cardPools)
+        {
+            _cardPools = cardPools;
+        }
+
+        public int Compare(CardModel? x, CardModel? y)
+        {
+            if (x == null) return y == null ? 0 : -1;
+            if (y == null) return 1;
+
+            var poolOrder = _cardPools.IndexOf(x.Pool).CompareTo(_cardPools.IndexOf(y.Pool));
+            if (poolOrder != 0) return poolOrder;
+
+            var rarityOrder = x.Rarity.CompareTo(y.Rarity);
+            if (rarityOrder != 0) return rarityOrder;
+
+            try { return x.Id.CompareTo(y.Id); }
+            catch { return StringComparer.Ordinal.Compare(SafeCardId(x), SafeCardId(y)); }
+        }
+    }
 
     public static IEnumerable<Type> Types => CardTypes;
     public static IEnumerable<CardModel> Cards => GetCards();
@@ -258,21 +284,37 @@ internal static class OldDefectCards
 
             var canonical = ModelDb.AllCards
                 .Where(card => card.ShouldShowInCardLibrary)
-                .ToArray();
+                .ToList();
+            canonical.Sort(new CardLibraryInitialComparer(ModelDb.AllCardPools.ToList()));
             var canonicalDefect = canonical.Count(IsDefectPoolCard);
             var gridDefect = gridCards.Count(IsDefectPoolCard);
             var gridRestored = gridCards.Count(IsRestored);
-            if (gridCards.Count == canonical.Length &&
+            var orderMatches = gridCards.Count == canonical.Count &&
+                gridCards.Select(SafeCardId).SequenceEqual(canonical.Select(SafeCardId), StringComparer.Ordinal);
+            if (gridCards.Count == canonical.Count &&
                 gridDefect == canonicalDefect &&
-                gridRestored == CardTypes.Length)
+                gridRestored == CardTypes.Length &&
+                orderMatches)
+            {
+                if (!_loggedLibraryOrdering)
+                {
+                    _loggedLibraryOrdering = true;
+                    MainFile.Logger.Info(
+                        $"[BetterDefect] encyclopedia card ordering verified: " +
+                        $"total={gridCards.Count}, defect={gridDefect}, restored={gridRestored}, " +
+                        "order=pool/rarity/card-id.");
+                }
                 return false;
+            }
 
             gridCards.Clear();
             gridCards.AddRange(canonical);
             grid.RefreshVisibility();
+            _loggedLibraryOrdering = true;
             MainFile.Logger.Info(
                 $"[BetterDefect] refreshed stale encyclopedia card snapshot: " +
-                $"total={gridCards.Count}, defect={canonicalDefect}, restored={CardTypes.Length}.");
+                $"total={gridCards.Count}, defect={canonicalDefect}, restored={CardTypes.Length}, " +
+                $"rarityOrderRepaired={!orderMatches}.");
             return true;
         }
         catch (Exception ex)

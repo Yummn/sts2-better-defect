@@ -135,7 +135,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.24: Android v103 API-safe build; transformed Consuming Shadow generates one Dark orb and upgrades to two; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.25: Android v103 API-safe build; encyclopedia snapshot restores vanilla pool/rarity/id ordering; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -143,7 +143,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.24: PC v107.1 build; transformed Consuming Shadow generates one Dark orb and upgrades to two.");
+        Logger.Info("[BetterDefect] loaded v0.11.25: PC v107.1 build; encyclopedia snapshot restores vanilla pool/rarity/id ordering.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
