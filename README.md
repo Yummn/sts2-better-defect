@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.19): completes the Android v0.103.2 restored-card repair. The v0.11.18 cache rebuild exposed that the encyclopedia filters with `card.Pool is DefectCardPool`; rebuilding the global list after `ModelDb.Preload` could therefore leave the Defect filter empty. v0.11.19 preserves the preloaded global snapshot, explicitly binds all 114 cards to the Defect pool, merges the rebuilt pool back into `ModelDb.AllCards`, and logs `globalDefect=114`.
+
 - [v0.11.18](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.18): fixes Android v0.103.2 showing only the vanilla 88 Defect cards after the startup-safe delayed Harmony queue. Once all 32 patch classes are installed, BetterDefect now re-injects the 26 restored cards, rebuilds the cached Defect pool and refreshes the global card enumeration. The mobile startup log confirms a 114-card pool with 26/26 restored cards.
 
 - [v0.11.17](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.17): fixes Android v0.103.2 combat action queues becoming stuck after transformed Iteration finishes drawing and exhausting a Status. The previous mobile asset accidentally contained the PC v0.107.1 DLL and referenced Android-missing `ICombatState`, causing a `TypeLoadException`. Mobile and PC are now independently compiled against their exact APIs, and the release audit rejects PC-only metadata in mobile binaries. REDMI K80 Pro live validation loaded 32/32 patches and successfully played Strike followed by Defend; offline audit passes 205/205.

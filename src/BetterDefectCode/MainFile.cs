@@ -144,7 +144,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.18: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.19: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -152,7 +152,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.18: PC v107.1 build; restored-card pool cache is rebuilt after deferred Android patching.");
+        Logger.Info("[BetterDefect] loaded v0.11.19: PC v107.1 build; restored-card pool ownership/cache is rebuilt after deferred Android patching.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

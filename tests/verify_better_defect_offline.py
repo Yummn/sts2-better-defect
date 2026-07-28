@@ -590,7 +590,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.18", '"version":  "0.11.18"' in manifest)
+    check("manifest is v0.11.19", '"version":  "0.11.19"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -649,13 +649,15 @@ def main() -> int:
         and 'ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion")' in main_file,
     )
     check(
-        "Android delayed patch completion rebuilds the cached 88-card Defect pool",
+        "Android delayed patch completion rebuilds and rebinds the cached Defect pool",
         "RefreshAfterDeferredPatchInstall" in old_cards
-        and "EnsureInjected();" in old_cards
+        and "EnsureInjected(resetGlobalCards: false);" in old_cards
         and "var rebuilt = pool.AllCards.ToArray();" in old_cards
         and 'AccessTools.Field(typeof(CardPoolModel), "_allCards")?.SetValue(pool, rebuilt);' in old_cards
+        and "cardPoolField?.SetValue(card, pool)" in old_cards
+        and 'Field(typeof(ModelDb), "_allCards")?.SetValue(null, globalCards)' in old_cards
         and "globalRestored=" in old_cards
-        ,
+        and "globalDefect=" in old_cards,
     )
     check(
         "Iteration waits one process frame and removes stale hand visuals",
@@ -691,7 +693,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.18 offline audit",
+        "BetterDefect v0.11.19 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

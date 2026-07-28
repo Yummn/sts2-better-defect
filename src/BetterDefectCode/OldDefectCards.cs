@@ -43,7 +43,7 @@ internal static class OldDefectCards
     public static IEnumerable<Type> Types => CardTypes;
     public static IEnumerable<CardModel> Cards => GetCards();
 
-    public static void EnsureInjected()
+    public static void EnsureInjected(bool resetGlobalCards = true)
     {
         _cachedCards = null;
         RestoredTypeCache.Clear();
@@ -59,7 +59,7 @@ internal static class OldDefectCards
             catch (Exception ex) { MainFile.Logger.Warn($"[BetterDefect] failed to inject power {type.Name}: {ex.Message}"); }
         }
         MainFile.Logger.Info($"[BetterDefect] checked old Defect card model injection: attempted={CardTypes.Length}, injected={ok}.");
-        ResetCardPoolCaches();
+        ResetCardPoolCaches(resetGlobalCards);
     }
 
     public static IEnumerable<CardModel> AppendTo(IEnumerable<CardModel> cards)
@@ -139,7 +139,7 @@ internal static class OldDefectCards
         return AppendTo(cards).ToArray();
     }
 
-    public static void ResetCardPoolCaches()
+    public static void ResetCardPoolCaches(bool resetGlobalCards = true)
     {
         try
         {
@@ -155,7 +155,10 @@ internal static class OldDefectCards
             MainFile.Logger.Warn($"[BetterDefect] failed to reset Defect card pool cache: {ex.Message}");
         }
 
-        try { AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, null); } catch { }
+        if (resetGlobalCards)
+        {
+            try { AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, null); } catch { }
+        }
     }
 
     /// <summary>
@@ -170,7 +173,11 @@ internal static class OldDefectCards
     {
         try
         {
-            EnsureInjected();
+            // Keep the concrete global snapshot produced by ModelDb.Preload.
+            // Replacing it with a fresh lazy query this late can leave the
+            // encyclopedia with cards whose CardModel.Pool was never resolved.
+            var existingGlobal = ModelDb.AllCards.ToArray();
+            EnsureInjected(resetGlobalCards: false);
 
             var pool = GetDefectPool();
             if (pool == null)
@@ -195,17 +202,48 @@ internal static class OldDefectCards
                 MainFile.Logger.Warn($"[BetterDefect] deferred pool rebuild used direct cache fallback; total={rebuilt.Length}, restored={restored}.");
             }
 
-            AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, null);
-            var globalCards = ModelDb.AllCards.ToArray();
+            // The encyclopedia's Defect filter is literally
+            // `card.Pool is DefectCardPool`. Bind all rebuilt canonical cards
+            // explicitly instead of depending on a late lazy AllCardIds lookup.
+            var cardPoolField = AccessTools.Field(typeof(CardModel), "_pool");
+            foreach (var card in rebuilt)
+                cardPoolField?.SetValue(card, pool);
+
+            AccessTools.Field(typeof(CardPoolModel), "_allCards")?.SetValue(pool, rebuilt);
+            AccessTools.Field(typeof(CardPoolModel), "_allCardIds")?.SetValue(pool, null);
+
+            var merged = new List<CardModel>(existingGlobal.Length + rebuilt.Length);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var card in existingGlobal)
+            {
+                if (!IsDefectPoolCard(card, pool) && seen.Add(SafeCardId(card)))
+                    merged.Add(card);
+            }
+            foreach (var card in rebuilt)
+            {
+                if (seen.Add(SafeCardId(card)))
+                    merged.Add(card);
+            }
+
+            var globalCards = merged.ToArray();
+            AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, globalCards);
             var globalRestored = globalCards.Count(IsRestored);
+            var globalDefect = globalCards.Count(card => IsDefectPoolCard(card, pool));
             MainFile.Logger.Info(
                 $"[BetterDefect] deferred old-card refresh complete: pool={rebuilt.Length}, " +
-                $"poolRestored={restored}/{CardTypes.Length}, globalRestored={globalRestored}/{CardTypes.Length}.");
+                $"poolRestored={restored}/{CardTypes.Length}, globalRestored={globalRestored}/{CardTypes.Length}, " +
+                $"globalDefect={globalDefect}.");
         }
         catch (Exception ex)
         {
             MainFile.Logger.Error($"[BetterDefect] deferred old-card refresh failed: {ex}");
         }
+    }
+
+    private static bool IsDefectPoolCard(CardModel card, CardPoolModel pool)
+    {
+        try { return ReferenceEquals(card.Pool, pool) || card.Pool is DefectCardPool; }
+        catch { return false; }
     }
 
     private static string SafeCardId(CardModel card) => SafeModelId(card);
