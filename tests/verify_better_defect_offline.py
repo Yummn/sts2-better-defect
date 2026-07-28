@@ -381,10 +381,12 @@ def main() -> int:
     for name, token in rare_behavior_checks.items():
         check(name, token in versions or token in read("BetterDefectCode/DynamicOdds.cs"))
     check(
-        "transformed Consuming Shadow upgrades from one to three Dark orbs",
-        'SetDynamic(card, "Repeat", upgradedVersion ? plus ? 3m : 1m' in versions
-        and 'case ConsumingShadow:\n                UpgradeDynamicTo(card, "Repeat", 3m);' in versions
-        and 'ConsumingShadow => "生成1(3)个黑暗' in versions,
+        "transformed Consuming Shadow upgrades from one to two Dark orbs",
+        'SetDynamic(card, "Repeat", upgradedVersion ? plus ? 2m : 1m' in versions
+        and 'case ConsumingShadow:\n                UpgradeDynamicTo(card, "Repeat", upgradedVersion ? 2m : 3m);' in versions
+        and 'case "CARD.CONSUMING_SHADOW":\n                SetEnergy(card, 2);\n                SetDynamic(card, "Repeat", upgradedVersion ? plus ? 2m : 1m' in versions
+        and 'case "CARD.CONSUMING_SHADOW": UpgradeDynamicTo(card, "Repeat", upgradedVersion ? 2m : 3m);' in versions
+        and 'ConsumingShadow => "生成1(2)个黑暗' in versions,
     )
     smokestack_patch = class_body(versions, "BdCustomSmokestackPowerPatch")
     subroutine_patch = class_body(versions, "BdCustomSubroutinePowerPatch")
@@ -640,7 +642,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.23", '"version":  "0.11.23"' in manifest)
+    check("manifest is v0.11.24", '"version": "0.11.24"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -760,7 +762,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.23 offline audit",
+        "BetterDefect v0.11.24 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

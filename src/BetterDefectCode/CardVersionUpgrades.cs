@@ -124,7 +124,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.ADAPTIVE_STRIKE"] = ("改造：自定义", "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆"),
             ["CARD.ALL_FOR_ONE"] = ("改造：自定义", "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌"),
             ["CARD.BUFFER"] = ("改造：自定义", "2费获得1(2)层缓冲和10点格挡"),
-            ["CARD.CONSUMING_SHADOW"] = ("改造：自定义", "生成1(3)个黑暗；回合结束时触发所有黑暗球被动一次"),
+            ["CARD.CONSUMING_SHADOW"] = ("改造：自定义", "生成1(2)个黑暗；回合结束时触发所有黑暗球被动一次"),
             ["CARD.COOLANT"] = ("改造：自定义", "回合结束时，每有一种不同充能球获得2(3)格挡"),
             ["CARD.CREATIVE_AI"] = ("改造：自定义", "每回合从3张随机机器人能力牌中选择1张，本回合免费"),
             ["CARD.ECHO_FORM"] = ("改造：自定义", "每回合第2张牌额外打出一次；升级移除虚无"),
@@ -223,7 +223,7 @@ internal static class BdCardVersionUpgrades
         AdaptiveStrike => "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆",
         AllForOne => "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌",
         BufferCard => "2费获得1(2)层缓冲和10点格挡",
-        ConsumingShadow => "生成1(3)个黑暗；回合结束时触发所有黑暗球被动一次",
+        ConsumingShadow => "生成1(2)个黑暗；回合结束时触发所有黑暗球被动一次",
         Coolant => "回合结束时，每有一种不同充能球获得2(3)格挡",
         CreativeAi => "每回合从3张随机机器人能力牌中选择1张，本回合免费",
         EchoForm => "每回合第2张牌额外打出一次；普通升级移除虚无",
@@ -478,7 +478,7 @@ internal static class BdCardVersionUpgrades
 
             case ConsumingShadow:
                 SetEnergy(card, 2);
-                SetDynamic(card, "Repeat", upgradedVersion ? plus ? 3m : 1m : plus ? 3m : 2m);
+                SetDynamic(card, "Repeat", upgradedVersion ? plus ? 2m : 1m : plus ? 3m : 2m);
                 break;
 
             case Coolant:
@@ -742,7 +742,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "BufferPower", 2m);
                 break;
             case ConsumingShadow:
-                UpgradeDynamicTo(card, "Repeat", 3m);
+                UpgradeDynamicTo(card, "Repeat", upgradedVersion ? 2m : 3m);
                 break;
             case Coolant:
                 UpgradeDynamicTo(card, "CoolantPower", 3m);
@@ -944,7 +944,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.CONSUMING_SHADOW":
                 SetEnergy(card, 2);
-                SetDynamic(card, "Repeat", upgradedVersion ? plus ? 3m : 1m : plus ? 3m : 2m);
+                SetDynamic(card, "Repeat", upgradedVersion ? plus ? 2m : 1m : plus ? 3m : 2m);
                 break;
             case "CARD.COOLANT":
                 SetEnergy(card, 1);
@@ -1096,7 +1096,7 @@ internal static class BdCardVersionUpgrades
             case "CARD.ADAPTIVE_STRIKE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 22m : 23m); break;
             case "CARD.ALL_FOR_ONE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 9m : 14m); break;
             case "CARD.BUFFER": UpgradeDynamicTo(card, "BufferPower", 2m); break;
-            case "CARD.CONSUMING_SHADOW": UpgradeDynamicTo(card, "Repeat", 3m); break;
+            case "CARD.CONSUMING_SHADOW": UpgradeDynamicTo(card, "Repeat", upgradedVersion ? 2m : 3m); break;
             case "CARD.COOLANT": UpgradeDynamicTo(card, "CoolantPower", 3m); break;
             case "CARD.CREATIVE_AI": SetEnergy(card, 2); break;
             case "CARD.ECHO_FORM": SetKeyword(card, CardKeyword.Ethereal, false); break;

@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.24](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.24): changes transformed Consuming Shadow to generate 1 Dark orb before its normal upgrade and 2 afterward, while the non-transformed original remains 2 (3). Its end-of-turn effect still triggers every Dark-orb passive once. Android v0.103.2 and PC v0.107.1 compile separately; dual-platform offline audit passes 212/212.
+
 - [v0.11.23](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.23): fixes transformed Feral making a returned zero-cost Power transparent or deleting its hand visual. Power-card fly VFX normally scales and frees the real card node; Feral now marks cards being returned, keeps the real hand-bound node intact, and runs the fly animation on a distinct visual clone. PC v0.107.1 live regression returned a zero-cost Defragment with the same valid node, exactly one matching hand node, full scale, full opacity and no pending deletion; dual-platform offline audit passes 212/212.
 
 - [v0.11.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.22): fixes restored Electrodynamics so Lightning passive and evoke damage hit every hittable enemy on both Android v103 and PC v107.1. The old implementation detoured `LightningOrb.ApplyLightningDamage`, and Android explicitly skipped that ARM64-unsafe detour, leaving mobile single-target only. The new route uses stable power lifecycle hooks, marks passive Lightning resolutions and spreads only to missing opponents with a recursion guard. PC live regression in a four-enemy fight recorded `passive=[3,3,3,3]` and `evoke=[8,8,8,8]`; dual-platform offline audit passes 210/210.
