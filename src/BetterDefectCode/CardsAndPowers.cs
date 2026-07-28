@@ -835,8 +835,129 @@ public sealed class BdStaticDischargePower : PowerModel
 
 public sealed class BdElectrodynamicsPower : PowerModel
 {
+    private sealed class RuntimeState
+    {
+        public readonly Dictionary<LightningOrb, Action> TriggerHandlers = new();
+        public LightningOrb? PendingPassiveOrb;
+        public bool IsSpreadingDamage;
+    }
+
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Single;
+
+    protected override object? InitInternalData() => new RuntimeState();
+
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        EnsureLightningSubscriptions();
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterOrbChanneled(PlayerChoiceContext choiceContext, Player player, OrbModel orb)
+    {
+        if (player.Creature == Owner && orb is LightningOrb lightning)
+            EnsureLightningSubscription(lightning);
+        return Task.CompletedTask;
+    }
+
+    public override async Task AfterDamageGiven(
+        PlayerChoiceContext choiceContext,
+        Creature? dealer,
+        DamageResult result,
+        ValueProp props,
+        Creature target,
+        CardModel? cardSource)
+    {
+        var state = GetInternalData<RuntimeState>();
+        if (state.IsSpreadingDamage || state.PendingPassiveOrb is not { } orb)
+            return;
+        if (dealer != Owner || cardSource != null || (props & ValueProp.Unpowered) == 0)
+            return;
+        if (orb.Owner.Creature != Owner || target.Side == Owner.Side)
+            return;
+
+        // LightningOrb.Trigger runs immediately before every passive damage
+        // resolution. Consume the marker before issuing the extra hits so
+        // their normal damage hooks cannot recursively spread again.
+        state.PendingPassiveOrb = null;
+        await SpreadToMissingOpponents(choiceContext, new[] { target }, orb.PassiveVal);
+    }
+
+    public override async Task AfterOrbEvoked(
+        PlayerChoiceContext choiceContext,
+        OrbModel orb,
+        IEnumerable<Creature> targets)
+    {
+        if (orb is not LightningOrb lightning || lightning.Owner.Creature != Owner)
+            return;
+
+        // Evoke has a stable built-in completion hook on both v103 and v107.1.
+        // Use it instead of detouring LightningOrb.ApplyLightningDamage, which
+        // is unsafe on Android ARM64.
+        await SpreadToMissingOpponents(choiceContext, targets, lightning.EvokeVal);
+    }
+
+    public override Task AfterRemoved(Creature oldOwner)
+    {
+        var state = GetInternalData<RuntimeState>();
+        foreach (var pair in state.TriggerHandlers)
+            pair.Key.Triggered -= pair.Value;
+        state.TriggerHandlers.Clear();
+        state.PendingPassiveOrb = null;
+        return Task.CompletedTask;
+    }
+
+    private void EnsureLightningSubscriptions()
+    {
+        foreach (var lightning in Owner.Player.PlayerCombatState.OrbQueue.Orbs.OfType<LightningOrb>())
+            EnsureLightningSubscription(lightning);
+    }
+
+    private void EnsureLightningSubscription(LightningOrb orb)
+    {
+        var state = GetInternalData<RuntimeState>();
+        if (state.TriggerHandlers.ContainsKey(orb))
+            return;
+
+        void MarkPassiveResolution() => state.PendingPassiveOrb = orb;
+        state.TriggerHandlers[orb] = MarkPassiveResolution;
+        orb.Triggered += MarkPassiveResolution;
+    }
+
+    private async Task SpreadToMissingOpponents(
+        PlayerChoiceContext choiceContext,
+        IEnumerable<Creature> alreadyHit,
+        decimal value)
+    {
+        var state = GetInternalData<RuntimeState>();
+        if (state.IsSpreadingDamage)
+            return;
+
+        var hitSet = alreadyHit.ToHashSet();
+        var missingTargets = Bd.Opponents(Owner)
+            .Where(enemy => enemy.IsHittable && !hitSet.Contains(enemy))
+            .ToList();
+        if (missingTargets.Count == 0)
+            return;
+
+        foreach (var enemy in missingTargets)
+            VfxCmd.PlayOnCreature(enemy, "vfx/vfx_attack_lightning");
+
+        state.IsSpreadingDamage = true;
+        try
+        {
+            await CreatureCmd.Damage(
+                choiceContext,
+                missingTargets,
+                value,
+                ValueProp.Unpowered,
+                Owner);
+        }
+        finally
+        {
+            state.IsSpreadingDamage = false;
+        }
+    }
 }
 
 public sealed class BdLockOnPower : PowerModel
@@ -858,53 +979,6 @@ public sealed class BdLockOnPower : PowerModel
         // individual orb hits.
         if (side == CombatSide.Enemy) return PowerCmd.TickDownDuration(this);
         return Task.CompletedTask;
-    }
-}
-
-[HarmonyPatch]
-internal static class BdElectrodynamicsLightningTargetPatch
-{
-    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(LightningOrb), "ApplyLightningDamage");
-
-    private static bool Prefix(
-        LightningOrb __instance,
-        decimal value,
-        Creature? target,
-        PlayerChoiceContext choiceContext,
-        ref Task<IEnumerable<Creature>> __result)
-    {
-        try
-        {
-            if (__instance.Owner.Creature.GetPower<BdElectrodynamicsPower>() == null)
-                return true;
-
-            __result = DamageAll(__instance, value, choiceContext);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            BetterDefect.MainFile.Logger.Warn($"[BetterDefect] Electrodynamics target patch fell back to vanilla Lightning: {ex.GetType().Name}: {ex.Message}");
-            return true;
-        }
-    }
-
-    private static async Task<IEnumerable<Creature>> DamageAll(
-        LightningOrb orb,
-        decimal value,
-        PlayerChoiceContext choiceContext)
-    {
-        var targets = Bd.Opponents(orb.Owner.Creature)
-            .Where(enemy => enemy.IsHittable)
-            .ToList();
-        if (targets.Count == 0)
-            return Array.Empty<Creature>();
-
-        foreach (var enemy in targets)
-            VfxCmd.PlayOnCreature(enemy, "vfx/vfx_attack_lightning");
-
-        SfxCmd.Play("event:/sfx/characters/defect/defect_lightning_evoke");
-        await CreatureCmd.Damage(choiceContext, targets, value, ValueProp.Unpowered, orb.Owner.Creature);
-        return targets;
     }
 }
 

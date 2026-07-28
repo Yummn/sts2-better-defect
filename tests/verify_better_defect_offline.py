@@ -130,9 +130,27 @@ def main() -> int:
     check("Static Discharge only accepts powered Move damage", "ValueProp.Move" in static_power and "ValueProp.Unpowered | ValueProp.Unblockable" in static_power)
 
     electro_power = class_body(cards, "BdElectrodynamicsPower")
-    electro_patch = class_body(cards, "BdElectrodynamicsLightningTargetPatch")
-    check("Electrodynamics no longer adds damage only after evoke", "AfterOrbEvoked" not in electro_power)
-    check("Electrodynamics patches Lightning passive and evoke common path", "ApplyLightningDamage" in electro_patch and "Bd.Opponents" in electro_patch and "CreatureCmd.Damage" in electro_patch)
+    check(
+        "Electrodynamics marks every Lightning passive through Triggered subscriptions",
+        "orb.Triggered += MarkPassiveResolution" in electro_power
+        and "AfterOrbChanneled" in electro_power
+        and "AfterApplied" in electro_power,
+    )
+    check(
+        "Electrodynamics spreads passive and evoke damage to missing opponents",
+        "AfterDamageGiven" in electro_power
+        and "AfterOrbEvoked" in electro_power
+        and "SpreadToMissingOpponents" in electro_power
+        and "Bd.Opponents(Owner)" in electro_power
+        and "CreatureCmd.Damage" in electro_power,
+    )
+    check(
+        "Electrodynamics spread has a recursion guard and no Lightning method detour",
+        "IsSpreadingDamage" in electro_power
+        and "BdElectrodynamicsLightningTargetPatch" not in cards
+        and "TargetMethod()" not in electro_power
+        and "static bool Prefix(" not in electro_power,
+    )
 
     lock_on = class_body(cards, "BdLockOnPower")
     check("Lock-On returns multiplier 1.5 instead of multiplied damage", "return 1.5m;" in lock_on and "amount * 1.5m" not in lock_on)
@@ -602,7 +620,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.21", '"version":  "0.11.21"' in manifest)
+    check("manifest is v0.11.22", '"version":  "0.11.22"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -703,7 +721,7 @@ def main() -> int:
     check("library watcher synchronously strips pooled controls", "CleanupAllTouchedCards();" in hud and "_library = null;" in hud)
     check("cross-version combat state uses reflection", 'AccessTools.Property(sourceType, "CombatState")' in cards)
     check("cross-version enemy targeting avoids direct CombatState typing", "TryTargetAllOpponents(object attackCommand, CardModel card)" in cards)
-    check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(orb.Owner.Creature)" in cards)
+    check("Electrodynamics uses cross-version opponent lookup", "Bd.Opponents(Owner)" in electro_power)
     check("source contains no direct model CombatState access", "card.CombatState" not in cards and "orb.CombatState" not in cards)
     check("Shatter uses cross-version all-opponent targeting", "Cards.Bd.TryTargetAllOpponents(attack, card)" in versions)
     check("Shatter no longer directly targets card.CombatState", ".TargetingAllOpponents(card.CombatState)" not in versions)
@@ -722,7 +740,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.21 offline audit",
+        "BetterDefect v0.11.22 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

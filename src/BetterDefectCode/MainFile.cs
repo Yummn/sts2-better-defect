@@ -104,15 +104,6 @@ public partial class MainFile : Node
                 // so patch the final Texture2D getter instead.
                 continue;
             }
-            if (android && type.FullName == "BetterDefect.Cards.BdElectrodynamicsLightningTargetPatch")
-            {
-                // LightningOrb.ApplyLightningDamage is an ARM64-crashy detour
-                // point on v103.  Skipping this one effect hook is preferable
-                // to aborting process startup before the encyclopedia UI and
-                // reward-odds systems can load.
-                Logger.Warn($"[BetterDefect] skipping Android-unsafe {type.FullName}; Electrodynamics all-target lightning fallback is disabled on mobile.");
-                continue;
-            }
             if (!android && type == typeof(BdPowerIconTexturePatch))
             {
                 // PC can redirect both small and large paths before loading.
@@ -144,7 +135,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.21: Android v103 API-safe build; transformed Recursion now resolves the visual leftmost orb through the queue tail; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.22: Android v103 API-safe build; Electrodynamics spreads Lightning passive and evoke damage through stable power hooks; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -152,7 +143,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.21: PC v107.1 build; transformed Recursion now resolves the visual leftmost orb through the queue tail.");
+        Logger.Info("[BetterDefect] loaded v0.11.22: PC v107.1 build; Electrodynamics spreads Lightning passive and evoke damage through stable power hooks.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

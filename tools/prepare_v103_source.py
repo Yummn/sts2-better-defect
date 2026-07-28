@@ -50,6 +50,28 @@ def main() -> int:
         "public override async Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)",
         "public override async Task AfterTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)",
     )
+    # v0.103.2 metadata exposes both the Triggered event and its backing field
+    # with the same public name. Direct +=/-= is ambiguous to Roslyn, so make
+    # the generated Android source call the real event accessors by reflection.
+    electro_class = "public sealed class BdElectrodynamicsPower : PowerModel\n{\n"
+    electro_android = electro_class + """    private static readonly EventInfo? TriggeredEvent = typeof(OrbModel).GetEvent(
+        "Triggered",
+        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+"""
+    if electro_class not in cards:
+        raise RuntimeError("BdElectrodynamicsPower declaration not found")
+    cards = cards.replace(electro_class, electro_android, 1)
+    cards = cards.replace(
+        "pair.Key.Triggered -= pair.Value;",
+        "TriggeredEvent?.RemoveEventHandler(pair.Key, pair.Value);",
+        1,
+    )
+    cards = cards.replace(
+        "orb.Triggered += MarkPassiveResolution;",
+        "TriggeredEvent?.AddEventHandler(orb, MarkPassiveResolution);",
+        1,
+    )
     cards_path.write_text(cards, encoding="utf-8")
 
     ui_path = target / "BetterDefectCode" / "DynamicOddsUi.cs"
