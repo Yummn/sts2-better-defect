@@ -158,6 +158,56 @@ internal static class OldDefectCards
         try { AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, null); } catch { }
     }
 
+    /// <summary>
+    /// Android v103 installs Harmony patches after ModelDb.Preload has already
+    /// materialized the vanilla 88-card Defect pool.  Re-inject the restored
+    /// models, invalidate both cached enumerations, and eagerly rebuild the
+    /// pool after the GenerateAllCards postfix is present.  Eager rebuilding
+    /// also prevents a very fast encyclopedia open from retaining an old
+    /// 88-card NCardLibraryGrid for the rest of that screen instance.
+    /// </summary>
+    public static void RefreshAfterDeferredPatchInstall()
+    {
+        try
+        {
+            EnsureInjected();
+
+            var pool = GetDefectPool();
+            if (pool == null)
+            {
+                MainFile.Logger.Error("[BetterDefect] deferred old-card refresh could not resolve the Defect card pool.");
+                return;
+            }
+
+            var rebuilt = pool.AllCards.ToArray();
+            var restored = rebuilt.Count(IsRestored);
+
+            // Keep a detour-independent fallback.  If the Android Harmony
+            // backend accepted the patch class but failed to route this first
+            // call through its postfix, write the complete array directly to
+            // CardPoolModel's cache instead of silently exposing only 88 cards.
+            if (restored < CardTypes.Length)
+            {
+                rebuilt = AppendToArray(rebuilt);
+                AccessTools.Field(typeof(CardPoolModel), "_allCards")?.SetValue(pool, rebuilt);
+                AccessTools.Field(typeof(CardPoolModel), "_allCardIds")?.SetValue(pool, null);
+                restored = rebuilt.Count(IsRestored);
+                MainFile.Logger.Warn($"[BetterDefect] deferred pool rebuild used direct cache fallback; total={rebuilt.Length}, restored={restored}.");
+            }
+
+            AccessTools.Field(typeof(ModelDb), "_allCards")?.SetValue(null, null);
+            var globalCards = ModelDb.AllCards.ToArray();
+            var globalRestored = globalCards.Count(IsRestored);
+            MainFile.Logger.Info(
+                $"[BetterDefect] deferred old-card refresh complete: pool={rebuilt.Length}, " +
+                $"poolRestored={restored}/{CardTypes.Length}, globalRestored={globalRestored}/{CardTypes.Length}.");
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Error($"[BetterDefect] deferred old-card refresh failed: {ex}");
+        }
+    }
+
     private static string SafeCardId(CardModel card) => SafeModelId(card);
     private static string SafeModelId(AbstractModel model)
     {

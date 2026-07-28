@@ -144,7 +144,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.17: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.18: Android v103 API-safe build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -152,7 +152,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.17: PC v107.1 build; transformed Recycle gains one Orb slot.");
+        Logger.Info("[BetterDefect] loaded v0.11.18: PC v107.1 build; restored-card pool cache is rebuilt after deferred Android patching.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -326,8 +326,9 @@ internal partial class AndroidPatchInstaller : Node
         MainFile.Logger.Info($"[BetterDefect] Android patch queue complete: {_completed}/{_total} classes installed.");
         // ModelDb.Init can finish while Android is still installing Harmony
         // classes.  In that case its postfix was not present when the
-        // canonical cards were created, which made the Encyclopedia show an
-        // enabled transformation while gameplay retained vanilla values.
+        // canonical cards and Defect pool were created. Rebuild the cached
+        // vanilla 88-card pool only after GenerateAllCards is patched.
+        OldDefectCards.RefreshAfterDeferredPatchInstall();
         BdCardVersionUpgrades.RefreshAllCanonicalModels();
         BdCardVersionUpgrades.ReapplyPersistedTransformationsToLoadedCards("Android patch queue completion");
         QueueFree();

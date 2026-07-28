@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.18](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.18): fixes Android v0.103.2 showing only the vanilla 88 Defect cards after the startup-safe delayed Harmony queue. Once all 32 patch classes are installed, BetterDefect now re-injects the 26 restored cards, rebuilds the cached Defect pool and refreshes the global card enumeration. The mobile startup log confirms a 114-card pool with 26/26 restored cards.
+
 - [v0.11.17](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.17): fixes Android v0.103.2 combat action queues becoming stuck after transformed Iteration finishes drawing and exhausting a Status. The previous mobile asset accidentally contained the PC v0.107.1 DLL and referenced Android-missing `ICombatState`, causing a `TypeLoadException`. Mobile and PC are now independently compiled against their exact APIs, and the release audit rejects PC-only metadata in mobile binaries. REDMI K80 Pro live validation loaded 32/32 patches and successfully played Strike followed by Defend; offline audit passes 205/205.
 
 - [v0.11.16](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.16): adds an optional transformed Recycle as a Common Skill costing 1 (0), Exhausting itself and one selected hand card to gain one Orb slot instead of refunding energy. PC v0.107.1 live regression confirmed cost, rarity, both exhaust moves, 3 to 4 Orb slots, no energy refund and the zero-cost normal upgrade. Rarity-changing transformation odds migration is also corrected; dual-platform binary regression audit passes 204/204.
