@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
@@ -292,6 +293,12 @@ internal static class Bd
         }
         catch { }
     }
+
+    public static void PlayOrbEvokeSfx(OrbModel orb)
+    {
+        try { AccessTools.Method(typeof(OrbModel), "PlayEvokeSfx")?.Invoke(orb, null); }
+        catch { }
+    }
     public static Task Damage(PlayerChoiceContext ctx, CardModel card, Creature? target, DamageVar damage) =>
         target == null ? Task.CompletedTask : CreatureCmd.Damage(ctx, target, damage, card);
     public static Task DamageAll(PlayerChoiceContext ctx, CardModel card, DamageVar damage) =>
@@ -564,7 +571,20 @@ public sealed class BdBullseye : CardModel
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         await Bd.Damage(choiceContext, this, cardPlay.Target, DynamicVars.Damage);
-        if (cardPlay.Target != null) await Bd.ApplyPower<BdLockOnPower>(choiceContext, cardPlay.Target, DynamicVars["LockOn"].BaseValue, Owner.Creature, this);
+        if (cardPlay.Target != null)
+        {
+            await Bd.ApplyPower<BdLockOnPower>(choiceContext, cardPlay.Target, DynamicVars["LockOn"].BaseValue, Owner.Creature, this);
+            if (BdCardVersionUpgrades.IsVersionEnabled(this))
+            {
+                foreach (var enemy in Bd.Enemies(this))
+                {
+                    if (enemy != cardPlay.Target)
+                        await PowerCmd.Remove(enemy.GetPower<BdBullseyeTargetPower>());
+                }
+                await Bd.ApplyPower<BdBullseyeTargetPower>(
+                    choiceContext, cardPlay.Target, 1m, Owner.Creature, this, silent: true);
+            }
+        }
     }
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(3); DynamicVars["LockOn"].UpgradeValueBy(1); }
 }
@@ -576,7 +596,11 @@ public sealed class BdConsume : CardModel
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         await Bd.ApplyPower<FocusPower>(choiceContext, Owner.Creature, DynamicVars["Focus"].BaseValue, Owner.Creature, this);
+        var before = Owner.PlayerCombatState.OrbQueue.Capacity;
         OrbCmd.RemoveSlots(Owner, 1);
+        var removed = Math.Max(0, before - Owner.PlayerCombatState.OrbQueue.Capacity);
+        if (removed > 0)
+            await BdBulkUpPower.NotifySlotsLost(choiceContext, Owner, removed, this);
     }
     protected override void OnUpgrade() => DynamicVars["Focus"].UpgradeValueBy(1);
 }
@@ -630,6 +654,13 @@ public sealed class BdMelter : CardModel
         {
             if (cardPlay.Target.Block > 0) await CreatureCmd.LoseBlock(cardPlay.Target, cardPlay.Target.Block);
             await Bd.Damage(choiceContext, this, cardPlay.Target, DynamicVars.Damage);
+            if (BdCardVersionUpgrades.IsVersionEnabled(this))
+                await Bd.ApplyPower<VulnerablePower>(
+                    choiceContext,
+                    cardPlay.Target,
+                    IsUpgraded ? 2m : 1m,
+                    Owner.Creature,
+                    this);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(4);
@@ -664,6 +695,8 @@ public sealed class BdReinforcedBody : CardModel
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         var x = ResolveEnergyXValue();
+        if (BdCardVersionUpgrades.IsVersionEnabled(this) && x >= 4)
+            x *= 2;
         for (var i = 0; i < x; i++) await Bd.Block(this, cardPlay);
     }
     protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
@@ -675,6 +708,21 @@ public sealed class BdReprogram : CardModel
     public BdReprogram() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
+        if (BdCardVersionUpgrades.IsVersionEnabled(this))
+        {
+            var orbCount = Owner.PlayerCombatState.OrbQueue.Orbs.Count;
+            if (IsUpgraded)
+            {
+                for (var i = 0; i < orbCount; i++)
+                    await OrbCmd.EvokeNext(choiceContext, Owner);
+            }
+            else
+            {
+                foreach (var orb in Owner.PlayerCombatState.OrbQueue.Orbs.ToList())
+                    Bd.RemoveOrbWithoutEvoke(this, orb);
+                Bd.RefreshOrbVisuals(this);
+            }
+        }
         await Bd.ApplyPower<FocusPower>(choiceContext, Owner.Creature, -DynamicVars["Focus"].BaseValue, Owner.Creature, this);
         await Bd.ApplyPower<StrengthPower>(choiceContext, Owner.Creature, DynamicVars.Strength.BaseValue, Owner.Creature, this);
         await Bd.ApplyPower<DexterityPower>(choiceContext, Owner.Creature, DynamicVars.Dexterity.BaseValue, Owner.Creature, this);
@@ -830,6 +878,215 @@ public sealed class BdStaticDischargePower : PowerModel
         if (target != Owner || result.UnblockedDamage <= 0 || dealer == null) return;
         if ((props & ValueProp.Move) == 0 || (props & (ValueProp.Unpowered | ValueProp.Unblockable)) != 0) return;
         for (var i = 0; i < Amount; i++) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner.Player);
+        if (BdCardVersionUpgrades.IsVersionEnabled<BdStaticDischarge>())
+            await CreatureCmd.GainBlock(Owner, 3m, ValueProp.Unpowered, null);
+    }
+}
+
+public sealed class BdBulkUpPower : PowerModel
+{
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+
+    public static async Task NotifySlotsLost(
+        PlayerChoiceContext choiceContext,
+        Player player,
+        int slotsLost,
+        CardModel? cardSource)
+    {
+        if (slotsLost <= 0)
+            return;
+        var power = player.Creature.GetPower<BdBulkUpPower>();
+        if (power == null || power.Amount <= 0)
+            return;
+        var gain = power.Amount * slotsLost;
+        power.Flash();
+        await Bd.ApplyPower<StrengthPower>(
+            choiceContext, player.Creature, gain, player.Creature, cardSource);
+        await Bd.ApplyPower<DexterityPower>(
+            choiceContext, player.Creature, gain, player.Creature, cardSource);
+    }
+}
+
+public sealed class BdScrapeTemporaryStrengthPower : TemporaryStrengthPower
+{
+    public override AbstractModel OriginModel => ModelDb.Card<Scrape>();
+}
+
+public sealed class BdBullseyeTargetPower : PowerModel
+{
+    protected override bool IsVisibleInternal => false;
+    public override PowerType Type => PowerType.Debuff;
+    public override PowerStackType StackType => PowerStackType.Single;
+
+    public static Creature? FindPriority(OrbModel orb)
+    {
+        try
+        {
+            return Bd.Opponents(orb.Owner.Creature)
+                .FirstOrDefault(enemy =>
+                    enemy.IsHittable &&
+                    enemy.HasPower<BdBullseyeTargetPower>() &&
+                    enemy.HasPower<BdLockOnPower>());
+        }
+        catch { return null; }
+    }
+}
+
+public sealed class BdSpinnerNoDecayPower : PowerModel
+{
+    private sealed class RuntimeState
+    {
+        public readonly Dictionary<GlassOrb, Action> TriggerHandlers = new();
+    }
+
+    private static readonly FieldInfo? GlassPassiveValueField =
+        AccessTools.Field(typeof(GlassOrb), "_passiveVal");
+
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+    protected override object? InitInternalData() => new RuntimeState();
+
+    public override Task AfterApplied(Creature? applier, CardModel? cardSource)
+    {
+        EnsureSubscriptions();
+        return Task.CompletedTask;
+    }
+
+    public override Task AfterOrbChanneled(PlayerChoiceContext choiceContext, Player player, OrbModel orb)
+    {
+        if (player.Creature == Owner && orb is GlassOrb glass)
+            EnsureSubscription(glass);
+        return Task.CompletedTask;
+    }
+
+    public override async Task AfterEnergyReset(Player player)
+    {
+        if (player != Owner.Player) return;
+        for (var i = 0; i < Amount; i++)
+            await OrbCmd.Channel<GlassOrb>(new ThrowingPlayerChoiceContext(), player);
+    }
+
+    public override Task AfterRemoved(Creature oldOwner)
+    {
+        var state = GetInternalData<RuntimeState>();
+        foreach (var pair in state.TriggerHandlers)
+            pair.Key.Triggered -= pair.Value;
+        state.TriggerHandlers.Clear();
+        return Task.CompletedTask;
+    }
+
+    private void EnsureSubscriptions()
+    {
+        foreach (var glass in Owner.Player.PlayerCombatState.OrbQueue.Orbs.OfType<GlassOrb>())
+            EnsureSubscription(glass);
+    }
+
+    private void EnsureSubscription(GlassOrb glass)
+    {
+        var state = GetInternalData<RuntimeState>();
+        if (state.TriggerHandlers.ContainsKey(glass))
+            return;
+
+        void PreservePassiveValue()
+        {
+            try
+            {
+                if (GlassPassiveValueField?.GetValue(glass) is decimal current)
+                    GlassPassiveValueField.SetValue(glass, current + 1m);
+            }
+            catch { }
+        }
+
+        state.TriggerHandlers[glass] = PreservePassiveValue;
+        glass.Triggered += PreservePassiveValue;
+    }
+}
+
+[HarmonyPatch(typeof(LightningOrb), nameof(LightningOrb.Passive))]
+internal static class BdBullseyeLightningPassivePatch
+{
+    private static bool Prefix(
+        LightningOrb __instance,
+        PlayerChoiceContext choiceContext,
+        Creature? target,
+        ref Task __result)
+    {
+        if (target != null || !BdCardVersionUpgrades.IsVersionEnabled<BdBullseye>())
+            return true;
+        var priority = BdBullseyeTargetPower.FindPriority(__instance);
+        if (priority == null) return true;
+        __result = Hit(__instance, choiceContext, priority);
+        return false;
+    }
+
+    private static async Task Hit(LightningOrb orb, PlayerChoiceContext choiceContext, Creature target)
+    {
+        orb.Trigger();
+        VfxCmd.PlayOnCreature(target, "vfx/vfx_attack_lightning");
+        Bd.PlayOrbEvokeSfx(orb);
+        await CreatureCmd.Damage(
+            choiceContext, target, orb.PassiveVal,
+            ValueProp.Unpowered, orb.Owner.Creature);
+    }
+}
+
+[HarmonyPatch(typeof(LightningOrb), nameof(LightningOrb.Evoke))]
+internal static class BdBullseyeLightningEvokePatch
+{
+    private static bool Prefix(
+        LightningOrb __instance,
+        PlayerChoiceContext playerChoiceContext,
+        ref Task<IEnumerable<Creature>> __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<BdBullseye>())
+            return true;
+        var priority = BdBullseyeTargetPower.FindPriority(__instance);
+        if (priority == null) return true;
+        __result = Hit(__instance, playerChoiceContext, priority);
+        return false;
+    }
+
+    private static async Task<IEnumerable<Creature>> Hit(
+        LightningOrb orb,
+        PlayerChoiceContext choiceContext,
+        Creature target)
+    {
+        VfxCmd.PlayOnCreature(target, "vfx/vfx_attack_lightning");
+        Bd.PlayOrbEvokeSfx(orb);
+        await CreatureCmd.Damage(
+            choiceContext, target, orb.EvokeVal,
+            ValueProp.Unpowered, orb.Owner.Creature);
+        return new[] { target };
+    }
+}
+
+[HarmonyPatch(typeof(DarkOrb), nameof(DarkOrb.Evoke))]
+internal static class BdBullseyeDarkEvokePatch
+{
+    private static bool Prefix(
+        DarkOrb __instance,
+        PlayerChoiceContext playerChoiceContext,
+        ref Task<IEnumerable<Creature>> __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<BdBullseye>())
+            return true;
+        var priority = BdBullseyeTargetPower.FindPriority(__instance);
+        if (priority == null) return true;
+        __result = Hit(__instance, playerChoiceContext, priority);
+        return false;
+    }
+
+    private static async Task<IEnumerable<Creature>> Hit(
+        DarkOrb orb,
+        PlayerChoiceContext choiceContext,
+        Creature target)
+    {
+        Bd.PlayOrbEvokeSfx(orb);
+        await CreatureCmd.Damage(
+            choiceContext, target, orb.EvokeVal,
+            ValueProp.Unpowered, orb.Owner.Creature);
+        return new[] { target };
     }
 }
 

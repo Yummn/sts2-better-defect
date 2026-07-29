@@ -3,9 +3,9 @@
 
 These checks deliberately do not start Slay the Spire 2.  They verify the
 restored-card registry, every recreated StS1 card's defining values/behavior,
-the four audited power fixes, 14 historical-version routes, 11 additional
-custom common-card transformations, 16 custom uncommon-card transformations,
-and 17 custom rare-card transformations.
+the audited power fixes, 10 historical-version routes, 13 custom common-card
+transformations, 29 custom uncommon-card transformations, and 17 custom
+rare-card transformations.
 """
 
 from __future__ import annotations
@@ -175,19 +175,21 @@ def main() -> int:
     version_list_match = re.search(r"VersionedCardTypes\s*=\s*\[(?P<body>.*?)\];", versions, re.S)
     version_types = re.findall(r"typeof\((\w+)\)", version_list_match.group("body") if version_list_match else "")
     expected_version_types = [
-        "Hotfix", "RocketPunch", "Voltaic", "Hyperbeam", "Shatter", "TeslaCoil", "Uproar",
-        "Fusion", "Synthesis", "Compact", "MomentumStrike", "Scrape", "Sunder", "TrashToTreasure",
+        "Hotfix", "RocketPunch", "Voltaic", "Shatter", "TeslaCoil", "Uproar",
+        "Fusion", "Compact", "MomentumStrike", "TrashToTreasure",
         "Barrage", "BeamCell", "ChargeBattery", "ColdSnap", "Coolheaded", "GoForTheEyes", "GunkUp", "Leap",
         "LightningRod", "SweepingBeam", "BdRecursion", "BdRecycle", "BdStreamline",
         "Chaos", "DoubleEnergy", "FightThrough", "Skim", "Tempest", "WhiteNoise",
         "Ftl", "Null", "Refract", "Feral", "Hailstorm", "Iteration", "Loop",
-        "Smokestack", "Storm", "Subroutine",
+        "Smokestack", "Storm", "Subroutine", "BdReprogram", "BdStaticDischarge",
+        "BulkUp", "HelixDrill", "BdReinforcedBody", "Synthesis", "Sunder",
+        "BdMelter", "BdBullseye", "RipAndTear", "Scrape", "Hyperbeam", "Spinner",
         "AdaptiveStrike", "AllForOne", "BufferCard", "ConsumingShadow", "Coolant",
         "CreativeAi", "EchoForm", "FlakCannon", "GeneticAlgorithm", "IceLance",
         "Defragment", "BiasedCognition", "MeteorStrike", "MultiCast", "Rainbow",
         "BdThunderStrike", "BdCoreSurge",
     ]
-    check("card-transformation registry contains exactly 60 cards", version_types == expected_version_types, repr(version_types))
+    check("card-transformation registry contains exactly 69 cards", version_types == expected_version_types, repr(version_types))
     for card_id in (
         "HOTFIX", "ROCKET_PUNCH", "VOLTAIC", "HYPERBEAM", "SHATTER", "TESLA_COIL", "UPROAR",
         "FUSION", "SYNTHESIS", "COMPACT", "MOMENTUM_STRIKE", "SCRAPE", "SUNDER", "TRASH_TO_TREASURE",
@@ -200,7 +202,7 @@ def main() -> int:
         "Shatter double-evokes every orb": "OrbCmd.EvokeNext(choiceContext, card.Owner, dequeue: false)",
         "Tesla Coil v0.105 upgraded card triggers Lightning twice": "card.IsUpgraded && BdCardVersionUpgrades.IsVersionEnabled(card)",
         "Compact v0.99 Fuel draws cards": 'SetDynamic(card, "Cards", plus ? 2m : 1m)',
-        "Scrape v0.108 uses all cost modifiers": "useV108 ? CostModifiers.All : CostModifiers.Local",
+        "Scrape transformation uses all cost modifiers": "transformed ? CostModifiers.All : CostModifiers.Local",
         "Trash to Treasure v0.99 upgrade is Innate": "SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion)",
         "Barrage custom route applies temporary Focus": "var temporaryFocus = card.DynamicVars.Damage.BaseValue",
         "Beam Cell custom route applies BetterDefect Lock-On": "Bd.ApplyPower<BdLockOnPower>",
@@ -291,9 +293,22 @@ def main() -> int:
         "Smokestack draws on its first trigger": "BdCustomSmokestackPowerPatch",
         "Storm gains Innate when transformed": "SetKeyword(card, CardKeyword.Innate, upgradedVersion)",
         "Subroutine draws on its first trigger": "BdCustomSubroutinePowerPatch",
+        "Reprogram removes or evokes every orb before applying stats": "var orbCount = Owner.PlayerCombatState.OrbQueue.Orbs.Count",
+        "Static Discharge transformed route grants three Block": "GainBlock(Owner, 3m, ValueProp.Unpowered, null)",
+        "Bulk Up tracks later orb-slot losses": "BdBulkUpPower.NotifySlotsLost",
+        "Helix Drill doubles final X of at least four": "if (x >= 4) x *= 2;",
+        "Reinforced Body doubles final X of at least four": "BdCardVersionUpgrades.IsVersionEnabled(this) && x >= 4",
+        "Synthesis draws a Power then makes the next Power free": "private static async Task PlaySynthesis",
+        "Sunder discounts itself when it does not kill": "card.EnergyCost.AddThisCombat(-1, reduceOnly: true)",
+        "Melter transformed route applies Vulnerable": "Bd.ApplyPower<VulnerablePower>",
+        "Bullseye marks the priority target": "BdBullseyeTargetPower",
+        "Rip and Tear performs three random hits and a repeat bonus": "private static async Task PlayRipAndTear",
+        "Scrape grants temporary Strength for retained cards": "BdScrapeTemporaryStrengthPower",
+        "Hyperbeam loses Focus per current orb": "var orbCount = card.Owner.PlayerCombatState.OrbQueue.Orbs.Count",
+        "Spinner preserves Glass passive values": "current + 1m",
     }
     for name, token in uncommon_behavior_checks.items():
-        check(name, token in versions)
+        check(name, token in versions or token in cards)
 
     feral_result_patch = class_body(versions, "BdCustomFeralPowerResultPatch")
     feral_power_vfx_patch = class_body(versions, "BdCustomFeralPowerFlyVfxPatch")
@@ -451,7 +466,12 @@ def main() -> int:
     check("Tesla Coil description switches transformed passive count and keeps dynamic damage", 'teslaV105' in localization and "造成{Damage:diff()}点伤害" in localization and "充能球被动{IfUpgraded:show:两次|一次}" in localization)
     check("Shatter description explicitly says every orb is evoked twice", '["SHATTER.description"]' in localization and "[gold]激发[/gold]所有充能球两次" in localization)
     check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
-    check("Scrape description distinguishes local and final energy cost", 'scrapeV108' in localization and "按当前最终耗能计算" in localization and "按卡牌自身耗能计算" in localization)
+    check(
+        "Scrape description matches retained-card temporary Strength",
+        "scrapeCustom" in localization
+        and "每保留1张牌，本回合获得1点[gold]临时力量[/gold]" in localization
+        and "按卡牌自身耗能计算" in localization,
+    )
     check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/DynamicOddsUi.cs"))
     check("custom common-card descriptions follow their switches", all(token in localization for token in (
         "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "coolheadedCustom", "goForTheEyesCustom",
@@ -642,7 +662,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.26", '"version": "0.11.26"' in manifest)
+    check("manifest is v0.11.27", '"version": "0.11.27"' in manifest)
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -779,7 +799,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.26 offline audit",
+        "BetterDefect v0.11.27 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

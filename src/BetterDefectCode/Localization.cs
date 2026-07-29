@@ -73,6 +73,12 @@ internal static class BdLocalization
         ["powers/BD_LOCK_ON_POWER.title"] = "锁定",
         ["powers/BD_LOCK_ON_POWER.description"] = "受到的充能球伤害提高 50%。每个敌人回合结束时减少 1 层。剩余 {Amount} 层。",
         ["powers/BD_LOCK_ON_POWER.smartDescription"] = "受到的充能球伤害提高[blue]50%[/blue]。每个敌人回合结束时减少1层。剩余[blue]{Amount}[/blue]层。",
+        ["powers/BD_BULK_UP_POWER.title"] = "暴涨",
+        ["powers/BD_BULK_UP_POWER.description"] = "此后每失去1个充能球栏位，获得 {Amount} 点力量和敏捷。",
+        ["powers/BD_BULK_UP_POWER.smartDescription"] = "此后每失去1个充能球栏位，获得[blue]{Amount}[/blue]点[gold]力量[/gold]和[gold]敏捷[/gold]。",
+        ["powers/BD_SPINNER_NO_DECAY_POWER.title"] = "旋转工艺",
+        ["powers/BD_SPINNER_NO_DECAY_POWER.description"] = "每回合开始时生成 {Amount} 个玻璃球。玻璃球被动不会损失数值。",
+        ["powers/BD_SPINNER_NO_DECAY_POWER.smartDescription"] = "每回合开始时[gold]生成[/gold][blue]{Amount}[/blue]个[gold]玻璃[/gold]充能球。玻璃球被动不会损失数值。",
     };
 
     public static bool TryGetRaw(string table, string key, out string raw) => Map.TryGetValue(table + "/" + key, out raw!);
@@ -128,7 +134,7 @@ internal static class BdLocalization
         var shatterV105 = IsVersionEnabled<Shatter>();
         var teslaV105 = IsVersionEnabled<TeslaCoil>();
         var compactV099 = IsVersionEnabled<Compact>();
-        var scrapeV108 = IsVersionEnabled<Scrape>();
+        var scrapeCustom = IsVersionEnabled<Scrape>();
         var barrageCustom = IsVersionEnabled<Barrage>();
         var beamCellCustom = IsVersionEnabled<BeamCell>();
         var chargeBatteryCustom = IsVersionEnabled<ChargeBattery>();
@@ -159,6 +165,18 @@ internal static class BdLocalization
         var smokestackCustom = IsVersionEnabled<Smokestack>();
         var stormCustom = IsVersionEnabled<Storm>();
         var subroutineCustom = IsVersionEnabled<Subroutine>();
+        var reprogramCustom = IsVersionEnabled<Cards.BdReprogram>();
+        var staticDischargeCustom = IsVersionEnabled<Cards.BdStaticDischarge>();
+        var bulkUpCustom = IsVersionEnabled<BulkUp>();
+        var helixDrillCustom = IsVersionEnabled<HelixDrill>();
+        var reinforcedBodyCustom = IsVersionEnabled<Cards.BdReinforcedBody>();
+        var synthesisCustom = IsVersionEnabled<Synthesis>();
+        var sunderCustom = IsVersionEnabled<Sunder>();
+        var melterCustom = IsVersionEnabled<Cards.BdMelter>();
+        var bullseyeCustom = IsVersionEnabled<Cards.BdBullseye>();
+        var ripAndTearCustom = IsVersionEnabled<RipAndTear>();
+        var hyperbeamCustom = IsVersionEnabled<Hyperbeam>();
+        var spinnerCustom = IsVersionEnabled<Spinner>();
         var adaptiveStrikeCustom = IsVersionEnabled<AdaptiveStrike>();
         var allForOneCustom = IsVersionEnabled<AllForOne>();
         var bufferCustom = IsVersionEnabled<MegaCrit.Sts2.Core.Models.Cards.Buffer>();
@@ -191,8 +209,8 @@ internal static class BdLocalization
                 ? "获得{Energy:energyIcons()}。\n抽{Cards:diff()}张牌。"
                 : "获得{Energy:energyIcons()}。",
 
-            ["SCRAPE.description"] = scrapeV108
-                ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按当前最终耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌。"
+            ["SCRAPE.description"] = scrapeCustom
+                ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌，丢弃其中当前耗能不为0{energyPrefix:energyIcons(1)}的牌。每保留1张牌，本回合获得1点[gold]临时力量[/gold]。"
                 : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n按卡牌自身耗能计算，丢弃抽到的牌中耗能不为0{energyPrefix:energyIcons(1)}的牌；由全局效果暂时降为0费的牌仍会被丢弃。",
 
             ["BARRAGE.description"] = barrageCustom
@@ -315,6 +333,55 @@ internal static class BdLocalization
                 ? "当你打出一张能力牌时，每层获得{energyPrefix:energyIcons(1)}。每层在每回合第一次触发时，额外抽1张牌。"
                 : "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。",
 
+            ["BD_REPROGRAM.description"] = reprogramCustom
+                ? "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球但不激发。}\n失去1点[gold]集中[/gold]。获得2点[gold]力量[/gold]和2点[gold]敏捷[/gold]。"
+                : "失去{Focus:diff()}点[gold]集中[/gold]。\n获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
+
+            ["BD_STATIC_DISCHARGE.description"] = staticDischargeCustom
+                ? "{IfUpgraded:show:[gold]固有[/gold]。\n|}每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold]{Amount:diff()}个[gold]闪电[/gold]充能球，并获得3点[gold]格挡[/gold]。"
+                : "每当你受到未被格挡的攻击伤害，[gold]充能[/gold]{Amount:diff()}个[gold]闪电[/gold]。",
+
+            ["BULK_UP.description"] = bulkUpCustom
+                ? "失去1个充能球栏位。获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。此后每失去1个充能球栏位，再各获得1点。"
+                : "失去{OrbSlots:diff()}个充能球栏位。获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
+
+            ["HELIX_DRILL.description"] = helixDrillCustom
+                ? "造成{Damage:diff()}点伤害X次。如果X的最终数值至少为4，则将X翻倍。"
+                : "造成{Damage:diff()}点伤害{CalculatedHits:diff()}次。",
+
+            ["BD_REINFORCED_BODY.description"] = reinforcedBodyCustom
+                ? "获得{Block:diff()}点[gold]格挡[/gold]X次。如果X的最终数值至少为4，则将X翻倍。"
+                : "获得{Block:diff()}点[gold]格挡[/gold]X次。",
+
+            ["SYNTHESIS.description"] = synthesisCustom
+                ? "造成{Damage:diff()}点伤害。从[gold]抽牌堆[/gold]随机抽1张{IfUpgraded:show:（选择1张）|}能力牌。下一张打出的能力牌耗能为0。"
+                : "造成{Damage:diff()}点伤害。下一张打出的能力牌耗能为0。",
+            ["SYNTHESIS.selectionScreenPrompt"] = "选择一张能力牌放入手牌",
+
+            ["SUNDER.description"] = sunderCustom
+                ? "造成{Damage:diff()}点伤害。若击杀敌人，获得3{energyPrefix:energyIcons(1)}；否则本场战斗中此牌耗能减少1。"
+                : "造成{Damage:diff()}点伤害。若击杀敌人，获得3{energyPrefix:energyIcons(1)}。",
+
+            ["BD_MELTER.description"] = melterCustom
+                ? "移除敌人的所有[gold]格挡[/gold]。造成{Damage:diff()}点伤害，给予{IfUpgraded:show:2|1}层[gold]易伤[/gold]。"
+                : "移除敌人的所有[gold]格挡[/gold]。\n造成{Damage:diff()}点伤害。",
+
+            ["BD_BULLSEYE.description"] = bullseyeCustom
+                ? "造成{Damage:diff()}点伤害。给予{LockOn:diff()}层[gold]锁定[/gold]。[gold]闪电[/gold]和[gold]黑暗[/gold]充能球优先攻击该敌人。"
+                : "造成{Damage:diff()}点伤害。给予{LockOn:diff()}层[gold]锁定[/gold]。",
+
+            ["RIP_AND_TEAR.description"] = ripAndTearCustom
+                ? "随机造成{Damage:diff()}点伤害三次。如果两次命中同一个敌人，再对其造成一次同等伤害。"
+                : "随机造成{Damage:diff()}点伤害两次。",
+
+            ["HYPERBEAM.description"] = hyperbeamCustom
+                ? "对所有敌人造成{Damage:diff()}点伤害。每有一个充能球，失去1点[gold]集中[/gold]。"
+                : "对所有敌人造成{Damage:diff()}点伤害。失去{FocusPower:diff()}点[gold]集中[/gold]。",
+
+            ["SPINNER.description"] = spinnerCustom
+                ? "每回合开始时[gold]生成[/gold]1个[gold]玻璃[/gold]充能球。玻璃球被动不会损失数值。{IfUpgraded:show:\n打出时立即生成1个玻璃球。|}"
+                : "每回合开始时[gold]生成[/gold]1个[gold]玻璃[/gold]充能球。{IfUpgraded:show:\n打出时立即生成1个玻璃球。|}",
+
             ["ADAPTIVE_STRIKE.description"] = adaptiveStrikeCustom
                 ? "造成{Damage:diff()}点伤害。\n将一张耗能为0{energyPrefix:energyIcons(1)}且具有[gold]虚无[/gold]的复制品加入你的[gold]抽牌堆[/gold]。"
                 : "造成{Damage:diff()}点伤害。\n将一张耗能为0{energyPrefix:energyIcons(1)}的复制品加入你的[gold]弃牌堆[/gold]。",
@@ -400,6 +467,12 @@ internal static class BdLocalization
             ["SUBROUTINE_POWER.smartDescription"] = subroutineCustom
                 ? "你每次打出能力牌时，获得{Amount:energyIcons()}。每回合第一次触发时，额外抽[blue]{Amount}[/blue]张牌。"
                 : "你每次打出能力牌时，都获得[blue]{Amount}[/blue]{Amount:energyIcons()}。",
+            ["BD_STATIC_DISCHARGE_POWER.description"] = staticDischargeCustom
+                ? "每当你受到未被格挡的敌人攻击伤害，生成闪电并获得3点格挡。"
+                : "每当你受到未被格挡的攻击伤害，充能{Amount}个闪电。",
+            ["BD_STATIC_DISCHARGE_POWER.smartDescription"] = staticDischargeCustom
+                ? "每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球，并获得[blue]3[/blue]点[gold]格挡[/gold]。"
+                : "每当你受到未被格挡的攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球。",
             ["CONSUMING_SHADOW_POWER.description"] = consumingShadowCustom
                 ? "你的回合结束时，触发所有黑暗充能球的被动一次。"
                 : "你的回合结束时，激发最右侧的充能球。",

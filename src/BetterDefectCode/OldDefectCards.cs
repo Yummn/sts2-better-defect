@@ -397,7 +397,9 @@ internal static class OldDefectPowers
     public static readonly Type[] Types =
     {
         typeof(BdHeatsinksPower), typeof(BdSelfRepairPower), typeof(BdStaticDischargePower),
-        typeof(BdElectrodynamicsPower), typeof(BdLockOnPower),
+        typeof(BdElectrodynamicsPower), typeof(BdLockOnPower), typeof(BdBulkUpPower),
+        typeof(BdScrapeTemporaryStrengthPower), typeof(BdBullseyeTargetPower),
+        typeof(BdSpinnerNoDecayPower),
     };
 }
 
