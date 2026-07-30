@@ -135,7 +135,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.28: Android v103 API-safe build; 59 custom transformations; Darv/Dusty Tome compatibility fix; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.29: Android v103 API-safe build; 59 custom transformations; Recursion preserves Dark orb evoke value; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -143,7 +143,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.28: PC v107.1 build; 59 custom transformations; Darv/Dusty Tome compatibility fix.");
+        Logger.Info("[BetterDefect] loaded v0.11.29: PC v107.1 build; 59 custom transformations; Recursion preserves Dark orb evoke value.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

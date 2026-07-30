@@ -465,6 +465,10 @@ internal static class Bd
 
 public sealed class BdRecursion : CardModel
 {
+    private static readonly FieldInfo DarkEvokeValField =
+        AccessTools.Field(typeof(DarkOrb), "_evokeVal")
+        ?? throw new MissingFieldException(typeof(DarkOrb).FullName, "_evokeVal");
+
     public BdRecursion() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -478,6 +482,10 @@ public sealed class BdRecursion : CardModel
             : Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
         if (orb == null) return;
         var t = orb.GetType();
+        // StS1 Recursion preserves a Dark orb's accumulated evoke damage.
+        // Capture it before evoking because the replacement orb otherwise
+        // starts again at DarkOrb's canonical 6 damage.
+        var inheritedDarkEvokeVal = orb is DarkOrb ? orb.EvokeVal : (decimal?)null;
         if (transformed)
         {
             // Keep the selected leftmost object in place for the first evoke,
@@ -491,7 +499,12 @@ public sealed class BdRecursion : CardModel
         }
         if (t == typeof(LightningOrb)) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner);
         else if (t == typeof(FrostOrb)) await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
-        else if (t == typeof(DarkOrb)) await OrbCmd.Channel<DarkOrb>(choiceContext, Owner);
+        else if (t == typeof(DarkOrb))
+        {
+            var replacement = ModelDb.Orb<DarkOrb>().ToMutable();
+            DarkEvokeValField.SetValue(replacement, inheritedDarkEvokeVal!.Value);
+            await OrbCmd.Channel(choiceContext, replacement, Owner);
+        }
         else await OrbCmd.Channel(choiceContext, (OrbModel)Activator.CreateInstance(t)!, Owner);
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);

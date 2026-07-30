@@ -456,6 +456,15 @@ def main() -> int:
         and "OrbCmd.EvokeLast(choiceContext, Owner);" in recursion_body
         and "var t = orb.GetType();" in recursion_body,
     )
+    check(
+        "Recursion preserves accumulated Dark orb evoke damage",
+        'AccessTools.Field(typeof(DarkOrb), "_evokeVal")' in recursion_body
+        and "var inheritedDarkEvokeVal = orb is DarkOrb ? orb.EvokeVal : (decimal?)null;" in recursion_body
+        and "var replacement = ModelDb.Orb<DarkOrb>().ToMutable();" in recursion_body
+        and "DarkEvokeValField.SetValue(replacement, inheritedDarkEvokeVal!.Value);" in recursion_body
+        and "OrbCmd.Channel(choiceContext, replacement, Owner)" in recursion_body
+        and "OrbCmd.Channel<DarkOrb>" not in recursion_body,
+    )
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
     check("Recycle localization describes selection", "选择并[gold]消耗[/gold] 1 张手牌" in localization)
@@ -663,7 +672,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.28", '"version": "0.11.28"' in manifest)
+    check("manifest is v0.11.29", '"version": "0.11.29"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -815,7 +824,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.28 offline audit",
+        "BetterDefect v0.11.29 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
