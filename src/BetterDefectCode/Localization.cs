@@ -419,7 +419,7 @@ internal static class BdLocalization
                 : "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]3个[gold]等离子[/gold]充能球。",
 
             ["MULTI_CAST.description"] = multiCastCustom
-                ? "[gold]激发[/gold]{IfUpgraded:show:X+1|X}个充能球；每次激发后重新[gold]生成[/gold]相同类型的充能球。"
+                ? "重复{IfUpgraded:show:X+1|X}次：[gold]激发[/gold]最右侧充能球2次，并重新[gold]生成[/gold]相同充能球。"
                 : "[gold]激发[/gold]下一个充能球{IfUpgraded:show:X+1|X}次。",
 
             ["RAINBOW.description"] = rainbowCustom

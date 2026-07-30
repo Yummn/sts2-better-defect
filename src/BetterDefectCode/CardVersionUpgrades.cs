@@ -136,7 +136,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.DEFRAGMENT"] = ("改造：自定义", "稀有度改为蓝卡，效果不变"),
             ["CARD.BIASED_COGNITION"] = ("改造：自定义", "稀有度改为金卡，效果不变"),
             ["CARD.METEOR_STRIKE"] = ("改造：自定义", "4费造成18(24)伤害并生成2个等离子"),
-            ["CARD.MULTI_CAST"] = ("改造：自定义", "激发X(X+1)个充能球，并在每次激发后重新生成相同类型的球"),
+            ["CARD.MULTI_CAST"] = ("改造：自定义", "重复X(X+1)次：激发最右侧充能球2次，并重新生成相同充能球"),
             ["CARD.RAINBOW"] = ("改造：自定义", "3费依次生成闪电、冰霜、黑暗、玻璃、等离子；基础消耗，升级移除消耗"),
             ["CARD.BD_THUNDER_STRIKE"] = ("改造：自定义", "效果不变；普通升级后费用改为2"),
             ["CARD.BD_CORE_SURGE"] = ("改造：自定义", "效果不变；普通升级后获得固有")
@@ -2149,6 +2149,10 @@ internal static class BdCustomRareRainbowPlayPatch
 
 internal static class BdCustomRareCardPlay
 {
+    private static readonly FieldInfo MultiCastDarkEvokeValField =
+        AccessTools.Field(typeof(DarkOrb), "_evokeVal")
+        ?? throw new MissingFieldException(typeof(DarkOrb).FullName, "_evokeVal");
+
     internal static async Task PlayAdaptiveStrike(AdaptiveStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
@@ -2226,20 +2230,38 @@ internal static class BdCustomRareCardPlay
         var count = card.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
         for (var i = 0; i < count; i++)
         {
-            var next = card.Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
-            if (next == null) break;
-            var orbType = next.GetType();
+            // OrbQueue index 0 is rendered on the visual right edge. Each X
+            // repetition behaves like Dualcast on that current rightmost orb,
+            // then restores the same type at the back of the queue.
+            var rightmost = card.Owner.PlayerCombatState.OrbQueue.Orbs.FirstOrDefault();
+            if (rightmost == null) break;
+            var orbType = rightmost.GetType();
+            var inheritedDarkEvokeVal =
+                rightmost is DarkOrb ? rightmost.EvokeVal : (decimal?)null;
+            await OrbCmd.EvokeNext(choiceContext, card.Owner, dequeue: false);
+            await Cmd.CustomScaledWait(0.1f, 0.25f);
             await OrbCmd.EvokeNext(choiceContext, card.Owner);
-            await ChannelSameType(choiceContext, card.Owner, orbType);
+            await ChannelSameType(
+                choiceContext, card.Owner, orbType, inheritedDarkEvokeVal);
             await Cmd.Wait(0.25f);
         }
     }
 
-    private static async Task ChannelSameType(PlayerChoiceContext choiceContext, Player player, Type orbType)
+    private static async Task ChannelSameType(
+        PlayerChoiceContext choiceContext,
+        Player player,
+        Type orbType,
+        decimal? inheritedDarkEvokeVal)
     {
         if (orbType == typeof(LightningOrb)) await OrbCmd.Channel<LightningOrb>(choiceContext, player);
         else if (orbType == typeof(FrostOrb)) await OrbCmd.Channel<FrostOrb>(choiceContext, player);
-        else if (orbType == typeof(DarkOrb)) await OrbCmd.Channel<DarkOrb>(choiceContext, player);
+        else if (orbType == typeof(DarkOrb))
+        {
+            var replacement = ModelDb.Orb<DarkOrb>().ToMutable();
+            MultiCastDarkEvokeValField.SetValue(
+                replacement, inheritedDarkEvokeVal!.Value);
+            await OrbCmd.Channel(choiceContext, replacement, player);
+        }
         else if (orbType == typeof(PlasmaOrb)) await OrbCmd.Channel<PlasmaOrb>(choiceContext, player);
         else if (orbType == typeof(GlassOrb)) await OrbCmd.Channel<GlassOrb>(choiceContext, player);
     }

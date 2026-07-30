@@ -388,13 +388,38 @@ def main() -> int:
         "Echo Form duplicates the second card": "if (priorPlays == 1)",
         "Flak Cannon targets one chosen enemy using exhaust-pile count": "var hitCount = PileType.Exhaust.GetPile(card.Owner).Cards.Count",
         "Meteor Strike channels exactly two Plasma": "PlayMeteorStrike",
-        "Multi-Cast recreates each evoked orb type": "ChannelSameType",
+        "Multi-Cast recreates each double-evoked rightmost orb type": "ChannelSameType",
         "Rainbow channels all five requested orb types": "PlayRainbow",
         "rare rarity transformations are routed": "TryGetTransformedRarity",
         "rarity-changing cards migrate persisted odds": "MoveWeightToTransformedRarity",
     }
     for name, token in rare_behavior_checks.items():
         check(name, token in versions or token in read("BetterDefectCode/DynamicOdds.cs"))
+    multi_cast_play = re.search(
+        r"internal static async Task PlayMultiCast\(.*?(?=\n    private static async Task ChannelSameType)",
+        versions,
+        re.S,
+    )
+    multi_cast_body = multi_cast_play.group(0) if multi_cast_play else ""
+    check(
+        "transformed Multi-Cast repeats X or X+1 rightmost double-evokes",
+        "card.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0)" in multi_cast_body
+        and "OrbQueue.Orbs.FirstOrDefault()" in multi_cast_body
+        and "OrbCmd.EvokeNext(choiceContext, card.Owner, dequeue: false)" in multi_cast_body
+        and "OrbCmd.EvokeNext(choiceContext, card.Owner);" in multi_cast_body
+        and "ChannelSameType(" in multi_cast_body,
+    )
+    check(
+        "transformed Multi-Cast preserves accumulated Dark evoke damage",
+        'AccessTools.Field(typeof(DarkOrb), "_evokeVal")' in versions
+        and "rightmost is DarkOrb ? rightmost.EvokeVal : (decimal?)null" in multi_cast_body
+        and "MultiCastDarkEvokeValField.SetValue(" in versions
+        and "OrbCmd.Channel(choiceContext, replacement, player)" in versions,
+    )
+    check(
+        "transformed Multi-Cast description matches rightmost double-evoke loop",
+        '重复{IfUpgraded:show:X+1|X}次：[gold]激发[/gold]最右侧充能球2次' in localization,
+    )
     check(
         "transformed Consuming Shadow upgrades from one to two Dark orbs",
         'SetDynamic(card, "Repeat", upgradedVersion ? plus ? 2m : 1m' in versions
@@ -672,7 +697,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.29", '"version": "0.11.29"' in manifest)
+    check("manifest is v0.11.30", '"version": "0.11.30"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -824,7 +849,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.29 offline audit",
+        "BetterDefect v0.11.30 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
