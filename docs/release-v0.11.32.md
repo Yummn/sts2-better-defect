@@ -1,0 +1,17 @@
+# BetterDefect v0.11.32
+
+## 力场调整
+
+- 一代卡牌“力场”新增“保留”关键词，回合结束时不会被弃置。
+- 其余效果保持不变：4费，获得12（16）点格挡；每打出一张能力牌，本场战斗耗能减少1。
+
+## 验证
+
+- PC v107.1 与手机 v103 均编译成功，0 errors。
+- 离线源码与二进制审计：232/232 PASS。
+- PC 实战自动化测试：成功生成力场，关键词包含 `Retain`，且 `ShouldRetainThisTurn=True`。
+
+## SHA-256
+
+- `BetterDefect-v0.11.32-Mobile-v103.zip`: `16A133DAA3E9BB1B02839E8E03C8B5DE4D81F5771A11EB2E302225F933FFCBB7`
+- `BetterDefect-v0.11.32-PC-v107.1.zip`: `59AF44F7F77D3419C6EEC3AE3174F3F9D5BED34B200CA6083DADCF63C9B6B7DD`

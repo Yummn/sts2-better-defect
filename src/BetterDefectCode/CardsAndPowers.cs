@@ -638,6 +638,7 @@ public sealed class BdDoomAndGloom : CardModel
 public sealed class BdForceField : CardModel
 {
     public override bool GainsBlock => true;
+    public override IEnumerable<CardKeyword> CanonicalKeywords => new[] { CardKeyword.Retain };
     protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(12, ValueProp.Move) };
     public BdForceField() : base(4, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) => Bd.Block(this, cardPlay);

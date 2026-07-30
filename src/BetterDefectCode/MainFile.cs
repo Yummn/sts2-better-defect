@@ -135,7 +135,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.31: Android v103 API-safe build; Auto Shields channels Frost before its 10 (15) conditional Block; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.32: Android v103 API-safe build; restored Force Field now has Retain; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -143,7 +143,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.31: PC v107.1 build; Auto Shields channels Frost before its 10 (15) conditional Block.");
+        Logger.Info("[BetterDefect] loaded v0.11.32: PC v107.1 build; restored Force Field now has Retain.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
