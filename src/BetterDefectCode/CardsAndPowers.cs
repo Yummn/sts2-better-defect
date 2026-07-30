@@ -559,10 +559,15 @@ public sealed class BdAggregate : CardModel
 public sealed class BdAutoShields : CardModel
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(11, ValueProp.Move) };
+    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(10, ValueProp.Move) };
     public BdAutoShields() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
-    protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) => Owner.Creature.Block <= 0 ? Bd.Block(this, cardPlay) : Task.CompletedTask;
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
+    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
+        if (Owner.Creature.Block <= 0)
+            await Bd.Block(this, cardPlay);
+    }
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(5);
 }
 
 public sealed class BdBlizzard : CardModel

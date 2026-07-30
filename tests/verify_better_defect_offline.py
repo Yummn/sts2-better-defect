@@ -96,7 +96,7 @@ def main() -> int:
         "BdSteamBarrier": ("new BlockVar(6", "base(0, CardType.Skill, CardRarity.Common", "BaseValue - 1", "Block.UpgradeValueBy(2)"),
         "BdStreamline": ("new DamageVar(15", "base(2, CardType.Attack, CardRarity.Common", "AddThisCombat(-1", "Damage.UpgradeValueBy(5)"),
         "BdAggregate": ('new DynamicVar("Divisor", 4)', "DrawPile.Cards.Count / divisor", 'DynamicVars["Divisor"].UpgradeValueBy(-1)'),
-        "BdAutoShields": ("new BlockVar(11", "Owner.Creature.Block <= 0", "Block.UpgradeValueBy(4)"),
+        "BdAutoShields": ("new BlockVar(10", "OrbCmd.Channel<FrostOrb>", "Owner.Creature.Block <= 0", "Block.UpgradeValueBy(5)"),
         "BdBlizzard": ("new DamageVar(2", "FrostChanneled", "Bd.Enemies(this)", "Damage.UpgradeValueBy(1)"),
         "BdBullseye": ("new DamageVar(8", 'new DynamicVar("LockOn", 2)', "ApplyPower<BdLockOnPower>", "Damage.UpgradeValueBy(3)", 'DynamicVars["LockOn"].UpgradeValueBy(1)'),
         "BdConsume": ('new DynamicVar("Focus", 2)', "ApplyPower<FocusPower>", "OrbCmd.RemoveSlots(Owner, 1)", 'DynamicVars["Focus"].UpgradeValueBy(1)'),
@@ -697,7 +697,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.30", '"version": "0.11.30"' in manifest)
+    check("manifest is v0.11.31", '"version": "0.11.31"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -849,7 +849,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.30 offline audit",
+        "BetterDefect v0.11.31 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

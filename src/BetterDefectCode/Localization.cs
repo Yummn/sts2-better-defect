@@ -21,7 +21,7 @@ internal static class BdLocalization
         ["cards/BD_AGGREGATE.title"] = "汇集",
         ["cards/BD_AGGREGATE.description"] = "抽牌堆中每有 {Divisor:diff()} 张牌，获得 1 点[gold]能量[/gold]。",
         ["cards/BD_AUTO_SHIELDS.title"] = "自动护盾",
-        ["cards/BD_AUTO_SHIELDS.description"] = "如果你没有[gold]格挡[/gold]，获得 {Block:diff()} 点[gold]格挡[/gold]。",
+        ["cards/BD_AUTO_SHIELDS.description"] = "[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。\n如果你没有[gold]格挡[/gold]，获得{Block:diff()}点[gold]格挡[/gold]。",
         ["cards/BD_BLIZZARD.title"] = "暴雪",
         ["cards/BD_BLIZZARD.description"] = "本场战斗每充能过 1 个[gold]冰霜[/gold]，对所有敌人造成 {Damage:diff()} 点伤害。",
         ["cards/BD_BULLSEYE.title"] = "瞄准靶心",
