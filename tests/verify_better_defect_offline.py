@@ -496,6 +496,12 @@ def main() -> int:
     check("Electrodynamics localization covers passive and evoke", "被动与激发伤害会命中所有敌人" in localization)
     check("Fission description switches remove/evoke with normal upgrade", "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}" in localization)
     check("Core Surge and Fission rely on the real Exhaust keyword text", '["cards/BD_CORE_SURGE.description"]' in localization and '["cards/BD_FISSION.description"]' in localization and "\\n[gold]消耗[/gold]。" not in localization)
+    check(
+        "transformed Innate cards rely on the real Innate keyword text",
+        '"[gold]固有[/gold]。\\n每当你打出一张能力牌时' not in localization
+        and '"{IfUpgraded:show:[gold]固有[/gold]。\\n|}每当你受到' not in localization
+        and "SetKeyword(card, CardKeyword.Innate" in versions,
+    )
     check("Rocket Punch description follows its historical behavior switch", 'rocketV100' in localization and "直到打出或当前回合结束" in localization)
     check("Tesla Coil description switches transformed passive count and keeps dynamic damage", 'teslaV105' in localization and "造成{Damage:diff()}点伤害" in localization and "充能球被动{IfUpgraded:show:两次|一次}" in localization)
     check("Shatter description explicitly says every orb is evoked twice", '["SHATTER.description"]' in localization and "[gold]激发[/gold]所有充能球两次" in localization)
@@ -697,7 +703,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.32", '"version": "0.11.32"' in manifest)
+    check("manifest is v0.11.33", '"version": "0.11.33"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -849,7 +855,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.32 offline audit",
+        "BetterDefect v0.11.33 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

@@ -6,6 +6,8 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Latest
 
+- [v0.11.33](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.33): fixes transformed cards displaying the Innate term twice. Transformed Storm and upgraded transformed Static Discharge now rely only on their real `CardKeyword.Innate`; the redundant handwritten Innate line was removed from localization. A PC v0.107.1 live regression confirmed both cards retain exactly one Innate keyword and show exactly one Innate term in final card text. Android v0.103.2 and PC builds pass 233/233 offline checks; REDMI K80 Pro loaded v0.11.33 with all 37/37 Android patch classes installed.
+
 - [v0.11.32](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.32): adds Retain to the restored first-generation Force Field while keeping its existing 4-cost, 12 (16) Block and Power-play cost-reduction behavior. A PC v0.107.1 live regression confirmed the generated card contains `CardKeyword.Retain` and reports `ShouldRetainThisTurn=True`. Android v0.103.2 and PC builds pass 232/232 offline checks; REDMI K80 Pro loaded v0.11.32 with all 37/37 Android patch classes installed.
 
 - [v0.11.31](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.31): changes restored Auto Shields to channel one Frost orb first, then grant 10 Block (15 when upgraded) only if the player has no Block after the channel resolves. A PC v0.107.1 live regression confirmed zero Block produces Frost plus 10 (15) Block, while existing Block still permits Frost generation but suppresses only the conditional Block gain. Android v0.103.2 and PC builds pass 232/232 offline checks; REDMI K80 Pro loaded v0.11.31 with all 37/37 Android patch classes installed.

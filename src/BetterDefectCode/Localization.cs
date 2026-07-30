@@ -326,7 +326,7 @@ internal static class BdLocalization
                 : "每当你生成一张状态牌时，对所有敌人造成{SmokestackPower:diff()}点伤害。",
 
             ["STORM.description"] = stormCustom
-                ? "[gold]固有[/gold]。\n每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。"
+                ? "每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。"
                 : "每当你打出一张能力牌时，[gold]生成[/gold]{StormPower:diff()}个[gold]闪电[/gold]充能球。",
 
             ["SUBROUTINE.description"] = subroutineCustom
@@ -338,7 +338,7 @@ internal static class BdLocalization
                 : "失去{Focus:diff()}点[gold]集中[/gold]。\n获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
 
             ["BD_STATIC_DISCHARGE.description"] = staticDischargeCustom
-                ? "{IfUpgraded:show:[gold]固有[/gold]。\n|}每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold]{Amount:diff()}个[gold]闪电[/gold]充能球，并获得3点[gold]格挡[/gold]。"
+                ? "每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold]{Amount:diff()}个[gold]闪电[/gold]充能球，并获得3点[gold]格挡[/gold]。"
                 : "每当你受到未被格挡的攻击伤害，[gold]充能[/gold]{Amount:diff()}个[gold]闪电[/gold]。",
 
             ["BULK_UP.description"] = bulkUpCustom
