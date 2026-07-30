@@ -606,6 +606,7 @@ def main() -> int:
     check("injected powers validate all five status textures", "ValidateInjectedStatusIcons" in power_icons and "BdPowerIconPathPatch.ValidateInjectedStatusIcons();" in read("BetterDefectCode/Patches.cs"))
     check("Android power-icon detour replaces beta portrait detour", "type == typeof(BdPowerIconPathPatch)" in read("BetterDefectCode/MainFile.cs") and "type == typeof(BetterDefectBetaPortraitPatch)" in read("BetterDefectCode/MainFile.cs"))
     main_file = read("BetterDefectCode/MainFile.cs")
+    patches = read("BetterDefectCode/Patches.cs")
     check(
         "Android skips redundant unlocked-card-pool detour",
         "type == typeof(DefectCardPoolUnlockedCardsPatch)" in main_file
@@ -662,7 +663,22 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
         and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
     )
-    check("manifest is v0.11.27", '"version": "0.11.27"' in manifest)
+    check("manifest is v0.11.28", '"version": "0.11.28"' in manifest)
+    check(
+        "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
+        "class BdDustyTomeAncientCardCompatibilityPatch" in patches
+        and "typeof(DustyTome)" in patches
+        and "nameof(DustyTome.SetupForPlayer)" in patches
+        and "card is BiasedCognition" in patches
+        and "__instance.AncientCard = fallback.Id;" in patches
+        and "return false;" in patches,
+    )
+    check(
+        "Dusty Tome compatibility defers to vanilla when an Ancient candidate exists",
+        "card.Rarity == CardRarity.Ancient" in patches
+        and "!ArchaicTooth.TranscendenceCards.Contains(card)" in patches
+        and "return true;" in patches,
+    )
     check(
         "Android startup keeps new lifecycle behavior inside the stable patch-class budget",
         "class BdCardVersionPersistedStatePatch" in versions
@@ -799,7 +815,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.27 offline audit",
+        "BetterDefect v0.11.28 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

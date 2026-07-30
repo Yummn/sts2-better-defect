@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
+using MegaCrit.Sts2.Core.Models.Relics;
 
 namespace BetterDefect;
 
@@ -109,6 +110,36 @@ internal static class DefectCardPoolGenerateAllCardsPatch
         {
             MainFile.Logger.Error($"[BetterDefect] failed while extending Defect GenerateAllCards: {ex}");
         }
+    }
+}
+
+[HarmonyPatch(typeof(DustyTome), nameof(DustyTome.SetupForPlayer))]
+internal static class BdDustyTomeAncientCardCompatibilityPatch
+{
+    private static bool Prefix(DustyTome __instance, Player player)
+    {
+        var unlocked = player.Character.CardPool
+            .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint)
+            .ToList();
+        if (unlocked.Any(card =>
+                card.Rarity == CardRarity.Ancient &&
+                !ArchaicTooth.TranscendenceCards.Contains(card)))
+            return true;
+
+        // Biased Cognition is Defect's only Dusty Tome candidate in v103/v107.
+        // Its optional BetterDefect transformation intentionally changes it
+        // from Ancient to Rare, which leaves vanilla SetupForPlayer with an
+        // empty sequence. Random.NextItem then returns null and Darv's event
+        // initialization never completes. Preserve the transformed reward
+        // rarity while still treating the card as its original Ancient identity
+        // for this relic's one-time card choice.
+        var fallback = unlocked.FirstOrDefault(card => card is BiasedCognition)
+            ?? ModelDb.Card<BiasedCognition>();
+        __instance.AncientCard = fallback.Id;
+        MainFile.Logger.Info(
+            "[BetterDefect] Dusty Tome used Biased Cognition's original Ancient identity; " +
+            "Darv remains valid while its transformed reward rarity is Rare.");
+        return false;
     }
 }
 
