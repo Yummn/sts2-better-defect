@@ -17,5 +17,5 @@ Fixes transformed Iteration leaving a transparent, unselectable card or stale ha
 
 ## Assets
 
-- `BetterDefect-v0.11.8-Mobile-v103.zip` — Android game v0.103.x.
-- `BetterDefect-v0.11.8-PC-v107.1.zip` — PC game v0.107.1.
+- `更好的故障机器人-v0.11.8-手机-v103.zip` — Android game v0.103.x.
+- `更好的故障机器人-v0.11.8-电脑-v107.1.zip` — PC game v0.107.1.

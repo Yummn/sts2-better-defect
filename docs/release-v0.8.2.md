@@ -19,5 +19,5 @@
 ## Assets
 
 - `BetterDefect-v0.8.2.zip`: Android v103.
-- `BetterDefect-v0.8.2-PC-v107.1.zip`: PC v107.1.
+- `更好的故障机器人-v0.8.2-电脑-v107.1.zip`: PC v107.1.
 - Archives contain only file entries with `/` separators and no directory entries, for Android settings importer compatibility.

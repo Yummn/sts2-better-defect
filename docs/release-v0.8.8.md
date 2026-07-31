@@ -19,5 +19,5 @@ This release fixes BetterDefect's encyclopedia-only controls appearing after ope
 
 ## Assets
 
-- `BetterDefect-v0.8.8-Mobile-v103.zip`: Android v0.103.2 build.
-- `BetterDefect-v0.8.8-PC-v107.1.zip`: PC v0.107.1 build.
+- `更好的故障机器人-v0.8.8-手机-v103.zip`: Android v0.103.2 build.
+- `更好的故障机器人-v0.8.8-电脑-v107.1.zip`: PC v0.107.1 build.

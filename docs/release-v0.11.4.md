@@ -25,5 +25,5 @@
 ## Android installation
 
 1. Install `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`.
-2. Import or copy `BetterDefect-v0.11.4-Mobile-v103.zip`.
+2. Import or copy `更好的故障机器人-v0.11.4-手机-v103.zip`.
 3. Do not uninstall the game before updating, because uninstalling clears internal saves and MOD settings.

@@ -238,7 +238,7 @@ Compatibility: Android v103 and current PC builds. Download from GitHub Releases
 
 ## Install
 
-Download `BetterDefect-v0.11.16-Mobile-v103.zip` for mobile v103 or `BetterDefect-v0.11.16-PC-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
+Download `更好的故障机器人-v0.11.16-手机-v103.zip` for mobile v103 or `更好的故障机器人-v0.11.16-电脑-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
 
 Android v103 should first install the same release's `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`. This preserves application data when the currently installed build uses the same AOSP testkey signature. Do not uninstall the game before updating.
 

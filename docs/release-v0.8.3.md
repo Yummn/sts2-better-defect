@@ -20,4 +20,4 @@ This release fixes BetterDefect's encyclopedia-only controls appearing in the in
 ## Assets
 
 - `BetterDefect-v0.8.3.zip`: Android/mobile v103.
-- `BetterDefect-v0.8.3-PC-v107.1.zip`: PC v107.1.
+- `更好的故障机器人-v0.8.3-电脑-v107.1.zip`: PC v107.1.

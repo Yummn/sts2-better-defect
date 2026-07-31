@@ -21,4 +21,4 @@ This release audits card text against the actual PC v107.1 and mobile v103 behav
 - Both DLLs decompiled and checked for the dynamic descriptions and Amplify expiry route.
 - Steam was not launched or modified during this offline pass.
 
-Use `BetterDefect-v0.8.1.zip` for mobile v103 and `BetterDefect-v0.8.1-PC-v107.1.zip` for PC v107.1.
+Use `BetterDefect-v0.8.1.zip` for mobile v103 and `更好的故障机器人-v0.8.1-电脑-v107.1.zip` for PC v107.1.

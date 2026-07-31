@@ -14,4 +14,4 @@
 
 ## 安装
 
-下载 `BetterDefect-v0.8.7-Mobile-v103.zip`，将压缩包内的 `BetterDefect` 文件夹放入游戏 `mods/` 目录。
+下载 `更好的故障机器人-v0.8.7-手机-v103.zip`，将压缩包内的 `BetterDefect` 文件夹放入游戏 `mods/` 目录。

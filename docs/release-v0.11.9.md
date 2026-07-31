@@ -17,7 +17,7 @@
 
 ## 文件
 
-- `BetterDefect-v0.11.9-PC-v107.1.zip`
-- `BetterDefect-v0.11.9-Mobile-v103.zip`
+- `更好的故障机器人-v0.11.9-电脑-v107.1.zip`
+- `更好的故障机器人-v0.11.9-手机-v103.zip`
 
 两个压缩包都可直接解压，把其中的 `BetterDefect` 文件夹覆盖到对应平台的 `mods` 目录。

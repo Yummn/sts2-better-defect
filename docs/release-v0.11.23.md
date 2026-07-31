@@ -11,8 +11,8 @@
 
 下载：
 
-- `BetterDefect-v0.11.23-Mobile-v103.zip`：Android v0.103.2
-- `BetterDefect-v0.11.23-PC-v107.1.zip`：PC v0.107.1
+- `更好的故障机器人-v0.11.23-手机-v103.zip`：Android v0.103.2
+- `更好的故障机器人-v0.11.23-电脑-v107.1.zip`：PC v0.107.1
 
 SHA256：
 

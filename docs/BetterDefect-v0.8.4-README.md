@@ -20,5 +20,5 @@
 ## 安装
 
 - 手机版 v103：`BetterDefect-v0.8.4.zip`
-- 电脑版 v107.1：`BetterDefect-v0.8.4-PC-v107.1.zip`
+- 电脑版 v107.1：`更好的故障机器人-v0.8.4-电脑-v107.1.zip`
 - 解压或导入后，把 `BetterDefect` 文件夹放入游戏 `mods/`。
