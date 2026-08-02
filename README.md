@@ -2,9 +2,11 @@
 
 Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 50-point three-stage card transformation system, and the Fission orb visual fix.
 
-Compatibility: Android v103 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
+Compatibility: Android v103, Android v110.1 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
+
+- [v0.11.34](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.34): adds a dedicated Android v0.110.1 compatibility target while retaining Android v0.103.2 and PC v0.107.1 builds. The compatibility layer adapts the new `CardPlay` damage context, `CardLocation` return hook, orb passive event/activation API and protected command entry points. REDMI K80 Pro v0.110.1 validation loaded all 38/38 patch classes, injected all 26/26 restored cards and reported no interface/resource errors.
 
 - [v0.11.33](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.33): fixes transformed cards displaying the Innate term twice. Transformed Storm and upgraded transformed Static Discharge now rely only on their real `CardKeyword.Innate`; the redundant handwritten Innate line was removed from localization. A PC v0.107.1 live regression confirmed both cards retain exactly one Innate keyword and show exactly one Innate term in final card text. Android v0.103.2 and PC builds pass 233/233 offline checks; REDMI K80 Pro loaded v0.11.33 with all 37/37 Android patch classes installed.
 

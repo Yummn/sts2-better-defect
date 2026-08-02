@@ -42,6 +42,10 @@ internal static class Bd
     private static MethodInfo? AddGeneratedCardToCombatMethod;
     private static MethodInfo? ModifyPowerWithContext;
     private static MethodInfo? ModifyPowerWithoutContext;
+#if STS2_V110
+    private static readonly MethodInfo? ActivateOrbPassiveMethod =
+        AccessTools.Method(typeof(OrbModel), "ActivatePassive");
+#endif
 
     /// <summary>
     /// Resolve combat state through reflection. PC v107 exposes ICombatState,
@@ -300,9 +304,38 @@ internal static class Bd
         catch { }
     }
     public static Task Damage(PlayerChoiceContext ctx, CardModel card, Creature? target, DamageVar damage) =>
+#if STS2_V110
+        target == null ? Task.CompletedTask : CreatureCmd.Damage(ctx, target, damage, card, null);
+#else
         target == null ? Task.CompletedTask : CreatureCmd.Damage(ctx, target, damage, card);
+#endif
     public static Task DamageAll(PlayerChoiceContext ctx, CardModel card, DamageVar damage) =>
+#if STS2_V110
+        CreatureCmd.Damage(ctx, Enemies(card), damage, card.Owner.Creature, card, null);
+#else
         CreatureCmd.Damage(ctx, Enemies(card), damage, card.Owner.Creature, card);
+#endif
+    public static Task DamageAll(PlayerChoiceContext ctx, CardModel card, decimal amount, ValueProp props) =>
+#if STS2_V110
+        CreatureCmd.Damage(ctx, Enemies(card), amount, props, card.Owner.Creature, card, null);
+#else
+        CreatureCmd.Damage(ctx, Enemies(card), amount, props, card.Owner.Creature, card);
+#endif
+    public static Task LoseBlock(PlayerChoiceContext ctx, Creature target, decimal amount, Creature? remover) =>
+#if STS2_V110
+        CreatureCmd.LoseBlock(ctx, target, amount, remover);
+#else
+        CreatureCmd.LoseBlock(target, amount);
+#endif
+    public static void NotifyOrbPassiveActivated(OrbModel orb)
+    {
+#if STS2_V110
+        try { ActivateOrbPassiveMethod?.Invoke(orb, null); }
+        catch { }
+#else
+        orb.Trigger();
+#endif
+    }
     public static Task Block(CardModel card, CardPlay play) => CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, play);
     public static decimal Var(CardModel card, string key) => card.DynamicVars[key].BaseValue;
     public static int CostForEnergy(CardModel card)
@@ -577,7 +610,7 @@ public sealed class BdBlizzard : CardModel
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         var amount = DynamicVars.Damage.BaseValue * BetterDefect.BdCombatTracker.For(Owner).FrostChanneled;
-        return CreatureCmd.Damage(choiceContext, Bd.Enemies(this), amount, ValueProp.Move, Owner.Creature, this);
+        return Bd.DamageAll(choiceContext, this, amount, ValueProp.Move);
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(1);
 }
@@ -671,7 +704,7 @@ public sealed class BdMelter : CardModel
     {
         if (cardPlay.Target != null)
         {
-            if (cardPlay.Target.Block > 0) await CreatureCmd.LoseBlock(cardPlay.Target, cardPlay.Target.Block);
+            if (cardPlay.Target.Block > 0) await Bd.LoseBlock(choiceContext, cardPlay.Target, cardPlay.Target.Block, Owner.Creature);
             await Bd.Damage(choiceContext, this, cardPlay.Target, DynamicVars.Damage);
             if (BdCardVersionUpgrades.IsVersionEnabled(this))
                 await Bd.ApplyPower<VulnerablePower>(
@@ -855,7 +888,7 @@ public sealed class BdThunderStrike : CardModel
         {
             var target = Bd.RandomEnemy(this);
             if (target == null) break;
-            await CreatureCmd.Damage(choiceContext, target, DynamicVars.Damage, this);
+            await Bd.Damage(choiceContext, this, target, DynamicVars.Damage);
         }
     }
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
@@ -990,7 +1023,11 @@ public sealed class BdSpinnerNoDecayPower : PowerModel
     {
         var state = GetInternalData<RuntimeState>();
         foreach (var pair in state.TriggerHandlers)
+#if STS2_V110
+            pair.Key.PassiveActivated -= pair.Value;
+#else
             pair.Key.Triggered -= pair.Value;
+#endif
         state.TriggerHandlers.Clear();
         return Task.CompletedTask;
     }
@@ -1018,7 +1055,11 @@ public sealed class BdSpinnerNoDecayPower : PowerModel
         }
 
         state.TriggerHandlers[glass] = PreservePassiveValue;
+#if STS2_V110
+        glass.PassiveActivated += PreservePassiveValue;
+#else
         glass.Triggered += PreservePassiveValue;
+#endif
     }
 }
 
@@ -1041,7 +1082,7 @@ internal static class BdBullseyeLightningPassivePatch
 
     private static async Task Hit(LightningOrb orb, PlayerChoiceContext choiceContext, Creature target)
     {
-        orb.Trigger();
+        Bd.NotifyOrbPassiveActivated(orb);
         VfxCmd.PlayOnCreature(target, "vfx/vfx_attack_lightning");
         Bd.PlayOrbEvokeSfx(orb);
         await CreatureCmd.Damage(
@@ -1177,7 +1218,11 @@ public sealed class BdElectrodynamicsPower : PowerModel
     {
         var state = GetInternalData<RuntimeState>();
         foreach (var pair in state.TriggerHandlers)
+#if STS2_V110
+            pair.Key.PassiveActivated -= pair.Value;
+#else
             pair.Key.Triggered -= pair.Value;
+#endif
         state.TriggerHandlers.Clear();
         state.PendingPassiveOrb = null;
         return Task.CompletedTask;
@@ -1197,7 +1242,11 @@ public sealed class BdElectrodynamicsPower : PowerModel
 
         void MarkPassiveResolution() => state.PendingPassiveOrb = orb;
         state.TriggerHandlers[orb] = MarkPassiveResolution;
+#if STS2_V110
+        orb.PassiveActivated += MarkPassiveResolution;
+#else
         orb.Triggered += MarkPassiveResolution;
+#endif
     }
 
     private async Task SpreadToMissingOpponents(
@@ -1240,7 +1289,11 @@ public sealed class BdLockOnPower : PowerModel
 {
     public override PowerType Type => PowerType.Debuff;
     public override PowerStackType StackType => PowerStackType.Counter;
+#if STS2_V110
+    public override decimal ModifyDamageMultiplicative(Creature? target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource, CardPlay? cardPlay)
+#else
     public override decimal ModifyDamageMultiplicative(Creature? target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource)
+#endif
     {
         // Damage modifiers return a multiplier, not the already multiplied
         // damage value. Orb damage is Unpowered and has no card source.

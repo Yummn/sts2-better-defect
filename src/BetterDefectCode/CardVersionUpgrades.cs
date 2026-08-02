@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -31,6 +32,18 @@ using MegaCrit.Sts2.Core.ValueProps;
 using BufferCard = MegaCrit.Sts2.Core.Models.Cards.Buffer;
 
 namespace BetterDefect;
+
+internal static class BdAttackCommandCompatibility
+{
+    internal static AttackCommand BdFromCard(this AttackCommand command, CardModel card, CardPlay? cardPlay = null)
+    {
+#if STS2_V110
+        return command.FromCard(card, cardPlay);
+#else
+        return command.FromCard(card);
+#endif
+    }
+}
 
 /// <summary>
 /// The 50-point card-version upgrade system.  A point does not put a normal
@@ -1673,7 +1686,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayBeamCell(BeamCell card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
         await Bd.ApplyPower<BdLockOnPower>(
@@ -1694,7 +1707,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayColdSnap(ColdSnap card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
@@ -1711,7 +1724,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayGoForTheEyes(GoForTheEyes card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
         await Bd.ApplyPower<WeakPower>(choiceContext, cardPlay.Target, card.DynamicVars.Weak.BaseValue, card.Owner.Creature, card);
@@ -1720,7 +1733,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayGunkUp(GunkUp card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(card.DynamicVars.Repeat.IntValue).FromCard(card)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(card.DynamicVars.Repeat.IntValue).BdFromCard(card, cardPlay)
             .Targeting(cardPlay.Target)
             .WithHitFx(null, null, "blunt_attack.mp3")
             .WithHitVfxNode(NGoopyImpactVfx.Create)
@@ -1747,7 +1760,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayUproar(Uproar card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).WithHitCount(2)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).WithHitCount(2)
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
@@ -1881,7 +1894,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayFtl(Ftl card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
 
@@ -1897,7 +1910,7 @@ internal static class BdCustomCommonCardPlayPatch
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         var alreadyWeak = cardPlay.Target.HasPower<WeakPower>();
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
         await Bd.ApplyPower<WeakPower>(choiceContext, cardPlay.Target, card.DynamicVars.Weak.BaseValue, card.Owner.Creature, card);
@@ -1934,7 +1947,7 @@ internal static class BdCustomCommonCardPlayPatch
         var x = card.ResolveEnergyXValue();
         if (x >= 4) x *= 2;
         if (x <= 0) return;
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(x).FromCard(card)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(x).BdFromCard(card, cardPlay)
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
@@ -1943,7 +1956,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlaySynthesis(Synthesis card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
 
@@ -1978,7 +1991,7 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlaySunder(Sunder card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        var attack = await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card)
+        var attack = await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay)
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash", null, "slash_attack.mp3")
             .Execute(choiceContext);
@@ -1997,13 +2010,13 @@ internal static class BdCustomCommonCardPlayPatch
             if (target == null) break;
             hitCounts[target] = hitCounts.TryGetValue(target, out var count) ? count + 1 : 1;
             VfxCmd.PlayOnCreature(target, "vfx/vfx_attack_slash");
-            await CreatureCmd.Damage(choiceContext, target, card.DynamicVars.Damage, card);
+            await Bd.Damage(choiceContext, card, target, card.DynamicVars.Damage);
         }
 
         foreach (var target in hitCounts.Where(pair => pair.Value >= 2).Select(pair => pair.Key).Where(target => target.IsHittable))
         {
             VfxCmd.PlayOnCreature(target, "vfx/vfx_attack_slash");
-            await CreatureCmd.Damage(choiceContext, target, card.DynamicVars.Damage, card);
+            await Bd.Damage(choiceContext, card, target, card.DynamicVars.Damage);
         }
     }
 
@@ -2156,7 +2169,7 @@ internal static class BdCustomRareCardPlay
     internal static async Task PlayAdaptiveStrike(AdaptiveStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
         var clone = card.CreateClone();
@@ -2168,7 +2181,7 @@ internal static class BdCustomRareCardPlay
     internal static async Task PlayAllForOne(AllForOne card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_heavy_blunt", null, "blunt_attack.mp3")
             .WithHitVfxSpawnedAtBase()
             .Execute(choiceContext);
@@ -2208,7 +2221,7 @@ internal static class BdCustomRareCardPlay
 
         var hitCount = PileType.Exhaust.GetPile(card.Owner).Cards.Count;
         if (hitCount <= 0) return;
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(hitCount).FromCard(card)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).WithHitCount(hitCount).BdFromCard(card, cardPlay)
             .Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
@@ -2217,7 +2230,7 @@ internal static class BdCustomRareCardPlay
     internal static async Task PlayMeteorStrike(MeteorStrike card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_heavy_blunt", null, "blunt_attack.mp3")
             .Execute(choiceContext);
         await OrbCmd.Channel<PlasmaOrb>(choiceContext, card.Owner);
@@ -2532,8 +2545,37 @@ internal static class BdCustomFeralPowerResultPatch
         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
     private static MethodBase? TargetMethod() =>
+#if STS2_V110
+        AccessTools.DeclaredMethod(typeof(FeralPower), nameof(FeralPower.ModifyCardPlayResultLocation));
+#else
         AccessTools.DeclaredMethod(typeof(FeralPower), nameof(FeralPower.ModifyCardPlayResultPileTypeAndPosition));
+#endif
 
+#if STS2_V110
+    private static bool Prefix(
+        FeralPower __instance,
+        CardModel card,
+        bool isAutoPlay,
+        ResourceInfo resources,
+        CardLocation location,
+        ref CardLocation __result)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Feral>())
+            return true;
+
+        __result = location;
+        if (card.Owner.Creature == __instance.Owner &&
+            resources.EnergyValue <= 0 &&
+            __instance.DisplayAmount > 0)
+        {
+            __result.player = card.Owner;
+            __result.pileType = PileType.Hand;
+            __result.position = CardPilePosition.Top;
+            MarkReturningCard(card);
+        }
+        return false;
+    }
+#else
     private static bool Prefix(
         FeralPower __instance,
         CardModel card,
@@ -2556,6 +2598,7 @@ internal static class BdCustomFeralPowerResultPatch
         }
         return false;
     }
+#endif
 
     internal static bool IsReturningToHand(CardModel card) =>
         ReturningCards.TryGetValue(card, out _);
@@ -2902,8 +2945,14 @@ internal static class BdCustomSmokestackPowerPatch
             power.CombatState.HittableEnemies,
             power.Amount,
             MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered,
-            power.Owner,
-            null);
+            power.Owner
+#if STS2_V110
+            , null,
+            null
+#else
+            , null
+#endif
+            );
 
         var state = States.GetOrCreateValue(power);
         var round = power.CombatState.RoundNumber;
@@ -3066,7 +3115,7 @@ internal static class BdCardVersionShatterPlayPatch
 
     internal static async Task Play(Shatter card, PlayerChoiceContext choiceContext)
     {
-        var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card);
+        var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card);
         if (Cards.Bd.TryTargetAllOpponents(attack, card))
         {
             await attack.WithHitFx("vfx/vfx_attack_slash").Execute(choiceContext);
@@ -3078,7 +3127,7 @@ internal static class BdCardVersionShatterPlayPatch
             // than leaving the card action faulted and stuck in the play area.
             foreach (var target in Cards.Bd.Enemies(card).ToList())
             {
-                await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card)
+                await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card)
                     .Targeting(target)
                     .WithHitFx("vfx/vfx_attack_slash")
                     .Execute(choiceContext);
@@ -3107,7 +3156,7 @@ internal static class BdCardVersionTeslaCoilPlayPatch
     internal static async Task Play(TeslaCoil card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
         var lightningOrbs = card.Owner.PlayerCombatState.OrbQueue.Orbs.OfType<LightningOrb>().ToList();
@@ -3154,7 +3203,7 @@ internal static class BdCardVersionScrapePlayPatch
     internal static async Task Play(Scrape card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).FromCard(card).Targeting(cardPlay.Target)
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
 
