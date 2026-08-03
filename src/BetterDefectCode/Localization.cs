@@ -57,6 +57,8 @@ internal static class BdLocalization
         ["cards/BD_FISSION.description"] = "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球。}\n每处理 1 个充能球，获得 1 点[gold]能量[/gold]并抽 1 张牌。",
         ["cards/BD_THUNDER_STRIKE.title"] = "雷霆打击",
         ["cards/BD_THUNDER_STRIKE.description"] = "本场战斗每充能过 1 个[gold]闪电[/gold]，对随机敌人造成 {Damage:diff()} 点伤害。",
+        ["cards/BD_REWORKED_BIASED_COGNITION.title"] = "偏差认知*改",
+        ["cards/BD_REWORKED_BIASED_COGNITION.description"] = "获得 {FocusPower:diff()} 点[gold]集中[/gold]。\n每回合失去 {Decay:diff()} 点[gold]集中[/gold]。\n每当你将失去集中时，少失去 1 点。",
 
         ["powers/BD_HEATSINKS_POWER.title"] = "散热片",
         ["powers/BD_HEATSINKS_POWER.description"] = "每当你打出能力牌，抽 {Amount} 张牌。",
@@ -79,6 +81,9 @@ internal static class BdLocalization
         ["powers/BD_SPINNER_NO_DECAY_POWER.title"] = "旋转工艺",
         ["powers/BD_SPINNER_NO_DECAY_POWER.description"] = "每回合开始时生成 {Amount} 个玻璃球。玻璃球被动不会损失数值。",
         ["powers/BD_SPINNER_NO_DECAY_POWER.smartDescription"] = "每回合开始时[gold]生成[/gold][blue]{Amount}[/blue]个[gold]玻璃[/gold]充能球。玻璃球被动不会损失数值。",
+        ["powers/BD_REWORKED_BIASED_COGNITION_POWER.title"] = "偏差认知*改",
+        ["powers/BD_REWORKED_BIASED_COGNITION_POWER.description"] = "每回合失去 {Amount} 点集中。每当你将失去集中时，少失去 1 点。",
+        ["powers/BD_REWORKED_BIASED_COGNITION_POWER.smartDescription"] = "每回合失去[blue]{Amount}[/blue]点[gold]集中[/gold]。每当你将失去集中时，少失去[blue]1[/blue]点。",
     };
 
     public static bool TryGetRaw(string table, string key, out string raw) => Map.TryGetValue(table + "/" + key, out raw!);

@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Entities.Orbs;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -894,6 +895,50 @@ public sealed class BdThunderStrike : CardModel
     protected override void OnUpgrade() => DynamicVars.Damage.UpgradeValueBy(2);
 }
 
+/// <summary>
+/// Darv's Defect-specific Dusty Tome card.  It deliberately remains Ancient
+/// and is not part of the normal Rare reward pool.  Dusty Tome upgrades the
+/// granted card in AfterObtained, so Darv always gives the 5-Focus version.
+/// </summary>
+public sealed class BdReworkedBiasedCognition : CardModel
+{
+    protected override IEnumerable<IHoverTip> ExtraHoverTips =>
+        new[] { HoverTipFactory.FromPower<FocusPower>() };
+
+    protected override IEnumerable<DynamicVar> CanonicalVars => new DynamicVar[]
+    {
+        new PowerVar<FocusPower>(4),
+        new DynamicVar("Decay", 2),
+    };
+
+    // Reuse Biased Cognition's native (or CardBeautify-replaced) portrait so
+    // the event variant is visually recognizable without duplicating assets.
+    public override string PortraitPath => ModelDb.Card<BiasedCognition>().PortraitPath;
+    public override string BetaPortraitPath => ModelDb.Card<BiasedCognition>().BetaPortraitPath;
+
+    public BdReworkedBiasedCognition()
+        : base(1, CardType.Power, CardRarity.Ancient, TargetType.Self) { }
+
+    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        await CreatureCmd.TriggerAnim(Owner.Creature, "Cast", Owner.Character.CastAnimDelay);
+        await Bd.ApplyPower<FocusPower>(
+            choiceContext,
+            Owner.Creature,
+            DynamicVars["FocusPower"].BaseValue,
+            Owner.Creature,
+            this);
+        await Bd.ApplyPower<BdReworkedBiasedCognitionPower>(
+            choiceContext,
+            Owner.Creature,
+            DynamicVars["Decay"].BaseValue,
+            Owner.Creature,
+            this);
+    }
+
+    protected override void OnUpgrade() => DynamicVars["FocusPower"].UpgradeValueBy(1);
+}
+
 public sealed class BdHeatsinksPower : PowerModel
 {
     public override PowerType Type => PowerType.Buff;
@@ -916,6 +961,43 @@ public sealed class BdSelfRepairPower : PowerModel
     // registered as a hook listener. This ordering is shared by Android v103
     // and PC v107.1.
     public override Task AfterCombatEnd(CombatRoom room) => CreatureCmd.Heal(Owner, Amount);
+}
+
+public sealed class BdReworkedBiasedCognitionPower : PowerModel
+{
+    public override PowerType Type => PowerType.Debuff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+    protected override IEnumerable<IHoverTip> ExtraHoverTips =>
+        new[] { HoverTipFactory.FromPower<FocusPower>() };
+
+    public override async Task AfterEnergyReset(Player player)
+    {
+        if (player != Owner.Player) return;
+        Flash();
+        await Bd.ApplyPower<FocusPower>(
+            new ThrowingPlayerChoiceContext(),
+            Owner,
+            -Amount,
+            Owner,
+            null);
+    }
+
+    public override bool TryModifyPowerAmountReceived(
+        PowerModel canonicalPower,
+        Creature target,
+        decimal amount,
+        Creature? applier,
+        out decimal modifiedAmount)
+    {
+        modifiedAmount = amount;
+        if (!ReferenceEquals(target, Owner) || canonicalPower is not FocusPower || amount >= 0m)
+            return false;
+
+        // Reduce every Focus loss by one, including this power's upkeep and
+        // the end-of-turn rollback from Hotfix/other temporary-Focus powers.
+        modifiedAmount = Math.Min(0m, amount + 1m);
+        return modifiedAmount != amount;
+    }
 }
 
 public sealed class BdStaticDischargePower : PowerModel

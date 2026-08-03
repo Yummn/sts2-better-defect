@@ -1,10 +1,12 @@
 # BetterDefect
 
-Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards, restored old Defect portraits for CardBeautify, a persistent 50-point three-stage card transformation system, the starter Strike-to-Ball-Lightning option, and the Fission orb visual fix. Dynamic reward odds and card disabling moved to the standalone [DynamicCardOdds](https://github.com/Yummn/sts2-dynamic-card-odds) mod in v0.11.35.
+Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards, adds the Defect-specific Ancient card `偏差认知*改` for Darv, restores old Defect portraits for CardBeautify, provides a persistent 50-point three-stage card transformation system, the starter Strike-to-Ball-Lightning option, and the Fission orb visual fix. Dynamic reward odds and card disabling moved to the standalone [DynamicCardOdds](https://github.com/Yummn/sts2-dynamic-card-odds) mod in v0.11.35.
 
 Compatibility: Android v103, Android v110.1 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
+
+- [v0.11.36](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.36): adds the Defect-only Ancient card `偏差认知*改` and makes Darv's Dusty Tome choose it instead of vanilla Biased Cognition. The card grants 4 (5) Focus, applies a 2-Focus turn-start loss, and reduces every negative Focus change by 1, including its own upkeep and temporary-Focus rollback from cards such as Hotfix. Dusty Tome's native obtain route upgrades the card before adding it to the deck, so Darv always grants the 5-Focus version. PC v107.1, Android v103 and Android v110.1 compile independently; the focused source/binary audit passes 46/46 checks.
 
 - [v0.11.35](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.35): removes dynamic reward odds, card disabling, grey masks and probability controls from BetterDefect. Existing transformation selections migrate to the dedicated `BetterDefect.CardUpgrades.state.dat` store and the 50-point budget now counts transformations only. Card disabling is handled by the standalone DynamicCardOdds mod without consuming points. Android v103, Android v110.1 and PC v107.1 binaries compile separately and pass the split-assembly audit.
 

@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.35: Android v103/v110 compatibility build; card odds/disable system moved to DynamicCardOdds; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.36: Android v103/v110 compatibility build; Darv grants upgraded 偏差认知*改; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.35: PC v107.1 compatibility build; card odds/disable system moved to DynamicCardOdds.");
+        Logger.Info("[BetterDefect] loaded v0.11.36: PC v107.1 compatibility build; Darv grants upgraded 偏差认知*改.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

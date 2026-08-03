@@ -29,6 +29,7 @@ internal static class BdPowerIconPathPatch
         [typeof(BdBulkUpPower)] = new[] { "STRENGTH_POWER" },
         [typeof(BdScrapeTemporaryStrengthPower)] = new[] { "STRENGTH_POWER" },
         [typeof(BdSpinnerNoDecayPower)] = new[] { "SPINNER_POWER", "FOCUS_POWER" },
+        [typeof(BdReworkedBiasedCognitionPower)] = new[] { "BIASED_COGNITION_POWER", "FOCUS_POWER" },
     };
 
     private static readonly Dictionary<(Type Type, bool Big), string> ResolvedPaths = new();

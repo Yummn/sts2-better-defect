@@ -118,27 +118,16 @@ internal static class BdDustyTomeAncientCardCompatibilityPatch
 {
     private static bool Prefix(DustyTome __instance, Player player)
     {
-        var unlocked = player.Character.CardPool
-            .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint)
-            .ToList();
-        if (unlocked.Any(card =>
-                card.Rarity == CardRarity.Ancient &&
-                !ArchaicTooth.TranscendenceCards.Contains(card)))
+        if (player.Character.CardPool is not DefectCardPool)
             return true;
 
-        // Biased Cognition is Defect's only Dusty Tome candidate in v103/v107.
-        // Its optional BetterDefect transformation intentionally changes it
-        // from Ancient to Rare, which leaves vanilla SetupForPlayer with an
-        // empty sequence. Random.NextItem then returns null and Darv's event
-        // initialization never completes. Preserve the transformed reward
-        // rarity while still treating the card as its original Ancient identity
-        // for this relic's one-time card choice.
-        var fallback = unlocked.FirstOrDefault(card => card is BiasedCognition)
-            ?? ModelDb.Card<BiasedCognition>();
-        __instance.AncientCard = fallback.Id;
+        // Darv no longer selects vanilla Biased Cognition for the Defect.
+        // DustyTome.AfterObtained upgrades AncientCard before adding it to the
+        // deck, so this always grants BdReworkedBiasedCognition+ (5 Focus).
+        var eventCard = ModelDb.Card<BetterDefect.Cards.BdReworkedBiasedCognition>();
+        __instance.AncientCard = eventCard.Id;
         MainFile.Logger.Info(
-            "[BetterDefect] Dusty Tome used Biased Cognition's original Ancient identity; " +
-            "Darv remains valid while its transformed reward rarity is Rare.");
+            "[BetterDefect] Darv Dusty Tome selected upgraded 偏差认知*改 instead of Biased Cognition.");
         return false;
     }
 }
@@ -148,7 +137,7 @@ internal static class OldDefectCardPoolPatch
 {
     private static bool Prefix(CardModel __instance, ref CardPoolModel __result)
     {
-        if (OldDefectCards.IsRestored(__instance))
+        if (OldDefectCards.IsManaged(__instance))
         {
             var pool = OldDefectCards.GetDefectPool();
             if (pool != null)

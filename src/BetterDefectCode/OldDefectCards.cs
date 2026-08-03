@@ -14,7 +14,7 @@ namespace BetterDefect;
 
 internal static class OldDefectCards
 {
-    private static readonly Type[] CardTypes =
+    private static readonly Type[] RestoredCardTypes =
     {
         // Hidden in v103 but omitted from the visible Defect pool.
         typeof(HelloWorld), typeof(Rebound), typeof(RipAndTear), typeof(Stack),
@@ -28,6 +28,14 @@ internal static class OldDefectCards
         typeof(BdFission), typeof(BdThunderStrike),
     };
 
+    private static readonly Type[] AddedCardTypes =
+    {
+        // Defect-specific Ancient card selected by Darv's Dusty Tome.
+        typeof(BdReworkedBiasedCognition),
+    };
+
+    private static readonly Type[] CardTypes = RestoredCardTypes.Concat(AddedCardTypes).ToArray();
+
     private static readonly Dictionary<Type, CardRarity> Rarities = new()
     {
         [typeof(HelloWorld)] = CardRarity.Uncommon,
@@ -36,7 +44,8 @@ internal static class OldDefectCards
         [typeof(Stack)] = CardRarity.Common,
     };
 
-    private static readonly HashSet<Type> CardTypeSet = new(CardTypes);
+    private static readonly HashSet<Type> RestoredCardTypeSet = new(RestoredCardTypes);
+    private static readonly HashSet<Type> ManagedCardTypeSet = new(CardTypes);
     private static readonly Dictionary<Type, bool> RestoredTypeCache = new();
     private static readonly FieldInfo? CardRarityBackingField =
         AccessTools.Field(typeof(CardModel), "<Rarity>k__BackingField");
@@ -88,7 +97,7 @@ internal static class OldDefectCards
             try { ModelDb.Inject(type); }
             catch (Exception ex) { MainFile.Logger.Warn($"[BetterDefect] failed to inject power {type.Name}: {ex.Message}"); }
         }
-        MainFile.Logger.Info($"[BetterDefect] checked old Defect card model injection: attempted={CardTypes.Length}, injected={ok}.");
+        MainFile.Logger.Info($"[BetterDefect] checked managed Defect card model injection: attempted={CardTypes.Length}, injected={ok}.");
         ResetCardPoolCaches(resetGlobalCards);
     }
 
@@ -104,7 +113,7 @@ internal static class OldDefectCards
         if (!_loggedAppendTo)
         {
             _loggedAppendTo = true;
-            MainFile.Logger.Info($"[BetterDefect] restored {added} old Defect cards to the Defect card pool.");
+            MainFile.Logger.Info($"[BetterDefect] appended {added} managed Defect cards to the Defect card pool.");
         }
         return list;
     }
@@ -115,9 +124,15 @@ internal static class OldDefectCards
         if (RestoredTypeCache.TryGetValue(type, out var cached))
             return cached;
 
-        var restored = CardTypeSet.Contains(type) || CardTypes.Any(t => t.IsAssignableFrom(type));
+        var restored = RestoredCardTypeSet.Contains(type) || RestoredCardTypes.Any(t => t.IsAssignableFrom(type));
         RestoredTypeCache[type] = restored;
         return restored;
+    }
+
+    public static bool IsManaged(CardModel card)
+    {
+        var type = card.GetType();
+        return ManagedCardTypeSet.Contains(type) || CardTypes.Any(t => t.IsAssignableFrom(type));
     }
 
     public static bool TryGetRarity(CardModel card, out CardRarity rarity)
@@ -257,19 +272,21 @@ internal static class OldDefectCards
             }
 
             var rebuilt = pool.AllCards.ToArray();
+            var managed = rebuilt.Count(IsManaged);
             var restored = rebuilt.Count(IsRestored);
 
             // Keep a detour-independent fallback.  If the Android Harmony
             // backend accepted the patch class but failed to route this first
             // call through its postfix, write the complete array directly to
             // CardPoolModel's cache instead of silently exposing only 88 cards.
-            if (restored < CardTypes.Length)
+            if (managed < CardTypes.Length)
             {
                 rebuilt = AppendToArray(rebuilt);
                 AccessTools.Field(typeof(CardPoolModel), "_allCards")?.SetValue(pool, rebuilt);
                 AccessTools.Field(typeof(CardPoolModel), "_allCardIds")?.SetValue(pool, null);
+                managed = rebuilt.Count(IsManaged);
                 restored = rebuilt.Count(IsRestored);
-                MainFile.Logger.Warn($"[BetterDefect] deferred pool rebuild used direct cache fallback; total={rebuilt.Length}, restored={restored}.");
+                MainFile.Logger.Warn($"[BetterDefect] deferred pool rebuild used direct cache fallback; total={rebuilt.Length}, managed={managed}, restored={restored}.");
             }
 
             // The encyclopedia's Defect filter is literally
@@ -306,7 +323,8 @@ internal static class OldDefectCards
             var globalDefect = globalCards.Count(card => IsDefectPoolCard(card, pool));
             MainFile.Logger.Info(
                 $"[BetterDefect] deferred old-card refresh complete: pool={rebuilt.Length}, " +
-                $"poolRestored={restored}/{CardTypes.Length}, globalRestored={globalRestored}/{CardTypes.Length}, " +
+                $"poolManaged={managed}/{CardTypes.Length}, poolRestored={restored}/{RestoredCardTypes.Length}, " +
+                $"globalRestored={globalRestored}/{RestoredCardTypes.Length}, " +
                 $"globalDefect={globalDefect}, normalizedV103Rarities={normalizedRarities}/{Rarities.Count}.");
         }
         catch (Exception ex)
@@ -336,12 +354,14 @@ internal static class OldDefectCards
             canonical.Sort(new CardLibraryInitialComparer(ModelDb.AllCardPools.ToList()));
             var canonicalDefect = canonical.Count(IsDefectPoolCard);
             var gridDefect = gridCards.Count(IsDefectPoolCard);
+            var gridManaged = gridCards.Count(IsManaged);
             var gridRestored = gridCards.Count(IsRestored);
             var orderMatches = gridCards.Count == canonical.Count &&
                 gridCards.Select(SafeCardId).SequenceEqual(canonical.Select(SafeCardId), StringComparer.Ordinal);
             if (gridCards.Count == canonical.Count &&
                 gridDefect == canonicalDefect &&
-                gridRestored == CardTypes.Length &&
+                gridManaged == CardTypes.Length &&
+                gridRestored == RestoredCardTypes.Length &&
                 orderMatches)
             {
                 if (!_loggedLibraryOrdering)
@@ -349,7 +369,7 @@ internal static class OldDefectCards
                     _loggedLibraryOrdering = true;
                     MainFile.Logger.Info(
                         $"[BetterDefect] encyclopedia card ordering verified: " +
-                        $"total={gridCards.Count}, defect={gridDefect}, restored={gridRestored}, " +
+                        $"total={gridCards.Count}, defect={gridDefect}, managed={gridManaged}, restored={gridRestored}, " +
                         "order=pool/rarity/card-id.");
                 }
                 return false;
@@ -361,7 +381,7 @@ internal static class OldDefectCards
             _loggedLibraryOrdering = true;
             MainFile.Logger.Info(
                 $"[BetterDefect] refreshed stale encyclopedia card snapshot: " +
-                $"total={gridCards.Count}, defect={canonicalDefect}, restored={CardTypes.Length}, " +
+                $"total={gridCards.Count}, defect={canonicalDefect}, managed={CardTypes.Length}, restored={RestoredCardTypes.Length}, " +
                 $"rarityOrderRepaired={!orderMatches}.");
             return true;
         }
@@ -399,7 +419,7 @@ internal static class OldDefectPowers
         typeof(BdHeatsinksPower), typeof(BdSelfRepairPower), typeof(BdStaticDischargePower),
         typeof(BdElectrodynamicsPower), typeof(BdLockOnPower), typeof(BdBulkUpPower),
         typeof(BdScrapeTemporaryStrengthPower), typeof(BdBullseyeTargetPower),
-        typeof(BdSpinnerNoDecayPower),
+        typeof(BdSpinnerNoDecayPower), typeof(BdReworkedBiasedCognitionPower),
     };
 }
 

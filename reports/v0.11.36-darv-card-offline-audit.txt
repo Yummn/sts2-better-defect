@@ -1,0 +1,52 @@
+BetterDefect v0.11.36 Darv card offline audit
+Timestamp: 2026-08-03T20:26:03+08:00
+Passed: 46
+Failed: 0
+
+PASS
+  [OK] canonical: manifest v0.11.36
+  [OK] canonical: card is 1-cost Ancient power
+  [OK] canonical: base Focus is 4 and upgrade adds 1
+  [OK] canonical: upkeep is 2 Focus
+  [OK] canonical: card applies Focus and custom upkeep power
+  [OK] canonical: card remains outside ordinary rarity rewards
+  [OK] canonical: Biased Cognition portrait is reused
+  [OK] canonical: upkeep runs once at player turn energy reset
+  [OK] canonical: upkeep applies negative Amount as Focus
+  [OK] canonical: every negative Focus change is reduced by one
+  [OK] canonical: mitigation also affects this card's own upkeep
+  [OK] canonical: custom card is registered but original 26-card set stays separate
+  [OK] canonical: custom power is registered
+  [OK] canonical: Darv override is Defect-only
+  [OK] canonical: Darv selects only the new card
+  [OK] canonical: Darv no longer selects vanilla Biased Cognition
+  [OK] canonical: Chinese card localization is present
+  [OK] canonical: Chinese power localization is present
+  [OK] canonical: power icon fallback is present
+  [OK] Android v103 bridge: manifest v0.11.36
+  [OK] Android v103 bridge: card is 1-cost Ancient power
+  [OK] Android v103 bridge: base Focus is 4 and upgrade adds 1
+  [OK] Android v103 bridge: upkeep is 2 Focus
+  [OK] Android v103 bridge: card applies Focus and custom upkeep power
+  [OK] Android v103 bridge: card remains outside ordinary rarity rewards
+  [OK] Android v103 bridge: Biased Cognition portrait is reused
+  [OK] Android v103 bridge: upkeep runs once at player turn energy reset
+  [OK] Android v103 bridge: upkeep applies negative Amount as Focus
+  [OK] Android v103 bridge: every negative Focus change is reduced by one
+  [OK] Android v103 bridge: mitigation also affects this card's own upkeep
+  [OK] Android v103 bridge: custom card is registered but original 26-card set stays separate
+  [OK] Android v103 bridge: custom power is registered
+  [OK] Android v103 bridge: Darv override is Defect-only
+  [OK] Android v103 bridge: Darv selects only the new card
+  [OK] Android v103 bridge: Darv no longer selects vanilla Biased Cognition
+  [OK] Android v103 bridge: Chinese card localization is present
+  [OK] Android v103 bridge: Chinese power localization is present
+  [OK] Android v103 bridge: power icon fallback is present
+  [OK] game Dusty Tome upgrades the granted event card
+  [OK] compiled binary exists: .build-artifacts\better-defect-v0.11.36\pc\BetterDefect.dll
+  [OK] compiled binary contains custom card metadata: .build-artifacts\better-defect-v0.11.36\pc\BetterDefect.dll
+  [OK] compiled mobile binary exists: .build-artifacts\better-defect-v0.11.36\v103\BetterDefect.dll
+  [OK] compiled mobile binary contains custom card metadata: .build-artifacts\better-defect-v0.11.36\v103\BetterDefect.dll
+  [OK] v103 binary has no PC-only ICombatState metadata: .build-artifacts\better-defect-v0.11.36\v103\BetterDefect.dll
+  [OK] compiled mobile binary exists: .build-artifacts\better-defect-v0.11.36\v110\BetterDefect.dll
+  [OK] compiled mobile binary contains custom card metadata: .build-artifacts\better-defect-v0.11.36\v110\BetterDefect.dll
