@@ -289,7 +289,7 @@ internal static class BdCardVersionUpgrades
             foreach (var card in ModelDb.AllCards)
                 ApplyToModel(card);
             BdLocalization.RefreshVersionSensitiveCardDescriptions();
-            MainFile.Logger.Info($"[BetterDefect] card-version baselines applied; upgrades={BdDynamicOdds.GetVersionUpgradeCount()}, points={BdDynamicOdds.GetUsedCardPointCount()}/{BdDynamicOdds.MaxCardPointBudget}.");
+            MainFile.Logger.Info($"[BetterDefect] card-version baselines applied; upgrades={BdCardUpgradeState.GetVersionUpgradeCount()}, points={BdCardUpgradeState.GetUsedCardPointCount()}/{BdCardUpgradeState.MaxCardPointBudget}.");
         }
         catch (Exception ex)
         {
@@ -1329,7 +1329,7 @@ internal static class BdCardVersionUpgrades
         }
     }
 
-    internal static bool IsVersionEnabled(CardModel card) => IsEligible(card) && BdDynamicOdds.IsCardVersionUpgraded(card);
+    internal static bool IsVersionEnabled(CardModel card) => IsEligible(card) && BdCardUpgradeState.IsCardVersionUpgraded(card);
 
     internal static bool IsVersionEnabled<T>() where T : CardModel
     {
@@ -1392,7 +1392,7 @@ internal static class BdCardVersionUpgrades
 
     private static bool IsCompactVersionEnabled()
     {
-        try { return BdDynamicOdds.IsCardVersionUpgraded(ModelDb.AllCards.OfType<Compact>().FirstOrDefault()); }
+        try { return BdCardUpgradeState.IsCardVersionUpgraded(ModelDb.AllCards.OfType<Compact>().FirstOrDefault()); }
         catch { return false; }
     }
 

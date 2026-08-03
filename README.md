@@ -1,10 +1,12 @@
 # BetterDefect
 
-Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards and adds cross-run dynamic reward odds, restored old Defect portraits for CardBeautify, card-library disable controls, a 50-point three-stage card transformation system, and the Fission orb visual fix.
+Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards, restored old Defect portraits for CardBeautify, a persistent 50-point three-stage card transformation system, the starter Strike-to-Ball-Lightning option, and the Fission orb visual fix. Dynamic reward odds and card disabling moved to the standalone [DynamicCardOdds](https://github.com/Yummn/sts2-dynamic-card-odds) mod in v0.11.35.
 
 Compatibility: Android v103, Android v110.1 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
 
 ## Latest
+
+- [v0.11.35](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.35): removes dynamic reward odds, card disabling, grey masks and probability controls from BetterDefect. Existing transformation selections migrate to the dedicated `BetterDefect.CardUpgrades.state.dat` store and the 50-point budget now counts transformations only. Card disabling is handled by the standalone DynamicCardOdds mod without consuming points. Android v103, Android v110.1 and PC v107.1 binaries compile separately and pass the split-assembly audit.
 
 - [v0.11.34](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.34): adds a dedicated Android v0.110.1 compatibility target while retaining Android v0.103.2 and PC v0.107.1 builds. The compatibility layer adapts the new `CardPlay` damage context, `CardLocation` return hook, orb passive event/activation API and protected command entry points. REDMI K80 Pro v0.110.1 validation loaded all 38/38 patch classes, injected all 26/26 restored cards and reported no interface/resource errors.
 

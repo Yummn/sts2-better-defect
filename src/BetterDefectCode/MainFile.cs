@@ -1,4 +1,4 @@
-﻿using Godot;
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
@@ -29,15 +29,6 @@ public partial class MainFile : Node
             if (type == typeof(BdLocExistsPatch) || type == typeof(BdLocRawPatch))
             {
                 Logger.Warn($"[BetterDefect] skipping obsolete {type.FullName}; localization is merged through LocManager instead of detouring LocString.");
-                continue;
-            }
-            if (android && type == typeof(BdDynamicCardRewardRerollPatch))
-            {
-                // CardReward.Reroll's ARM64 MonoMod trampoline intermittently
-                // segfaults during PatchAll on v0.103.2. Normal three-card
-                // rewards do not use this method, so keep pick/skip accounting
-                // and omit only reroll-skip accounting on Android.
-                Logger.Warn($"[BetterDefect] skipping Android-unsafe {type.FullName}; normal reward pick/skip odds remain enabled.");
                 continue;
             }
             if (android && IsRedundantAndroidCardLibraryPatch(type))
@@ -129,13 +120,13 @@ public partial class MainFile : Node
             patchTypes.Add(type);
         }
 
-        BdDynamicOdds.InitializeStorage();
+        BdCardUpgradeState.InitializeStorage();
         BdLocalization.MergeIntoLocManager();
-        BdDynamicOddsStatsHud.EnsureInstalled();
+        BdCardUpgradeStatsHud.EnsureInstalled();
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.34: Android v103/v110 compatibility build; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.35: Android v103/v110 compatibility build; card odds/disable system moved to DynamicCardOdds; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -143,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.34: PC v107.1 compatibility build.");
+        Logger.Info("[BetterDefect] loaded v0.11.35: PC v107.1 compatibility build; card odds/disable system moved to DynamicCardOdds.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -228,18 +219,18 @@ public partial class MainFile : Node
     }
 
     private static bool IsRedundantAndroidCardLibraryPatch(Type type) =>
-        type == typeof(BdDynamicOddsCardLibraryClosedPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryFilterPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryFinalFilterPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryGridAssignPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryGridInitPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryOpenedPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryUpgradePreviewPatch) ||
-        type == typeof(BdDynamicOddsCardLibraryVisibilityPatch) ||
-        type == typeof(BdDynamicOddsCardModelSetPatch) ||
-        type == typeof(BdDynamicOddsCardReloadPatch) ||
-        type == typeof(BdDynamicOddsCardUpdateVisualsScopePatch) ||
-        type == typeof(BdDynamicOddsCardExitTreeScopePatch);
+        type == typeof(BdCardUpgradeLibraryClosedPatch) ||
+        type == typeof(BdCardUpgradeLibraryFilterPatch) ||
+        type == typeof(BdCardUpgradeLibraryFinalFilterPatch) ||
+        type == typeof(BdCardUpgradeLibraryGridAssignPatch) ||
+        type == typeof(BdCardUpgradeLibraryGridInitPatch) ||
+        type == typeof(BdCardUpgradeLibraryOpenedPatch) ||
+        type == typeof(BdCardUpgradeLibraryUpgradePreviewPatch) ||
+        type == typeof(BdCardUpgradeLibraryVisibilityPatch) ||
+        type == typeof(BdCardUpgradeModelSetPatch) ||
+        type == typeof(BdCardUpgradeReloadPatch) ||
+        type == typeof(BdCardUpgradeUpdateVisualsScopePatch) ||
+        type == typeof(BdCardUpgradeExitTreeScopePatch);
 
     private static bool IsReplacedByAndroidCentralCardPlayPatch(Type type) =>
         type == typeof(BdPowerPlayTrackerPatch) ||

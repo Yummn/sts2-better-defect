@@ -27,7 +27,6 @@
   <ItemGroup>
     <Compile Include="BetterDefectCode\**\*.cs" />
     <None Include="BetterDefect.json" />
-    <None Include="BetterDefect.DynamicOdds.cfg" />
     <None Include="project.godot" />
     <BetterDefectPortrait Include="BetterDefectData\Portraits\*.png" />
   </ItemGroup>
@@ -37,12 +36,11 @@
   </Target>
 
   <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build" Condition="Exists('$(Sts2Path)')">
-    <Message Text="Copying BetterDefect.dll, .pdb, manifest, config and portraits to $(ModsPath)BetterDefect/" Importance="high" />
+    <Message Text="Copying BetterDefect.dll, .pdb, manifest and portraits to $(ModsPath)BetterDefect/" Importance="high" />
     <MakeDir Directories="$(ModsPath)BetterDefect/" />
     <MakeDir Directories="$(ModsPath)BetterDefect/Data/Portraits/" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)BetterDefect/" />
     <Copy SourceFiles="BetterDefect.json" DestinationFolder="$(ModsPath)BetterDefect/" />
-    <Copy SourceFiles="BetterDefect.DynamicOdds.cfg" DestinationFolder="$(ModsPath)BetterDefect/" />
     <Copy SourceFiles="@(BetterDefectPortrait)" DestinationFolder="$(ModsPath)BetterDefect/Data/Portraits/" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsPath)BetterDefect/" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
   </Target>

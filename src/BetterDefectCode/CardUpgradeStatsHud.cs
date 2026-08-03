@@ -4,16 +4,16 @@ using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 
 namespace BetterDefect;
 
-internal static partial class BdDynamicOddsStatsHud
+internal static partial class BdCardUpgradeStatsHud
 {
-    private const string LayerName = "BetterDefectDisableStatsLayer";
-    private const string HudName = "BetterDefectDisableStatsHud";
-    private const int MaxPoints = BdDynamicOdds.MaxCardPointBudget;
-    private const int BlueLimit = BdDynamicOdds.NormalPointLimit;
-    private const int YellowLimit = BdDynamicOdds.OverclockPointLimit;
+    private const string LayerName = "BetterDefectUpgradeStatsLayer";
+    private const string HudName = "BetterDefectUpgradeStatsHud";
+    private const int MaxPoints = BdCardUpgradeState.MaxCardPointBudget;
+    private const int BlueLimit = BdCardUpgradeState.NormalPointLimit;
+    private const int YellowLimit = BdCardUpgradeState.OverclockPointLimit;
 
     private static CanvasLayer? _layer;
-    private static DisableStatsHud? _hud;
+    private static UpgradeStatsHud? _hud;
     private static LibraryWatcher? _watcher;
     private static NCardLibrary? _activeLibrary;
     private static bool _loggedInstalled;
@@ -47,7 +47,7 @@ internal static partial class BdDynamicOddsStatsHud
             if (existingLayer is not null)
             {
                 _layer = existingLayer;
-                _hud = existingLayer.GetNodeOrNull<DisableStatsHud>(HudName);
+                _hud = existingLayer.GetNodeOrNull<UpgradeStatsHud>(HudName);
                 _watcher = existingLayer.GetNodeOrNull<LibraryWatcher>("BetterDefectLibraryWatcher");
                 if (_hud is not null && GodotObject.IsInstanceValid(_hud) && _hud.IsInsideTree() &&
                     _watcher is not null && GodotObject.IsInstanceValid(_watcher) && _watcher.IsInsideTree())
@@ -63,7 +63,7 @@ internal static partial class BdDynamicOddsStatsHud
             if (existingLayer is null)
                 root.CallDeferred("add_child", _layer);
 
-            _hud = new DisableStatsHud
+            _hud = new UpgradeStatsHud
             {
                 Name = HudName,
                 Visible = false
@@ -82,22 +82,22 @@ internal static partial class BdDynamicOddsStatsHud
                 else
                     _layer.CallDeferred("add_child", _watcher);
             }
-            _hud.Refresh(BdDynamicOdds.GetUsedCardPointCount(), BdDynamicOdds.GetDisabledCardCount(), BdDynamicOdds.GetVersionUpgradeCount());
+            _hud.Refresh(BdCardUpgradeState.GetUsedCardPointCount(), BdCardUpgradeState.GetVersionUpgradeCount());
 
             if (!_loggedInstalled)
             {
                 _loggedInstalled = true;
-                MainFile.Logger.Info("[BetterDefect] disable stats HUD scheduled on top canvas layer.");
+                MainFile.Logger.Info("[BetterDefect] upgrade stats HUD scheduled on top canvas layer.");
             }
             if (!_loggedAttachDeferred)
             {
                 _loggedAttachDeferred = true;
-                MainFile.Logger.Info("[BetterDefect] disable stats HUD uses deferred attach to avoid Android startup add_child race.");
+                MainFile.Logger.Info("[BetterDefect] upgrade stats HUD uses deferred attach to avoid Android startup add_child race.");
             }
         }
         catch (Exception ex)
         {
-            MainFile.Logger.Warn($"[BetterDefect] disable stats HUD install failed: {ex.GetType().Name}: {ex.Message}");
+            MainFile.Logger.Warn($"[BetterDefect] upgrade stats HUD install failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
 
@@ -214,15 +214,14 @@ internal static partial class BdDynamicOddsStatsHud
 
         _hud.Visible = true;
         _hud.SetProcess(true);
-        var disabledCount = BdDynamicOdds.GetDisabledCardCount();
-        var upgradeCount = BdDynamicOdds.GetVersionUpgradeCount();
-        var usedPoints = disabledCount + upgradeCount;
-        _hud.Refresh(usedPoints, disabledCount, upgradeCount);
+        var upgradeCount = BdCardUpgradeState.GetVersionUpgradeCount();
+        var usedPoints = upgradeCount;
+        _hud.Refresh(usedPoints, upgradeCount);
 
         if (!_loggedVisible)
         {
             _loggedVisible = true;
-            MainFile.Logger.Info($"[BetterDefect] card-point HUD visible; used={usedPoints}/{MaxPoints}, disabled={disabledCount}, upgraded={upgradeCount}.");
+            MainFile.Logger.Info($"[BetterDefect] card-point HUD visible; used={usedPoints}/{MaxPoints}, upgraded={upgradeCount}; disabled cards are managed without point cost by DynamicCardOdds.");
         }
     }
 
@@ -256,8 +255,8 @@ internal static partial class BdDynamicOddsStatsHud
             // NCardLibrary itself can remain visible while its grid is hidden
             // by a card-detail popup. The exact owned grid is authoritative for
             // both the HUD and encyclopedia-only controls.
-            var grid = BdDynamicOddsCardUi.GetLibraryGrid(library);
-            return grid is not null && BdDynamicOddsCardUi.IsCardLibraryContext(grid);
+            var grid = BdCardUpgradeUi.GetLibraryGrid(library);
+            return grid is not null && BdCardUpgradeUi.IsCardLibraryContext(grid);
         }
         catch { return false; }
     }
@@ -290,7 +289,7 @@ internal static partial class BdDynamicOddsStatsHud
                     _library = FindLibrary();
 
                 var visible = _library is not null &&
-                              BdDynamicOddsCardUi.IsUnderCurrentScene(_library) &&
+                              BdCardUpgradeUi.IsUnderCurrentScene(_library) &&
                               IsLibraryActuallyVisible(_library);
                 if (!visible)
                 {
@@ -301,7 +300,7 @@ internal static partial class BdDynamicOddsStatsHud
                         // shop, deck or pile screens. Outside-only cleanup was
                         // too late because the nodes could still be parented to
                         // the cached menu library during the transition.
-                        BdDynamicOddsCardUi.CleanupAllTouchedCards();
+                        BdCardUpgradeUi.CleanupAllTouchedCards();
                         Hide();
                     }
                     _library = null;
@@ -310,13 +309,13 @@ internal static partial class BdDynamicOddsStatsHud
                 }
 
                 _wasVisible = true;
-                var grid = BdDynamicOddsCardUi.GetLibraryGrid(_library!);
+                var grid = BdCardUpgradeUi.GetLibraryGrid(_library!);
                 if (grid is not null)
                 {
                     // The detail popup can share NCardLibrary ancestry. Remove
                     // artifacts from touched cards outside the exact live grid.
-                    BdDynamicOddsCardUi.CleanupTouchedCardsOutsideLibrary();
-                    BdDynamicOddsCardUi.ApplyLibraryGrid(grid);
+                    BdCardUpgradeUi.CleanupTouchedCardsOutsideLibrary();
+                    BdCardUpgradeUi.ApplyLibraryGrid(grid);
                 }
                 else
                     SyncLibraryVisibility(_library!);
@@ -347,7 +346,7 @@ internal static partial class BdDynamicOddsStatsHud
         }
     }
 
-    private sealed partial class DisableStatsHud : PanelContainer
+    private sealed partial class UpgradeStatsHud : PanelContainer
     {
         private readonly List<Panel> _segments = [];
         private readonly StyleBoxFlat[,] _segmentStyles = new StyleBoxFlat[2, 3];
@@ -479,15 +478,13 @@ internal static partial class BdDynamicOddsStatsHud
             ShowAndRefresh();
         }
 
-        public void Refresh(int usedPointCount, int disabledCount, int upgradeCount)
+        public void Refresh(int usedPointCount, int upgradeCount)
         {
             var clamped = Math.Clamp(usedPointCount, 0, MaxPoints);
             if (_lastClampedCount == clamped &&
-                _lastDisabledCount == disabledCount &&
                 _lastUpgradeCount == upgradeCount)
                 return;
             _lastClampedCount = clamped;
-            _lastDisabledCount = disabledCount;
             _lastUpgradeCount = upgradeCount;
 
             var stage = clamped <= BlueLimit ? 0 : clamped <= YellowLimit ? 1 : 2;
@@ -512,7 +509,7 @@ internal static partial class BdDynamicOddsStatsHud
 
             if (_title is not null)
             {
-                _title.Text = $"机器人改造点数  禁用{disabledCount}·升级{upgradeCount}  {stageName}";
+                _title.Text = $"机器人改造点数  已改造{upgradeCount}  {stageName}";
                 _title.AddThemeColorOverride("font_color", stageColor);
             }
 
