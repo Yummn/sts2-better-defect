@@ -99,7 +99,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.HYPERBEAM"] = ("改造：自定义", "2费对全体造成30(38)伤害；每有一个充能球失去1点集中"),
             ["CARD.SHATTER"] = ("v0.105", "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次"),
             ["CARD.TESLA_COIL"] = ("v0.105", "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次"),
-            ["CARD.UPROAR"] = ("改造：自定义", "每段伤害保持5(7)；优先自动打出抽牌堆中的2费攻击牌"),
+            ["CARD.UPROAR"] = ("改造：自定义", "造成5点伤害两次；随机打出抽牌堆中1(2)张当前费用最高的牌"),
             ["CARD.FUSION"] = ("v0.106", "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗"),
             ["CARD.SYNTHESIS"] = ("改造：自定义", "2费消耗，造成12(14)伤害；随机抽取（选择）1张能力牌，下一张能力牌0费"),
             ["CARD.COMPACT"] = ("v0.99", "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌"),
@@ -210,7 +210,7 @@ internal static class BdCardVersionUpgrades
         Hyperbeam => "2费对全体造成30(38)伤害；每有一个充能球失去1点集中",
         Shatter => "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次",
         TeslaCoil => "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次",
-        Uproar => "每段伤害保持5(7)；优先自动打出抽牌堆中的2费攻击牌",
+        Uproar => "造成5点伤害两次；随机打出抽牌堆中1(2)张当前费用最高的牌",
         Fusion => "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗",
         Synthesis => "2费消耗，造成12(14)伤害；随机抽取（选择）1张能力牌，下一张能力牌0费",
         Compact => "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌",
@@ -626,7 +626,7 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case Uproar:
-                SetDynamic(card, "Damage", plus ? 7m : 5m);
+                SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m);
                 break;
 
             case Fusion:
@@ -899,7 +899,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m);
                 break;
             case Uproar:
-                UpgradeDynamicTo(card, "Damage", 7m);
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m);
                 break;
             case Fusion:
                 if (upgradedVersion)
@@ -1145,7 +1145,7 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Damage", plus ? upgradedVersion ? 4m : 6m : 3m);
                 break;
             case "CARD.UPROAR":
-                SetDynamic(card, "Damage", plus ? 7m : 5m);
+                SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m);
                 break;
             case "CARD.FUSION":
                 SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
@@ -1301,7 +1301,7 @@ internal static class BdCardVersionUpgrades
             case "CARD.HYPERBEAM": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 38m : 34m); break;
             case "CARD.SHATTER": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 15m : 11m); break;
             case "CARD.TESLA_COIL": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m); break;
-            case "CARD.UPROAR": UpgradeDynamicTo(card, "Damage", 7m); break;
+            case "CARD.UPROAR": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m); break;
             case "CARD.FUSION":
                 if (upgradedVersion) SetKeyword(card, CardKeyword.Exhaust, false);
                 else card.EnergyCost.UpgradeBy(-1);
@@ -1765,22 +1765,29 @@ internal static class BdCustomCommonCardPlayPatch
             .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
 
-        var playableAttacks = PileType.Draw.GetPile(card.Owner).Cards
-            .Where(c => c.Type == CardType.Attack && !c.Keywords.Contains(CardKeyword.Unplayable))
-            .ToList();
-        var preferred = playableAttacks.Where(IsCurrentTwoCost).ToList();
-        var candidates = preferred.Count > 0 ? preferred : playableAttacks;
-        var selected = candidates.StableShuffle(card.Owner.RunState.Rng.Shuffle).FirstOrDefault();
+        var playCount = card.IsUpgraded ? 2 : 1;
+        var alreadySelected = new HashSet<CardModel>();
+        for (var i = 0; i < playCount; i++)
+        {
+            // Re-read the draw pile after each auto-play because the first card
+            // may draw, shuffle or otherwise change it. Any card type is valid;
+            // randomness is used only to break ties at the highest current cost.
+            var playable = PileType.Draw.GetPile(card.Owner).Cards
+                .Where(c => !alreadySelected.Contains(c)
+                            && !c.Keywords.Contains(CardKeyword.Unplayable))
+                .ToList();
+            if (playable.Count == 0)
+                break;
 
-        // Preserve vanilla's defensive fallback for unusual modded attacks
-        // carrying Unplayable while still preferring playable 2-cost attacks.
-        selected ??= PileType.Draw.GetPile(card.Owner).Cards
-            .Where(c => c.Type == CardType.Attack)
-            .ToList()
-            .StableShuffle(card.Owner.RunState.Rng.Shuffle)
-            .FirstOrDefault();
-        if (selected != null)
+            var highestCost = playable.Max(GetCurrentUproarEnergyCost);
+            var selected = playable
+                .Where(c => GetCurrentUproarEnergyCost(c) == highestCost)
+                .ToList()
+                .StableShuffle(card.Owner.RunState.Rng.Shuffle)
+                .First();
+            alreadySelected.Add(selected);
             await CardCmd.AutoPlay(choiceContext, selected, null);
+        }
     }
 
     private static async Task PlayRecycle(BdRecycle card, PlayerChoiceContext choiceContext)
@@ -2044,16 +2051,17 @@ internal static class BdCustomCommonCardPlayPatch
             card.Owner.Creature, card);
     }
 
-    private static bool IsCurrentTwoCost(CardModel card)
+    private static int GetCurrentUproarEnergyCost(CardModel card)
     {
         try
         {
-            return !card.EnergyCost.CostsX
-                   && card.CurrentStarCost <= 0
-                   && !card.HasStarCostX
-                   && card.EnergyCost.GetWithModifiers(CostModifiers.All) == 2;
+            // Rank X as the amount it would currently resolve for. Star-only
+            // cards remain eligible and tie at their ordinary energy cost.
+            return card.EnergyCost.CostsX
+                ? Math.Max(0, card.Owner.PlayerCombatState.Energy)
+                : Math.Max(0, card.EnergyCost.GetWithModifiers(CostModifiers.All));
         }
-        catch { return false; }
+        catch { return 0; }
     }
 }
 

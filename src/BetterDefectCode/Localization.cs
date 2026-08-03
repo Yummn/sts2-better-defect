@@ -259,7 +259,7 @@ internal static class BdLocalization
                 : "对所有敌人造成{Damage:diff()}点伤害。\n抽1张牌。",
 
             ["UPROAR.description"] = uproarCustom
-                ? "造成{Damage:diff()}点伤害两次。\n优先随机打出你的[gold]抽牌堆[/gold]中的1张当前为2费的攻击牌；若没有，则随机打出1张攻击牌。"
+                ? "造成{Damage:diff()}点伤害两次。\n随机打出你的[gold]抽牌堆[/gold]中当前费用最高的1（2）张牌。"
                 : "造成{Damage:diff()}点伤害两次。\n随机打出你的[gold]抽牌堆[/gold]中的1张攻击牌。",
 
             ["BD_RECURSION.description"] = recursionCustom
