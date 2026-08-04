@@ -211,7 +211,7 @@ internal static class BdLocalization
                 : "造成{Damage:diff()}点伤害。\n对该敌人触发你的所有[gold]闪电[/gold]充能球的被动一次。",
 
             ["FUEL.description"] = compactV099
-                ? "获得{Energy:energyIcons()}。\n抽{Cards:diff()}张牌。"
+                ? "获得{Energy:energyIcons()}。\n抽{IfUpgraded:show:2|1}张牌。"
                 : "获得{Energy:energyIcons()}。",
 
             ["SCRAPE.description"] = scrapeCustom

@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.37: Android v103/v110 compatibility build; transformed Uproar plays 1(2) random highest-cost cards; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.38: Android v103/v110 compatibility build; transformed Compact Fuel draws without relying on a missing Cards dynamic variable; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-        Logger.Info("[BetterDefect] loaded v0.11.37: PC v107.1 compatibility build; transformed Uproar plays 1(2) random highest-cost cards.");
+        Logger.Info("[BetterDefect] loaded v0.11.38: PC v107.1 compatibility build; transformed Compact Fuel draws without relying on a missing Cards dynamic variable.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

@@ -914,9 +914,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Block", 7m);
                 break;
             case Fuel:
-                if (IsCompactVersionEnabled())
-                    UpgradeDynamicTo(card, "Cards", 2m);
-                else
+                if (!IsCompactVersionEnabled())
                     UpgradeDynamicTo(card, "Energy", 2m);
                 break;
             case MomentumStrike:
@@ -1399,16 +1397,13 @@ internal static class BdCardVersionUpgrades
     private static void ApplyFuelVersion(CardModel card, bool plus, bool oldCompactEnabled)
     {
         if (oldCompactEnabled)
-        {
             SetDynamic(card, "Energy", 1m);
-            SetDynamic(card, "Cards", plus ? 2m : 1m);
-        }
         else
-        {
             SetDynamic(card, "Energy", plus ? 2m : 1m);
-            SetDynamic(card, "Cards", 0m);
-        }
     }
+
+    internal static int ResolveFuelDrawCount(Fuel card) =>
+        IsCompactVersionEnabled() ? card.IsUpgraded ? 2 : 1 : 0;
 
     private static void SetDynamic(CardModel card, string name, decimal value)
     {
@@ -3191,7 +3186,10 @@ internal static class BdCardVersionFuelPlayPatch
     internal static async Task Play(Fuel card, PlayerChoiceContext choiceContext)
     {
         await PlayerCmd.GainEnergy(card.DynamicVars.Energy.BaseValue, card.Owner);
-        var draw = card.DynamicVars["Cards"].IntValue;
+        // Fuel only has an Energy dynamic variable in v103, v107 and v110.1.
+        // Derive the historical Compact draw value from persistent state so a
+        // generated Fuel never depends on a non-existent model variable.
+        var draw = BdCardVersionUpgrades.ResolveFuelDrawCount(card);
         if (draw > 0)
             await CardPileCmd.Draw(choiceContext, draw, card.Owner);
     }

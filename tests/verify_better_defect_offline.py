@@ -201,7 +201,7 @@ def main() -> int:
         "Rocket Punch v0.100 persists zero cost until played": "SetUntilPlayed(0)",
         "Shatter double-evokes every orb": "OrbCmd.EvokeNext(choiceContext, card.Owner, dequeue: false)",
         "Tesla Coil v0.105 upgraded card triggers Lightning twice": "card.IsUpgraded && BdCardVersionUpgrades.IsVersionEnabled(card)",
-        "Compact v0.99 Fuel draws cards": 'SetDynamic(card, "Cards", plus ? 2m : 1m)',
+        "Compact v0.99 Fuel draws cards without a synthetic DynamicVar": "ResolveFuelDrawCount(Fuel card)",
         "Scrape transformation uses all cost modifiers": "transformed ? CostModifiers.All : CostModifiers.Local",
         "Trash to Treasure v0.99 upgrade is Innate": "SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion)",
         "Barrage custom route applies temporary Focus": "var temporaryFocus = card.DynamicVars.Damage.BaseValue",
@@ -505,7 +505,19 @@ def main() -> int:
     check("Rocket Punch description follows its historical behavior switch", 'rocketV100' in localization and "直到打出或当前回合结束" in localization)
     check("Tesla Coil description switches transformed passive count and keeps dynamic damage", 'teslaV105' in localization and "造成{Damage:diff()}点伤害" in localization and "充能球被动{IfUpgraded:show:两次|一次}" in localization)
     check("Shatter description explicitly says every orb is evoked twice", '["SHATTER.description"]' in localization and "[gold]激发[/gold]所有充能球两次" in localization)
-    check("Fuel description hides drawing when Compact uses v0.108 behavior", 'compactV099' in localization and '["FUEL.description"]' in localization)
+    check(
+        "Fuel description hides drawing when Compact uses v0.108 behavior and uses only native variables",
+        'compactV099' in localization
+        and '["FUEL.description"]' in localization
+        and "抽{IfUpgraded:show:2|1}张牌" in localization
+        and "{Cards:diff()}" not in localization[localization.index('["FUEL.description"]'):localization.index('["SCRAPE.description"]')],
+    )
+    fuel_play = class_body(versions, "BdCardVersionFuelPlayPatch")
+    check(
+        "Fuel play never indexes the absent v110.1 Cards dynamic variable",
+        "ResolveFuelDrawCount(card)" in fuel_play
+        and 'DynamicVars["Cards"]' not in fuel_play,
+    )
     check(
         "Scrape description matches retained-card temporary Strength",
         "scrapeCustom" in localization
