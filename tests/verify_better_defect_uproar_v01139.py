@@ -39,10 +39,9 @@ def audit_source(source_root: Path, label: str, check) -> None:
     play = method_body(versions, "private static async Task PlayUproar")
     cost = method_body(versions, "private static int GetCurrentUproarEnergyCost")
 
-    check(f"{label}: manifest v0.11.43", manifest.get("version") == "0.11.43")
-    check(f"{label}: damage remains five before and after upgrade", 'SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m)' in versions and 'UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m)' in versions)
-    check(f"{label}: Android ID fallback also keeps transformed damage at five", 'case "CARD.UPROAR":' in versions and versions.count('upgradedVersion ? 5m : plus ? 7m : 5m') >= 2 and versions.count('upgradedVersion ? 5m : 7m') >= 2)
-    check(f"{label}: damage is dealt exactly twice", "WithHitCount(2)" in play and "card.DynamicVars.Damage.BaseValue" in play)
+    check(f"{label}: manifest v0.11.45", manifest.get("version") == "0.11.45")
+    check(f"{label}: transformed Uproar removes the native target requirement", "SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy)" in versions)
+    check(f"{label}: transformed Uproar does not inject the old damage route", "DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)" not in play)
     check(f"{label}: normal and upgraded autoplay counts are one and two", "card.IsUpgraded ? 2 : 1" in play)
     check(f"{label}: draw pile is re-read for each autoplay", "for (var i = 0; i < playCount; i++)" in play and play.index("PileType.Draw.GetPile") > play.index("for (var i = 0; i < playCount; i++)"))
     check(f"{label}: only playable attacks are eligible", "c.Type == CardType.Attack" in play and "CardKeyword.Unplayable" in play)
@@ -52,8 +51,8 @@ def audit_source(source_root: Path, label: str, check) -> None:
     check(f"{label}: selected cards are actually auto-played", "await CardCmd.AutoPlay(choiceContext, selected, null)" in play)
     check(f"{label}: X cost ranks as current available energy", "card.EnergyCost.CostsX" in cost and "card.Owner.PlayerCombatState.Energy" in cost)
     check(f"{label}: fixed costs include all combat modifiers", "GetWithModifiers(CostModifiers.All)" in cost)
-    check(f"{label}: card description matches 5 damage and 1(2) highest-cost attacks", "造成{Damage:diff()}点伤害两次" in localization and "{IfUpgraded:show:2|1}张当前耗能最高的攻击牌" in localization)
-    check(f"{label}: transformation summary matches gameplay", "造成5点伤害两次；随机打出抽牌堆中1(2)张当前耗能最高的攻击牌" in versions)
+    check(f"{label}: card description matches only 1(2) highest-cost attacks", '"UPROAR.description"] = uproarCustom\n                ? "随机打出' in localization and "费用最高的{IfUpgraded:show:2|1}张攻击牌" in localization)
+    check(f"{label}: transformation summary matches gameplay", "随机打出抽牌堆中费用最高的1(2)张攻击牌" in versions)
 
 
 def main() -> int:
@@ -86,7 +85,7 @@ def main() -> int:
             check(f"v103 binary has no PC-only ICombatState metadata: {binary}", b"ICombatState" not in data)
 
     lines = [
-        "BetterDefect v0.11.43 transformed Uproar audit",
+        "BetterDefect v0.11.45 transformed Uproar audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         f"Passed: {len(passed)}",
         f"Failed: {len(failed)}",

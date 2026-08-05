@@ -99,7 +99,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.HYPERBEAM"] = ("改造：自定义", "2费对全体造成30(38)伤害；每有一个充能球失去1点集中"),
             ["CARD.SHATTER"] = ("v0.105", "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次"),
             ["CARD.TESLA_COIL"] = ("v0.105", "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次"),
-            ["CARD.UPROAR"] = ("改造：自定义", "造成5点伤害两次；随机打出抽牌堆中费用最高的1(2)张攻击牌"),
+            ["CARD.UPROAR"] = ("改造：自定义", "随机打出抽牌堆中费用最高的1(2)张攻击牌"),
             ["CARD.FUSION"] = ("v0.106", "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗"),
             ["CARD.SYNTHESIS"] = ("改造：自定义", "2费消耗，造成12(14)伤害；随机抽取（选择）1张能力牌，下一张能力牌0费"),
             ["CARD.COMPACT"] = ("v0.99", "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌"),
@@ -210,7 +210,7 @@ internal static class BdCardVersionUpgrades
         Hyperbeam => "2费对全体造成30(38)伤害；每有一个充能球失去1点集中",
         Shatter => "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次",
         TeslaCoil => "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次",
-        Uproar => "造成5点伤害两次；随机打出抽牌堆中费用最高的1(2)张攻击牌",
+        Uproar => "随机打出抽牌堆中费用最高的1(2)张攻击牌",
         Fusion => "耗能由2(1)改为1；基础牌消耗，普通升级移除消耗",
         Synthesis => "2费消耗，造成12(14)伤害；随机抽取（选择）1张能力牌，下一张能力牌0费",
         Compact => "生成的燃料由获得1(2)能量改为获得1能量并抽1(2)张牌",
@@ -626,7 +626,11 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case Uproar:
-                SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m);
+                // The transformed card is a draw-pile auto-play effect, not
+                // a targeted attack. Clear the native target requirement only
+                // while the transformation is enabled.
+                SetDynamic(card, "Damage", plus ? 7m : 5m);
+                SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
                 break;
 
             case Fusion:
@@ -899,7 +903,8 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m);
                 break;
             case Uproar:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m);
+                if (!upgradedVersion)
+                    UpgradeDynamicTo(card, "Damage", 7m);
                 break;
             case Fusion:
                 if (upgradedVersion)
@@ -1143,7 +1148,8 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Damage", plus ? upgradedVersion ? 4m : 6m : 3m);
                 break;
             case "CARD.UPROAR":
-                SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m);
+                SetDynamic(card, "Damage", plus ? 7m : 5m);
+                SetTargetType(card, upgradedVersion ? TargetType.None : TargetType.AnyEnemy);
                 break;
             case "CARD.FUSION":
                 SetEnergy(card, upgradedVersion ? 1 : plus ? 1 : 2);
@@ -1299,7 +1305,10 @@ internal static class BdCardVersionUpgrades
             case "CARD.HYPERBEAM": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 38m : 34m); break;
             case "CARD.SHATTER": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 15m : 11m); break;
             case "CARD.TESLA_COIL": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 4m : 6m); break;
-            case "CARD.UPROAR": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m); break;
+            case "CARD.UPROAR":
+                if (!upgradedVersion)
+                    UpgradeDynamicTo(card, "Damage", 7m);
+                break;
             case "CARD.FUSION":
                 if (upgradedVersion) SetKeyword(card, CardKeyword.Exhaust, false);
                 else card.EnergyCost.UpgradeBy(-1);
@@ -1754,12 +1763,6 @@ internal static class BdCustomCommonCardPlayPatch
 
     private static async Task PlayUproar(Uproar card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
-        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
-        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).WithHitCount(2)
-            .Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_slash")
-            .Execute(choiceContext);
-
         var playCount = card.IsUpgraded ? 2 : 1;
         var alreadySelected = new HashSet<CardModel>();
         for (var i = 0; i < playCount; i++)

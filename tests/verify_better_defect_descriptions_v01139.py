@@ -33,11 +33,12 @@ def main() -> int:
 
     fuel_play = versions[versions.index("internal static async Task Play(Fuel card"):]
     checks = {
-        "manifest is v0.11.43": manifest.get("version") == "0.11.43",
+        "manifest is v0.11.45": manifest.get("version") == "0.11.45",
         "every behavior-changing card has a card-face override": expected_descriptions <= actual_descriptions,
-        "Uproar summary limits selection to attacks": "1(2)张当前耗能最高的攻击牌" in versions,
-        "Uproar card face uses upgrade-aware count and attack restriction": (
-            "{IfUpgraded:show:2|1}张当前耗能最高的攻击牌" in localization
+        "Uproar summary limits selection to attacks": "费用最高的1(2)张攻击牌" in versions,
+        "Uproar card face uses only the transformed auto-play effect": (
+            "费用最高的{IfUpgraded:show:2|1}张攻击牌" in localization
+            and '"UPROAR.description"] = uproarCustom\n                ? "随机打出' in localization
         ),
         "Uproar implementation filters attack cards": "c.Type == CardType.Attack" in versions,
         "Loop card and power text allow one orb to trigger from both edges": "同一个充能球" not in localization,
