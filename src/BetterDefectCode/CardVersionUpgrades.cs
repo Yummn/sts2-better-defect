@@ -2891,14 +2891,11 @@ internal static class BdCustomLoopPowerPatch
             if (orbs.Count == 0) return;
             await OrbCmd.Passive(choiceContext, orbs[0], null);
             await Cmd.Wait(0.25f);
-            // The leftmost and rightmost positions are allowed to refer to the
-            // same orb. With only one orb, transformed Loop therefore triggers
-            // that orb twice per stack instead of suppressing the right edge.
-            if (player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1]))
-            {
-                await OrbCmd.Passive(choiceContext, orbs[^1], null);
-                await Cmd.Wait(0.25f);
-            }
+            // The edge positions are independent triggers. They may refer to
+            // the same orb, and the second trigger must not be suppressed if
+            // the first passive changes the live orb queue.
+            await OrbCmd.Passive(choiceContext, orbs[^1], null);
+            await Cmd.Wait(0.25f);
         }
     }
 }

@@ -214,7 +214,7 @@ def main() -> int:
         "Leap custom route becomes zero cost for combat": "card.EnergyCost.SetThisCombat(0)",
         "Lightning Rod custom route channels now and once next turn": "Bd.ApplyPower<LightningRodPower>",
         "Sweeping Beam custom normal upgrade draws two": 'SetDynamic(card, "Cards", upgradedVersion && plus ? 2m : 1m)',
-        "Uproar custom route prioritizes current two-cost attacks": "playableAttacks.Where(IsCurrentTwoCost)",
+        "Uproar custom route only selects highest-current-cost attacks": "c.Type == CardType.Attack",
         "Recycle transformed route exhausts a selected hand card": "private static async Task PlayRecycle(BdRecycle card",
         "Recycle transformed route gains one Orb slot": "await OrbCmd.AddSlots(card.Owner, 1);",
     }
@@ -394,7 +394,7 @@ def main() -> int:
         "rarity-changing cards migrate persisted odds": "MoveWeightToTransformedRarity",
     }
     for name, token in rare_behavior_checks.items():
-        check(name, token in versions or token in read("BetterDefectCode/DynamicOdds.cs"))
+        check(name, token in versions)
     multi_cast_play = re.search(
         r"internal static async Task PlayMultiCast\(.*?(?=\n    private static async Task ChannelSameType)",
         versions,
@@ -453,7 +453,8 @@ def main() -> int:
     check(
         "Loop treats one orb as both the leftmost and rightmost orb",
         "orbs.Count > 1" not in loop_patch
-        and "player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1])" in loop_patch,
+        and "player.PlayerCombatState.OrbQueue.Orbs.Contains(orbs[^1])" not in loop_patch
+        and "await OrbCmd.Passive(choiceContext, orbs[^1], null);" in loop_patch,
     )
     check(
         "Smokestack transformed first-trigger draw scales by applied copies",
@@ -524,7 +525,7 @@ def main() -> int:
         and "每保留1张牌，本回合获得1点[gold]临时力量[/gold]" in localization
         and "按卡牌自身耗能计算" in localization,
     )
-    check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/DynamicOddsUi.cs"))
+    check("custom transformations are labelled exactly", '"改造：自定义"' in versions and 'targetLabel.StartsWith("改造："' in read("BetterDefectCode/CardUpgradeUi.cs"))
     check("custom common-card descriptions follow their switches", all(token in localization for token in (
         "barrageCustom", "beamCellCustom", "chargeBatteryCustom", "coldSnapCustom", "coolheadedCustom", "goForTheEyesCustom",
         "gunkUpCustom", "leapCustom", "lightningRodCustom", "sweepingBeamCustom", "uproarCustom",
@@ -561,6 +562,7 @@ def main() -> int:
         "Loop power bar includes both edge orbs": (
             '"LOOP_POWER.smartDescription"' in localization
             and "分别触发最左侧和最右侧充能球" in localization
+            and "同一个充能球" not in localization
         ),
         "Smokestack power bar includes first-trigger draw": (
             '"SMOKESTACK_POWER.smartDescription"' in localization
@@ -575,10 +577,10 @@ def main() -> int:
         check(name, condition)
     check("Seek selects one or two draw-pile cards and exhausts", "从你的抽牌堆中选择 {Amount:diff()} 张牌放入手牌" in localization and "CardKeyword.Exhaust" in class_body(cards, "BdSeek"))
     check("Reprogram+ keeps Focus loss at one", 'DynamicVars["Focus"].UpgradeValueBy' not in class_body(cards, "BdReprogram") and 'DynamicVars.Strength.UpgradeValueBy(1)' in class_body(cards, "BdReprogram") and 'DynamicVars.Dexterity.UpgradeValueBy(1)' in class_body(cards, "BdReprogram"))
-    ui = read("BetterDefectCode/DynamicOddsUi.cs")
+    ui = read("BetterDefectCode/CardUpgradeUi.cs")
     helper = (ROOT / "tools" / "prepare_v103_source.py").read_text(encoding="utf-8")
     check("Android skips unsafe NCard.Model setter detour", "DisableUnsafeAndroidSetterDetour = false" in ui and "DisableUnsafeAndroidSetterDetour = true" in helper)
-    assign_patch = class_body(ui, "BdDynamicOddsCardLibraryGridAssignPatch")
+    assign_patch = class_body(ui, "BdCardUpgradeLibraryGridAssignPatch")
     preview_refresh = re.search(
         r"internal static void ReapplyAfterUpgradePreviewRefresh\(NGridCardHolder holder\)(?P<body>.*?)\n    }",
         ui,
@@ -597,8 +599,8 @@ def main() -> int:
         and "assumeLibrary: true" not in preview_body
         and '"DeckView"' in ui,
     )
-    hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    visibility_patch = class_body(ui, "BdDynamicOddsCardLibraryVisibilityPatch")
+    hud = read("BetterDefectCode/CardUpgradeStatsHud.cs")
+    visibility_patch = class_body(ui, "BdCardUpgradeLibraryVisibilityPatch")
     check(
         "HUD follows NSubmenu visibility transitions",
         'HarmonyPatch(typeof(MegaCrit.Sts2.Core.Nodes.Screens.MainMenu.NSubmenu), "OnScreenVisibilityChange")' in ui
@@ -608,8 +610,8 @@ def main() -> int:
     check(
         "HUD is bound to the exact visible card library",
         "private static NCardLibrary? _activeLibrary;" in hud
-        and "var grid = BdDynamicOddsCardUi.GetLibraryGrid(library);" in hud
-        and "BdDynamicOddsCardUi.IsCardLibraryContext(grid)" in hud
+        and "var grid = BdCardUpgradeUi.GetLibraryGrid(library);" in hud
+        and "BdCardUpgradeUi.IsCardLibraryContext(grid)" in hud
         and "ShowForLibrary(Node context)" in hud,
     )
     check(
@@ -638,9 +640,9 @@ def main() -> int:
     )
     check(
         "library watcher cleans controls on detail and exit transitions",
-        "BdDynamicOddsCardUi.CleanupAllTouchedCards();" in hud
+        "BdCardUpgradeUi.CleanupAllTouchedCards();" in hud
         and "if (_wasVisible || _library is not null)" in hud
-        and "BdDynamicOddsCardUi.ApplyLibraryGrid(grid);" in hud,
+        and "BdCardUpgradeUi.ApplyLibraryGrid(grid);" in hud,
     )
     for power_id in (
         "BD_HEATSINKS_POWER", "BD_SELF_REPAIR_POWER", "BD_STATIC_DISCHARGE_POWER",
@@ -683,13 +685,13 @@ def main() -> int:
         "obsolete grouped rare-card Harmony patch is removed",
         "[HarmonyPatch]\ninternal static class BdCustomRareCardPlayPatch" not in versions,
     )
-    hud = read("BetterDefectCode/DynamicOddsStatsHud.cs")
-    dynamic_odds = read("BetterDefectCode/DynamicOdds.cs")
+    hud = read("BetterDefectCode/CardUpgradeStatsHud.cs")
+    upgrade_state = read("BetterDefectCode/CardUpgradeState.cs")
     check(
         "card-point budget is 50 with 25 Normal and 10 Overclock points",
-        "MaxCardPointBudget = 50" in dynamic_odds
-        and "NormalPointLimit = 25" in dynamic_odds
-        and "OverclockPointLimit = 35" in dynamic_odds,
+        "MaxCardPointBudget = 50" in upgrade_state
+        and "NormalPointLimit = 25" in upgrade_state
+        and "OverclockPointLimit = 35" in upgrade_state,
     )
     check(
         "point HUD has blue yellow and red segment tiers",
@@ -708,14 +710,14 @@ def main() -> int:
         "upgrade tooltip explains the 50-point three-stage budget",
         "共享50点上限：25点正常、10点超频、15点过载" in ui,
     )
-    check("removed Amplify state is purged from persistent odds and point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in dynamic_odds and "DisabledCards.RemoveAll" in dynamic_odds and "UpgradedCards.RemoveAll" in dynamic_odds)
+    check("removed Amplify state is purged from persistent point usage", 'RemovedAmplifyId = "CARD.BD_AMPLIFY"' in upgrade_state and "UpgradedCards.RemoveAll" in upgrade_state)
     check("Recycle transformed localization matches its effect", '"BD_RECYCLE.description"' in localization and "获得1个[gold]充能球栏位[/gold]" in localization)
     check(
         "rarity migration uses explicit before and after transformation states",
-        "GetRarityForVersionState(card, wasUpgraded)" in dynamic_odds
-        and "GetRarityForVersionState(card, !wasUpgraded)" in dynamic_odds,
+        "GetRarityForVersionState(card, wasUpgraded)" in versions
+        and "GetRarityForVersionState(card, !wasUpgraded)" in versions,
     )
-    check("manifest is v0.11.33", '"version": "0.11.33"' in manifest)
+    check("manifest is v0.11.40", '"version": "0.11.40"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -867,7 +869,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.33 offline audit",
+        "BetterDefect v0.11.39 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
