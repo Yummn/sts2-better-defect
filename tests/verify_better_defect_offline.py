@@ -491,6 +491,12 @@ def main() -> int:
         and "OrbCmd.Channel(choiceContext, replacement, Owner)" in recursion_body
         and "OrbCmd.Channel<DarkOrb>" not in recursion_body,
     )
+    check(
+        "Streamline custom route uses 15 and 20 damage",
+        "upgradedVersion ? plus ? 20m : 15m" in versions
+        and 'UpgradeDynamicTo(card, "Damage", 20m)' in versions
+        and 'SetDynamic(card, "Damage", upgradedVersion ? plus ? 20m : 15m : plus ? 20m : 15m);' in versions,
+    )
     check("Streamline custom route discounts every copy", "AllCards.OfType<BdStreamline>()" in cards)
 
     check("Recycle localization describes selection", "选择并[gold]消耗[/gold] 1 张手牌" in localization)
@@ -717,7 +723,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in versions
         and "GetRarityForVersionState(card, !wasUpgraded)" in versions,
     )
-    check("manifest is v0.11.40", '"version": "0.11.40"' in manifest)
+    check("manifest is v0.11.41", '"version": "0.11.41"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches

@@ -119,7 +119,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
             ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡"),
-            ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费"),
+            ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费"),
             ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
             ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
             ["CARD.FIGHT_THROUGH"] = ("改造：自定义", "1费获得12(18)格挡，将2张眩晕加入弃牌堆"),
@@ -230,7 +230,7 @@ internal static class BdCardVersionUpgrades
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
         BdRecycle => "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡",
-        BdStreamline => "造成13(18)伤害；每次打出使所有精简改良本场战斗少1费",
+        BdStreamline => "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费",
         Chaos => "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗",
         DoubleEnergy => "1(0)费消耗；将当前能量翻倍并抽1张牌",
         FightThrough => "1费获得12(18)格挡，将2张眩晕加入弃牌堆",
@@ -684,7 +684,7 @@ internal static class BdCardVersionUpgrades
 
             case BdStreamline:
                 SetDynamic(card, "Damage", upgradedVersion
-                    ? plus ? 18m : 13m
+                    ? plus ? 20m : 15m
                     : plus ? 20m : 15m);
                 break;
 
@@ -937,7 +937,7 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, 0);
                 break;
             case BdStreamline:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 20m);
+                UpgradeDynamicTo(card, "Damage", 20m);
                 break;
             case BdMelter:
                 UpgradeDynamicTo(card, "Damage", 14m);
@@ -1174,7 +1174,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BD_RECURSION": SetEnergy(card, plus ? 0 : 1); break;
             case "CARD.BD_STREAMLINE":
-                SetDynamic(card, "Damage", upgradedVersion ? plus ? 18m : 13m : plus ? 20m : 15m);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 20m : 15m : plus ? 20m : 15m);
                 break;
             case "CARD.BD_MELTER":
                 SetEnergy(card, 1);
@@ -1317,7 +1317,7 @@ internal static class BdCardVersionUpgrades
                 else card.EnergyCost.UpgradeBy(-1);
                 break;
             case "CARD.BD_RECURSION": SetEnergy(card, 0); break;
-            case "CARD.BD_STREAMLINE": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 20m); break;
+            case "CARD.BD_STREAMLINE": UpgradeDynamicTo(card, "Damage", 20m); break;
             case "CARD.BD_MELTER": UpgradeDynamicTo(card, "Damage", 14m); break;
             case "CARD.BD_BULLSEYE":
                 UpgradeDynamicTo(card, "Damage", 11m);

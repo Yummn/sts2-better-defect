@@ -39,7 +39,7 @@ def audit_source(source_root: Path, label: str, check) -> None:
     play = method_body(versions, "private static async Task PlayUproar")
     cost = method_body(versions, "private static int GetCurrentUproarEnergyCost")
 
-    check(f"{label}: manifest v0.11.40", manifest.get("version") == "0.11.40")
+    check(f"{label}: manifest v0.11.41", manifest.get("version") == "0.11.41")
     check(f"{label}: damage remains five before and after upgrade", 'SetDynamic(card, "Damage", upgradedVersion ? 5m : plus ? 7m : 5m)' in versions and 'UpgradeDynamicTo(card, "Damage", upgradedVersion ? 5m : 7m)' in versions)
     check(f"{label}: Android ID fallback also keeps transformed damage at five", 'case "CARD.UPROAR":' in versions and versions.count('upgradedVersion ? 5m : plus ? 7m : 5m') >= 2 and versions.count('upgradedVersion ? 5m : 7m') >= 2)
     check(f"{label}: damage is dealt exactly twice", "WithHitCount(2)" in play and "card.DynamicVars.Damage.BaseValue" in play)
@@ -86,7 +86,7 @@ def main() -> int:
             check(f"v103 binary has no PC-only ICombatState metadata: {binary}", b"ICombatState" not in data)
 
     lines = [
-        "BetterDefect v0.11.40 transformed Uproar audit",
+        "BetterDefect v0.11.41 transformed Uproar audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         f"Passed: {len(passed)}",
         f"Failed: {len(failed)}",
