@@ -1,0 +1,20 @@
+BetterDefect v0.11.43 transformed Lightning Rod audit
+Timestamp: 2026-08-05T19:56:42+08:00
+Passed: 14
+Failed: 0
+
+PASS
+  [OK] canonical: manifest is v0.11.43
+  [OK] canonical: encyclopedia summary is 5(8) Block
+  [OK] canonical: normal and Android fallback setup use 5(8) Block
+  [OK] canonical: normal and Android fallback upgrade routes set 8 Block
+  [OK] canonical: obsolete transformed 5(6) values are absent
+  [OK] Android v103 bridge: manifest is v0.11.43
+  [OK] Android v103 bridge: encyclopedia summary is 5(8) Block
+  [OK] Android v103 bridge: normal and Android fallback setup use 5(8) Block
+  [OK] Android v103 bridge: normal and Android fallback upgrade routes set 8 Block
+  [OK] Android v103 bridge: obsolete transformed 5(6) values are absent
+  [OK] compiled binary exists: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-compat\BetterDefect-v107-0.11.43\BetterDefect.dll
+  [OK] compiled binary exists: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-compat\BetterDefect-v110-0.11.43\BetterDefect.dll
+  [OK] compiled mobile binary exists: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-compat\BetterDefect-v103-0.11.43\BetterDefect.dll
+  [OK] v103 binary has no PC-only ICombatState metadata: C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-compat\BetterDefect-v103-0.11.43\BetterDefect.dll

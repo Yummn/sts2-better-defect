@@ -33,7 +33,7 @@ def main() -> int:
 
     fuel_play = versions[versions.index("internal static async Task Play(Fuel card"):]
     checks = {
-        "manifest is v0.11.40": manifest.get("version") == "0.11.40",
+        "manifest is v0.11.43": manifest.get("version") == "0.11.43",
         "every behavior-changing card has a card-face override": expected_descriptions <= actual_descriptions,
         "Uproar summary limits selection to attacks": "1(2)张当前耗能最高的攻击牌" in versions,
         "Uproar card face uses upgrade-aware count and attack restriction": (

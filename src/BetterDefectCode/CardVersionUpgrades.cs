@@ -115,7 +115,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.GO_FOR_THE_EYES"] = ("改造：自定义", "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱"),
             ["CARD.GUNK_UP"] = ("改造：自定义", "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆"),
             ["CARD.LEAP"] = ("改造：自定义", "获得8(11)格挡；打出后本场战斗变为0费"),
-            ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得5(6)格挡；立即生成1闪电，下回合再生成1闪电"),
+            ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得5(8)格挡；立即生成1闪电，下回合再生成1闪电"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
             ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡"),
@@ -226,7 +226,7 @@ internal static class BdCardVersionUpgrades
         GoForTheEyes => "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱",
         GunkUp => "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆",
         Leap => "获得8(11)格挡；打出后本场战斗变为0费",
-        LightningRod => "获得5(6)格挡；立即生成1闪电，下回合再生成1闪电",
+        LightningRod => "获得5(8)格挡；立即生成1闪电，下回合再生成1闪电",
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
         BdRecycle => "1(0)费，消耗；消耗1张手牌并获得1个充能球栏位；稀有度改为白卡",
@@ -410,7 +410,7 @@ internal static class BdCardVersionUpgrades
 
             case LightningRod:
                 SetDynamic(card, "Block", upgradedVersion
-                    ? plus ? 6m : 5m
+                    ? plus ? 8m : 5m
                     : plus ? 7m : 4m);
                 SetDynamic(card, "LightningRodPower", upgradedVersion ? 1m : 2m);
                 break;
@@ -764,7 +764,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "Block", upgradedVersion ? 11m : 12m);
                 break;
             case LightningRod:
-                UpgradeDynamicTo(card, "Block", upgradedVersion ? 6m : 7m);
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 8m : 7m);
                 break;
             case SweepingBeam:
                 UpgradeDynamicTo(card, "Damage", 9m);
@@ -989,7 +989,7 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Block", upgradedVersion ? plus ? 11m : 8m : plus ? 12m : 9m);
                 break;
             case "CARD.LIGHTNING_ROD":
-                SetDynamic(card, "Block", upgradedVersion ? plus ? 6m : 5m : plus ? 7m : 4m);
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 8m : 5m : plus ? 7m : 4m);
                 SetDynamic(card, "LightningRodPower", upgradedVersion ? 1m : 2m);
                 break;
             case "CARD.SWEEPING_BEAM":
@@ -1216,7 +1216,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.GUNK_UP": UpgradeDynamicTo(card, "Damage", 5m); break;
             case "CARD.LEAP": UpgradeDynamicTo(card, "Block", upgradedVersion ? 11m : 12m); break;
-            case "CARD.LIGHTNING_ROD": UpgradeDynamicTo(card, "Block", upgradedVersion ? 6m : 7m); break;
+            case "CARD.LIGHTNING_ROD": UpgradeDynamicTo(card, "Block", upgradedVersion ? 8m : 7m); break;
             case "CARD.SWEEPING_BEAM":
                 UpgradeDynamicTo(card, "Damage", 9m);
                 UpgradeDynamicTo(card, "Cards", upgradedVersion ? 2m : 1m);

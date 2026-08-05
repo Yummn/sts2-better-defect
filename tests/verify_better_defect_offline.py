@@ -252,9 +252,9 @@ def main() -> int:
         and "for (var repeat" not in barrage_route,
     )
     check(
-        "Lightning Rod transformed Block is five and upgrades to six",
-        'upgradedVersion\n                    ? plus ? 6m : 5m' in versions
-        and 'upgradedVersion ? plus ? 6m : 5m : plus ? 7m : 4m' in versions,
+        "Lightning Rod transformed Block is five and upgrades to eight",
+        'upgradedVersion\n                    ? plus ? 8m : 5m' in versions
+        and 'upgradedVersion ? plus ? 8m : 5m : plus ? 7m : 4m' in versions,
     )
     recycle_start = common_play.find("private static async Task PlayRecycle")
     recycle_end = common_play.find("private static async Task PlayChaos", recycle_start)
@@ -723,7 +723,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in versions
         and "GetRarityForVersionState(card, !wasUpgraded)" in versions,
     )
-    check("manifest is v0.11.42", '"version": "0.11.42"' in manifest)
+    check("manifest is v0.11.43", '"version": "0.11.43"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -875,7 +875,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.39 offline audit",
+        "BetterDefect v0.11.43 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",
