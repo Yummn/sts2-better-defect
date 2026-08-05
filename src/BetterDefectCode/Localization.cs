@@ -259,7 +259,7 @@ internal static class BdLocalization
                 : "对所有敌人造成{Damage:diff()}点伤害。\n抽1张牌。",
 
             ["UPROAR.description"] = uproarCustom
-                ? "造成{Damage:diff()}点伤害两次。\n随机打出你的[gold]抽牌堆[/gold]中当前费用最高的1（2）张牌。"
+                ? "造成{Damage:diff()}点伤害两次。\n从你的[gold]抽牌堆[/gold]中随机打出{IfUpgraded:show:2|1}张当前耗能最高的攻击牌。"
                 : "造成{Damage:diff()}点伤害两次。\n随机打出你的[gold]抽牌堆[/gold]中的1张攻击牌。",
 
             ["BD_RECURSION.description"] = recursionCustom
@@ -323,7 +323,7 @@ internal static class BdLocalization
                 : "每回合你第一次抽到状态牌时，抽{IterationPower:diff()}张牌。",
 
             ["LOOP.description"] = loopCustom
-                ? "在你的回合开始时，每层分别触发最左侧和最右侧充能球的被动一次。同一个充能球每层只触发一次。"
+                ? "在你的回合开始时，每层分别触发最左侧和最右侧充能球的被动一次。"
                 : "在你的回合开始时，触发你最右侧的一个充能球的被动能力{IfUpgraded:show:2次}。",
 
             ["SMOKESTACK.description"] = smokestackCustom
@@ -359,7 +359,7 @@ internal static class BdLocalization
                 : "获得{Block:diff()}点[gold]格挡[/gold]X次。",
 
             ["SYNTHESIS.description"] = synthesisCustom
-                ? "造成{Damage:diff()}点伤害。从[gold]抽牌堆[/gold]随机抽1张{IfUpgraded:show:（选择1张）|}能力牌。下一张打出的能力牌耗能为0。"
+                ? "造成{Damage:diff()}点伤害。{IfUpgraded:show:从[gold]抽牌堆[/gold]中选择1张能力牌加入手牌。|从[gold]抽牌堆[/gold]中随机抽1张能力牌。}下一张打出的能力牌耗能为0。"
                 : "造成{Damage:diff()}点伤害。下一张打出的能力牌耗能为0。",
             ["SYNTHESIS.selectionScreenPrompt"] = "选择一张能力牌放入手牌",
 
@@ -455,10 +455,10 @@ internal static class BdLocalization
                 ? "每回合你第一次抽到状态牌时，抽[blue]{Amount}[/blue]张牌，然后[gold]消耗[/gold]该状态牌。"
                 : "每回合你第一次抽到状态牌时，抽[blue]{Amount}[/blue]张牌。",
             ["LOOP_POWER.description"] = loopCustom
-                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动；同一个充能球只触发一次。"
+                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动。"
                 : "在你的回合开始时，触发你最右侧充能球的被动能力。",
             ["LOOP_POWER.smartDescription"] = loopCustom
-                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动[blue]{Amount}[/blue]次；同一个充能球每次只触发一次。"
+                ? "在你的回合开始时，分别触发最左侧和最右侧充能球的被动[blue]{Amount}[/blue]次。"
                 : "在你的回合开始时，触发你最右侧充能球的被动能力[blue]{Amount}[/blue]次。",
             ["SMOKESTACK_POWER.description"] = smokestackCustom
                 ? "每当你生成一张状态牌时，对所有敌人造成伤害。每层在每回合第一次触发时，额外抽1张牌。"

@@ -40,7 +40,7 @@ def main() -> int:
     ]
 
     checks = {
-        "manifest is v0.11.38": manifest.get("version") == "0.11.38",
+        "manifest includes the Fuel fix": tuple(map(int, manifest.get("version", "0.0.0").split("."))) >= (0, 11, 38),
         "draw count follows transformed Compact and Fuel upgrade state": (
             "ResolveFuelDrawCount(Fuel card)" in versions
             and "IsCompactVersionEnabled() ? card.IsUpgraded ? 2 : 1 : 0" in versions
