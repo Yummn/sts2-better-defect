@@ -52,41 +52,45 @@ def main() -> int:
     )
     # v0.103.2 metadata exposes both the Triggered event and its backing field
     # with the same public name. Direct +=/-= is ambiguous to Roslyn, so make
-    # the generated Android source call the real event accessors by reflection.
-    electro_class = "public sealed class BdElectrodynamicsPower : PowerModel\n{\n"
-    electro_android = electro_class + """    private static readonly EventInfo? TriggeredEvent = typeof(OrbModel).GetEvent(
-        "Triggered",
-        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-"""
-    if electro_class not in cards:
-        raise RuntimeError("BdElectrodynamicsPower declaration not found")
-    cards = cards.replace(electro_class, electro_android, 1)
+    # every generated Android subscription call the real event accessor.
+    event_lookup = 'typeof(OrbModel).GetEvent("Triggered", BindingFlags.Public | BindingFlags.Instance)?'
     cards = cards.replace(
         "pair.Key.Triggered -= pair.Value;",
-        "TriggeredEvent?.RemoveEventHandler(pair.Key, pair.Value);",
-        1,
+        f"{event_lookup}.RemoveEventHandler(pair.Key, pair.Value);",
+    )
+    cards = cards.replace(
+        "glass.Triggered += PreservePassiveValue;",
+        f"{event_lookup}.AddEventHandler(glass, (Action)PreservePassiveValue);",
     )
     cards = cards.replace(
         "orb.Triggered += MarkPassiveResolution;",
-        "TriggeredEvent?.AddEventHandler(orb, MarkPassiveResolution);",
-        1,
+        f"{event_lookup}.AddEventHandler(orb, (Action)MarkPassiveResolution);",
     )
     cards_path.write_text(cards, encoding="utf-8")
 
     ui_path = target / "BetterDefectCode" / "DynamicOddsUi.cs"
-    ui = ui_path.read_text(encoding="utf-8")
-    source_flag = "private const bool DisableUnsafeAndroidSetterDetour = false;"
-    mobile_flag = "private const bool DisableUnsafeAndroidSetterDetour = true;"
-    if source_flag not in ui:
-        raise RuntimeError("Android setter-detour build flag marker is missing")
-    ui = ui.replace(source_flag, mobile_flag, 1)
-    visibility_source_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = false;"
-    visibility_mobile_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = true;"
-    if visibility_source_flag not in ui:
-        raise RuntimeError("Android visibility-detour build flag marker is missing")
-    ui = ui.replace(visibility_source_flag, visibility_mobile_flag, 1)
-    ui_path.write_text(ui, encoding="utf-8")
+    if ui_path.exists():
+        ui = ui_path.read_text(encoding="utf-8")
+        source_flag = "private const bool DisableUnsafeAndroidSetterDetour = false;"
+        mobile_flag = "private const bool DisableUnsafeAndroidSetterDetour = true;"
+        if source_flag not in ui:
+            raise RuntimeError("Android setter-detour build flag marker is missing")
+        ui = ui.replace(source_flag, mobile_flag, 1)
+        visibility_source_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = false;"
+        visibility_mobile_flag = "private const bool DisableUnsafeAndroidVisibilityDetour = true;"
+        if visibility_source_flag not in ui:
+            raise RuntimeError("Android visibility-detour build flag marker is missing")
+        ui = ui.replace(visibility_source_flag, visibility_mobile_flag, 1)
+        ui_path.write_text(ui, encoding="utf-8")
+
+    versions_path = target / "BetterDefectCode" / "CardVersionUpgrades.cs"
+    versions = versions_path.read_text(encoding="utf-8")
+    versions = versions.replace("card.Owner.Character.PowerUpAnimDelay", "card.Owner.Character.CastAnimDelay")
+    versions = versions.replace(
+        "attack.Results.SelectMany(results => results).Any(result => result.WasTargetKilled)",
+        "attack.Results.Any(result => result.WasTargetKilled)",
+    )
+    versions_path.write_text(versions, encoding="utf-8")
 
     print(target)
     return 0

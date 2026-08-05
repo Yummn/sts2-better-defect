@@ -1,0 +1,41 @@
+BetterDefect v0.11.46 transformed Uproar audit
+Timestamp: 2026-08-05T21:12:09+08:00
+Passed: 35
+Failed: 0
+
+PASS
+  [OK] canonical: manifest v0.11.46
+  [OK] canonical: transformed Uproar keeps the native targeted attack
+  [OK] canonical: transformed Uproar keeps two hits of card damage
+  [OK] canonical: normal and upgraded autoplay counts are one and two
+  [OK] canonical: draw pile is re-read for each autoplay
+  [OK] canonical: only playable attacks are eligible
+  [OK] canonical: highest current cost is selected
+  [OK] canonical: ties are randomized with run RNG
+  [OK] canonical: two selections cannot reuse the same card instance
+  [OK] canonical: selected cards are actually auto-played
+  [OK] canonical: X cost ranks as current available energy
+  [OK] canonical: fixed costs include all combat modifiers
+  [OK] canonical: card description includes two damage hits and 1(2) highest-cost attacks
+  [OK] canonical: transformation summary matches gameplay
+  [OK] Android v103 bridge: manifest v0.11.46
+  [OK] Android v103 bridge: transformed Uproar keeps the native targeted attack
+  [OK] Android v103 bridge: transformed Uproar keeps two hits of card damage
+  [OK] Android v103 bridge: normal and upgraded autoplay counts are one and two
+  [OK] Android v103 bridge: draw pile is re-read for each autoplay
+  [OK] Android v103 bridge: only playable attacks are eligible
+  [OK] Android v103 bridge: highest current cost is selected
+  [OK] Android v103 bridge: ties are randomized with run RNG
+  [OK] Android v103 bridge: two selections cannot reuse the same card instance
+  [OK] Android v103 bridge: selected cards are actually auto-played
+  [OK] Android v103 bridge: X cost ranks as current available energy
+  [OK] Android v103 bridge: fixed costs include all combat modifiers
+  [OK] Android v103 bridge: card description includes two damage hits and 1(2) highest-cost attacks
+  [OK] Android v103 bridge: transformation summary matches gameplay
+  [OK] compiled binary exists: .build-v01146-pc\bin\BetterDefect.dll
+  [OK] compiled binary contains Uproar route metadata: .build-v01146-pc\bin\BetterDefect.dll
+  [OK] compiled mobile binary exists: .mobilebuild\src-v103-0.11.46\.build-v01146\bin\BetterDefect.dll
+  [OK] compiled mobile binary contains Uproar route metadata: .mobilebuild\src-v103-0.11.46\.build-v01146\bin\BetterDefect.dll
+  [OK] v103 binary has no PC-only ICombatState metadata: .mobilebuild\src-v103-0.11.46\.build-v01146\bin\BetterDefect.dll
+  [OK] compiled mobile binary exists: .build-v01146-mobile-v110\bin\BetterDefect.dll
+  [OK] compiled mobile binary contains Uproar route metadata: .build-v01146-mobile-v110\bin\BetterDefect.dll
