@@ -6,6 +6,8 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.42](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.42): changes transformed Steam Barrier to grant 8 Block, or 12 when upgraded. Each play still reduces its current-combat Block value by 1. The PC, Android v103, and Android v110.1 builds and card behavior are synchronized.
+
 - [v0.11.40](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.40): removes the transformed Loop one-orb trigger restriction. The visual left and right orb positions are triggered independently, so a single orb triggers twice; stacked Loop copies repeat that two-edge behavior. Android v103, Android v110.1 and PC v107.1 compile with zero errors, and the focused source audit confirms both passive calls remain without the old queue-membership guard.
 
 - [v0.11.41](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.41): changes the transformed Streamline damage to 15, or 20 when upgraded. The encyclopedia summary, dynamic values, upgrade handling, and Android v103, Android v110.1, and PC v107.1 packages are synchronized. The focused regression audit passes 39/39.

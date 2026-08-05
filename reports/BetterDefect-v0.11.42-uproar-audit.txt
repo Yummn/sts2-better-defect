@@ -1,0 +1,43 @@
+BetterDefect v0.11.41 transformed Uproar audit
+Timestamp: 2026-08-05T19:38:30+08:00
+Passed: 37
+Failed: 0
+
+PASS
+  [OK] canonical: manifest v0.11.42
+  [OK] canonical: damage remains five before and after upgrade
+  [OK] canonical: Android ID fallback also keeps transformed damage at five
+  [OK] canonical: damage is dealt exactly twice
+  [OK] canonical: normal and upgraded autoplay counts are one and two
+  [OK] canonical: draw pile is re-read for each autoplay
+  [OK] canonical: only playable attacks are eligible
+  [OK] canonical: highest current cost is selected
+  [OK] canonical: ties are randomized with run RNG
+  [OK] canonical: two selections cannot reuse the same card instance
+  [OK] canonical: selected cards are actually auto-played
+  [OK] canonical: X cost ranks as current available energy
+  [OK] canonical: fixed costs include all combat modifiers
+  [OK] canonical: card description matches 5 damage and 1(2) highest-cost attacks
+  [OK] canonical: transformation summary matches gameplay
+  [OK] Android v103 bridge: manifest v0.11.42
+  [OK] Android v103 bridge: damage remains five before and after upgrade
+  [OK] Android v103 bridge: Android ID fallback also keeps transformed damage at five
+  [OK] Android v103 bridge: damage is dealt exactly twice
+  [OK] Android v103 bridge: normal and upgraded autoplay counts are one and two
+  [OK] Android v103 bridge: draw pile is re-read for each autoplay
+  [OK] Android v103 bridge: only playable attacks are eligible
+  [OK] Android v103 bridge: highest current cost is selected
+  [OK] Android v103 bridge: ties are randomized with run RNG
+  [OK] Android v103 bridge: two selections cannot reuse the same card instance
+  [OK] Android v103 bridge: selected cards are actually auto-played
+  [OK] Android v103 bridge: X cost ranks as current available energy
+  [OK] Android v103 bridge: fixed costs include all combat modifiers
+  [OK] Android v103 bridge: card description matches 5 damage and 1(2) highest-cost attacks
+  [OK] Android v103 bridge: transformation summary matches gameplay
+  [OK] compiled binary exists: .build-compat\BetterDefect-v107-0.11.42\BetterDefect.dll
+  [OK] compiled binary contains Uproar route metadata: .build-compat\BetterDefect-v107-0.11.42\BetterDefect.dll
+  [OK] compiled binary exists: .build-compat\BetterDefect-v110-0.11.42\BetterDefect.dll
+  [OK] compiled binary contains Uproar route metadata: .build-compat\BetterDefect-v110-0.11.42\BetterDefect.dll
+  [OK] compiled mobile binary exists: .build-compat\BetterDefect-v103-0.11.42\BetterDefect.dll
+  [OK] compiled mobile binary contains Uproar route metadata: .build-compat\BetterDefect-v103-0.11.42\BetterDefect.dll
+  [OK] v103 binary has no PC-only ICombatState metadata: .build-compat\BetterDefect-v103-0.11.42\BetterDefect.dll

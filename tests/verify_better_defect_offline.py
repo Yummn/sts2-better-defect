@@ -93,7 +93,7 @@ def main() -> int:
     # recreated card.  This is intentionally stricter than a class-count test.
     card_specs: dict[str, tuple[str, ...]] = {
         "BdRecursion": ("base(1, CardType.Skill, CardRarity.Common", "OrbCmd.EvokeNext", "OrbCmd.Channel<LightningOrb>", "EnergyCost.UpgradeBy(-1)"),
-        "BdSteamBarrier": ("new BlockVar(6", "base(0, CardType.Skill, CardRarity.Common", "BaseValue - 1", "Block.UpgradeValueBy(2)"),
+        "BdSteamBarrier": ("new BlockVar(8", "base(0, CardType.Skill, CardRarity.Common", "BaseValue - 1", "Block.UpgradeValueBy(4)"),
         "BdStreamline": ("new DamageVar(15", "base(2, CardType.Attack, CardRarity.Common", "AddThisCombat(-1", "Damage.UpgradeValueBy(5)"),
         "BdAggregate": ('new DynamicVar("Divisor", 4)', "DrawPile.Cards.Count / divisor", 'DynamicVars["Divisor"].UpgradeValueBy(-1)'),
         "BdAutoShields": ("new BlockVar(10", "OrbCmd.Channel<FrostOrb>", "Owner.Creature.Block <= 0", "Block.UpgradeValueBy(5)"),
@@ -723,7 +723,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in versions
         and "GetRarityForVersionState(card, !wasUpgraded)" in versions,
     )
-    check("manifest is v0.11.41", '"version": "0.11.41"' in manifest)
+    check("manifest is v0.11.42", '"version": "0.11.42"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches

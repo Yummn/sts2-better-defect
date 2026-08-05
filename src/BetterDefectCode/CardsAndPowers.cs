@@ -547,14 +547,14 @@ public sealed class BdRecursion : CardModel
 public sealed class BdSteamBarrier : CardModel
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(6, ValueProp.Move) };
+    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(8, ValueProp.Move) };
     public BdSteamBarrier() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
         await Bd.Block(this, cardPlay);
         DynamicVars.Block.BaseValue = Math.Max(0, DynamicVars.Block.BaseValue - 1);
     }
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
 }
 
 public sealed class BdStreamline : CardModel
