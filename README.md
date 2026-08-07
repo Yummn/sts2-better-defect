@@ -6,6 +6,8 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.48](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.48): fixes restored Recursion hanging during Android card resolution. The Android dispatcher now owns the card task directly, and transformed Recursion keeps one stable leftmost-orb object across its non-dequeue and dequeue evocations before re-channeling the same orb type. Accumulated Dark evoke damage remains preserved. Android v103, Android v110.1 and PC v107.1 builds compile with zero errors and pass focused final-DLL decompilation checks.
+
 - [v0.11.46](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.46): corrects transformed Uproar to keep its targeted two-hit attack. It deals 5 (7) damage twice, then randomly auto-plays one (two) distinct playable Attack cards from the highest current-cost tier in the draw pile. Android v103, Android v110.1 and PC v107.1 packages were rebuilt independently with zero compilation errors; the focused source and binary audit passes 35/35.
 
 - [v0.11.45](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.45): fixes transformed Uproar still showing and executing its original two-hit damage. It now only randomly auto-plays the highest-cost Attack in the draw pile, or two distinct highest-cost Attacks when upgraded, and no longer requires an enemy target. Android v103, Android v110.1 and PC v107.1 packages were built independently with zero compilation errors.

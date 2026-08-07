@@ -79,6 +79,11 @@ internal static class BdAndroidCardPlayDispatcher
         // point-enabled behavior, matching their former dedicated patches.
         switch (card)
         {
+            case Cards.BdRecursion typed:
+                // Custom restored cards must return their task directly on
+                // Android; falling back to the game's virtual dispatch can
+                // leave the card-play action waiting indefinitely.
+                return typed.PlayCard(choiceContext);
             case Shatter typed:
                 return BdCardVersionShatterPlayPatch.Play(typed, choiceContext);
             case TeslaCoil typed:

@@ -1712,7 +1712,10 @@ internal static class BdCustomCommonCardPlayPatch
     {
         ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
         await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue).BdFromCard(card, cardPlay).Targeting(cardPlay.Target)
-            .WithHitFx("vfx/vfx_attack_blunt", null, "blunt_attack.mp3")
+            // Keep the vanilla Cold Snap attack pipeline on mobile. The
+            // transformed card only changes its damage and Frost count; its
+            // slash VFX is also the path used by v0.110.1's native card.
+            .WithHitFx("vfx/vfx_attack_slash")
             .Execute(choiceContext);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
@@ -1794,7 +1797,7 @@ internal static class BdCustomCommonCardPlayPatch
                 .StableShuffle(card.Owner.RunState.Rng.Shuffle)
                 .First();
             alreadySelected.Add(selected);
-            await CardCmd.AutoPlay(choiceContext, selected, null);
+            await CardCmd.AutoPlay(choiceContext, selected, cardPlay.Target);
         }
     }
 

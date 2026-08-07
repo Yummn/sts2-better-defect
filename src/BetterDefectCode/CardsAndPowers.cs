@@ -41,6 +41,7 @@ internal static class Bd
     private static readonly Dictionary<(Type AttackType, Type StateType), MethodInfo?> TargetAllOpponentsByType = new();
     private static readonly Dictionary<(Type StateType, Type CardType), MethodInfo?> CreateCardByType = new();
     private static MethodInfo? AddGeneratedCardToCombatMethod;
+    private static MethodInfo? EvokeOrbMethod;
     private static MethodInfo? ModifyPowerWithContext;
     private static MethodInfo? ModifyPowerWithoutContext;
 #if STS2_V110
@@ -169,6 +170,50 @@ internal static class Bd
         {
             throw ex.InnerException;
         }
+    }
+
+    /// <summary>
+    /// Evoke a specific orb without relying on a second queue lookup.  The
+    /// concrete OrbCmd.Evoke overload is not exposed consistently by the v103,
+    /// v110 and PC reference assemblies, so resolve it once and keep the
+    /// compile-time surface on the stable EvokeNext/EvokeLast APIs.
+    /// </summary>
+    public static Task Evoke(PlayerChoiceContext choiceContext, Player player, OrbModel orb, bool dequeue)
+    {
+        EvokeOrbMethod ??= typeof(OrbCmd)
+            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+            .FirstOrDefault(method =>
+            {
+                if (!string.Equals(method.Name, "Evoke", StringComparison.Ordinal)) return false;
+                var parameters = method.GetParameters();
+                return parameters.Length == 4
+                       && parameters[0].ParameterType.IsAssignableFrom(choiceContext.GetType())
+                       && parameters[1].ParameterType.IsAssignableFrom(player.GetType())
+                       && parameters[2].ParameterType.IsAssignableFrom(orb.GetType())
+                       && parameters[3].ParameterType == typeof(bool);
+            });
+
+        if (EvokeOrbMethod != null)
+        {
+            try
+            {
+                return (Task)(EvokeOrbMethod.Invoke(
+                    null,
+                    new object[] { choiceContext, player, orb, dequeue })
+                    ?? Task.CompletedTask);
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                throw ex.InnerException;
+            }
+        }
+
+        // Older mobile references may not expose the object overload at all.
+        // Preserve behavior there while retaining the fixed object route on
+        // runtimes that provide it.
+        return dequeue
+            ? OrbCmd.EvokeLast(choiceContext, player)
+            : OrbCmd.EvokeLast(choiceContext, player, dequeue: false);
     }
 
     public static IReadOnlyList<Creature> Opponents(Creature creature)
@@ -504,7 +549,10 @@ public sealed class BdRecursion : CardModel
         ?? throw new MissingFieldException(typeof(DarkOrb).FullName, "_evokeVal");
 
     public BdRecursion() : base(1, CardType.Skill, CardRarity.Common, TargetType.Self) { }
-    protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) =>
+        PlayCard(choiceContext);
+
+    internal async Task PlayCard(PlayerChoiceContext choiceContext)
     {
         var transformed = BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this);
         // NOrbManager lays OrbQueue index 0 out on the visual right edge and
@@ -522,10 +570,14 @@ public sealed class BdRecursion : CardModel
         var inheritedDarkEvokeVal = orb is DarkOrb ? orb.EvokeVal : (decimal?)null;
         if (transformed)
         {
-            // Keep the selected leftmost object in place for the first evoke,
-            // remove that same object on the second, then re-channel its type.
-            await OrbCmd.EvokeLast(choiceContext, Owner, dequeue: false);
-            await OrbCmd.EvokeLast(choiceContext, Owner);
+            // Keep the selected object stable across both awaits.  Looking it
+            // up again through EvokeLast after a non-dequeue evoke is racy on
+            // Android: the visual queue can be refreshed before the second
+            // lookup, leaving the card-play action waiting on a stale queue
+            // entry.  Direct Evoke also makes the intended leftmost target
+            // explicit and removes that same object on the second activation.
+            await Bd.Evoke(choiceContext, Owner, orb, dequeue: false);
+            await Bd.Evoke(choiceContext, Owner, orb, dequeue: true);
         }
         else
         {
