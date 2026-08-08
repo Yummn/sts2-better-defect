@@ -6,6 +6,8 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.50](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.50): changes transformed Recycle's normal upgrade from reducing its cost to 0 into removing Exhaust while keeping its cost at 1. The non-transformed restored Recycle remains 1 (0) energy with Exhaust. An Android v110.1 live combat test confirmed Recycle+ costs 1, exhausts the selected hand card, grants one Orb slot, and does not exhaust itself; Android v103, Android v110.1 and PC v107.1 compatibility builds compile successfully.
+
 - [v0.11.49](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.49): completes the Recursion card-task fix. Evocation now mirrors the native model stack, includes the native inter-evoke wait, keeps the transformed leftmost orb object stable across both activations, and preserves accumulated Dark evoke damage. A live Android v110.1 combat test passed and, five seconds after play, confirmed Recursion had left the hand and entered the discard pile instead of remaining in midair. Android v103 and PC v107.1 compatibility builds compile with zero errors.
 
 - [v0.11.48](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.48): fixes restored Recursion hanging during Android card resolution. The Android dispatcher now owns the card task directly, and transformed Recursion keeps one stable leftmost-orb object across its non-dequeue and dequeue evocations before re-channeling the same orb type. Accumulated Dark evoke damage remains preserved. Android v103, Android v110.1 and PC v107.1 builds compile with zero errors and pass focused final-DLL decompilation checks.
