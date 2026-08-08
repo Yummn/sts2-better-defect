@@ -178,7 +178,7 @@ internal static class Bd
     /// v110 and PC reference assemblies, so resolve it once and keep the
     /// compile-time surface on the stable EvokeNext/EvokeLast APIs.
     /// </summary>
-    public static Task Evoke(PlayerChoiceContext choiceContext, Player player, OrbModel orb, bool dequeue)
+    public static async Task Evoke(PlayerChoiceContext choiceContext, Player player, OrbModel orb, bool dequeue)
     {
         EvokeOrbMethod ??= typeof(OrbCmd)
             .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
@@ -195,25 +195,32 @@ internal static class Bd
 
         if (EvokeOrbMethod != null)
         {
+            choiceContext.PushModel(orb);
             try
             {
-                return (Task)(EvokeOrbMethod.Invoke(
+                await ((Task)(EvokeOrbMethod.Invoke(
                     null,
                     new object[] { choiceContext, player, orb, dequeue })
-                    ?? Task.CompletedTask);
+                    ?? Task.CompletedTask));
+                return;
             }
             catch (TargetInvocationException ex) when (ex.InnerException != null)
             {
                 throw ex.InnerException;
+            }
+            finally
+            {
+                choiceContext.PopModel(orb);
             }
         }
 
         // Older mobile references may not expose the object overload at all.
         // Preserve behavior there while retaining the fixed object route on
         // runtimes that provide it.
-        return dequeue
-            ? OrbCmd.EvokeLast(choiceContext, player)
-            : OrbCmd.EvokeLast(choiceContext, player, dequeue: false);
+        if (dequeue)
+            await OrbCmd.EvokeLast(choiceContext, player);
+        else
+            await OrbCmd.EvokeLast(choiceContext, player, dequeue: false);
     }
 
     public static IReadOnlyList<Creature> Opponents(Creature creature)
@@ -568,6 +575,7 @@ public sealed class BdRecursion : CardModel
         // Capture it before evoking because the replacement orb otherwise
         // starts again at DarkOrb's canonical 6 damage.
         var inheritedDarkEvokeVal = orb is DarkOrb ? orb.EvokeVal : (decimal?)null;
+        BetterDefect.MainFile.Logger.Info($"[BetterDefect][Recursion] PlayCard start; transformed={transformed}; orb={t.Name}; queue={Owner.PlayerCombatState.OrbQueue.Orbs.Count}.");
         if (transformed)
         {
             // Keep the selected object stable across both awaits.  Looking it
@@ -576,13 +584,21 @@ public sealed class BdRecursion : CardModel
             // lookup, leaving the card-play action waiting on a stale queue
             // entry.  Direct Evoke also makes the intended leftmost target
             // explicit and removes that same object on the second activation.
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] before first fixed-orb evoke.");
             await Bd.Evoke(choiceContext, Owner, orb, dequeue: false);
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] after first fixed-orb evoke; before inter-evoke wait.");
+            await Cmd.CustomScaledWait(0.1f, 0.25f);
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] after inter-evoke wait; before second fixed-orb evoke.");
             await Bd.Evoke(choiceContext, Owner, orb, dequeue: true);
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] after second fixed-orb evoke.");
         }
         else
         {
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] before baseline front-orb evoke.");
             await OrbCmd.EvokeNext(choiceContext, Owner);
+            BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] after baseline front-orb evoke.");
         }
+        BetterDefect.MainFile.Logger.Info($"[BetterDefect][Recursion] before replacement channel; orb={t.Name}.");
         if (t == typeof(LightningOrb)) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner);
         else if (t == typeof(FrostOrb)) await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
         else if (t == typeof(DarkOrb))
@@ -592,6 +608,7 @@ public sealed class BdRecursion : CardModel
             await OrbCmd.Channel(choiceContext, replacement, Owner);
         }
         else await OrbCmd.Channel(choiceContext, (OrbModel)Activator.CreateInstance(t)!, Owner);
+        BetterDefect.MainFile.Logger.Info("[BetterDefect][Recursion] PlayCard complete.");
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
 }
