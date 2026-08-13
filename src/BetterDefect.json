@@ -1,8 +1,8 @@
 {
   "id": "BetterDefect",
   "name": "更好的故障机器人 / Better Defect",
-  "author": "Codex",
-  "description": "v103/vPC/v110 compatible full build: restores 26 old Defect cards and adds the Ancient card 偏差认知*改 for Darv's Dusty Tome. Transformed Recycle costs 1 energy at both upgrade levels; its normal upgrade now removes Exhaust instead of reducing the cost to 0. Includes the Fission orb visual fix, starter Strike -> Ball Lightning option, 10 historical versions and 59 custom transformations with a persistent 50-point budget. Dynamic reward odds and card disabling live in the standalone DynamicCardOdds mod. No BaseLib.",
+  "author": "Yummn",
+  "description": "恢复 26 张旧版故障机器人卡牌，并加入达尔文专属先古卡、59 项可选卡牌改造、开局打击替换和裂变充能球视觉修复。改造共用 50 点预算并跨局保存；动态出率与卡牌禁用由独立的 DynamicCardOdds 提供。兼容 Android v103/v110.1 与 PC v107.1，无需 BaseLib。",
   "version": "0.11.50",
   "min_game_version": "0.103.2",
   "has_pck": false,
