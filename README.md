@@ -1,288 +1,43 @@
-# BetterDefect
+# 更好的故障机器人（Better Defect）
 
-Slay the Spire 2 BetterDefect mod. It restores 26 old Defect cards, adds the Defect-specific Ancient card `偏差认知*改` for Darv, restores old Defect portraits for CardBeautify, provides a persistent 50-point three-stage card transformation system, the starter Strike-to-Ball-Lightning option, and the Fission orb visual fix. Dynamic reward odds and card disabling moved to the standalone [DynamicCardOdds](https://github.com/Yummn/sts2-dynamic-card-odds) mod in v0.11.35.
+这是我围绕《杀戮尖塔 2》故障机器人做的一组内容补完和玩法改造。项目最初只是想找回旧版本里消失的卡牌，后来逐步加入了可选卡牌改造、开局牌组调整和一些跨平台修复。所有改造都会明确显示在百科中，不需要 BaseLib。
 
-Compatibility: Android v103, Android v110.1 and current PC builds. Download from GitHub Releases; each release asset is an install-ready zip whose `BetterDefect` folder can be copied into `mods/`.
+## 主要功能
 
-## Latest
+- 恢复 26 张旧版故障机器人卡牌，并把它们重新加入对应卡池。
+- 为达尔文的尘封典籍加入故障机器人专属先古卡“偏差认知*改”。
+- 提供 59 项可选卡牌改造，按普通、超频和过载三个阶段共用 50 点预算；选择会跨局保存。
+- 可把开局的一张“打击”替换为“球状闪电”。
+- 为 CardBeautify 提供部分旧版卡图兼容，并修复“裂变”充能球的视觉同步问题。
 
-- [v0.11.50](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.50): changes transformed Recycle's normal upgrade from reducing its cost to 0 into removing Exhaust while keeping its cost at 1. The non-transformed restored Recycle remains 1 (0) energy with Exhaust. An Android v110.1 live combat test confirmed Recycle+ costs 1, exhausts the selected hand card, grants one Orb slot, and does not exhaust itself; Android v103, Android v110.1 and PC v107.1 compatibility builds compile successfully.
+动态奖励概率和卡牌禁用已经从本项目拆出，请使用独立的 [Dynamic Card Odds](https://github.com/Yummn/sts2-dynamic-card-odds)。从 v0.11.35 起，这两项功能不会再占用 BetterDefect 的改造点数。
 
-- [v0.11.49](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.49): completes the Recursion card-task fix. Evocation now mirrors the native model stack, includes the native inter-evoke wait, keeps the transformed leftmost orb object stable across both activations, and preserves accumulated Dark evoke damage. A live Android v110.1 combat test passed and, five seconds after play, confirmed Recursion had left the hand and entered the discard pile instead of remaining in midair. Android v103 and PC v107.1 compatibility builds compile with zero errors.
+## 当前版本
 
-- [v0.11.48](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.48): fixes restored Recursion hanging during Android card resolution. The Android dispatcher now owns the card task directly, and transformed Recursion keeps one stable leftmost-orb object across its non-dequeue and dequeue evocations before re-channeling the same orb type. Accumulated Dark evoke damage remains preserved. Android v103, Android v110.1 and PC v107.1 builds compile with zero errors and pass focused final-DLL decompilation checks.
+推荐使用 [v0.11.50](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.50)。这一版调整了改造后“回收”的升级方式：费用保持 1，升级改为移除“消耗”；未改造的旧版“回收”仍维持原来的 1（0）费和“消耗”。
 
-- [v0.11.46](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.46): corrects transformed Uproar to keep its targeted two-hit attack. It deals 5 (7) damage twice, then randomly auto-plays one (two) distinct playable Attack cards from the highest current-cost tier in the draw pile. Android v103, Android v110.1 and PC v107.1 packages were rebuilt independently with zero compilation errors; the focused source and binary audit passes 35/35.
+项目分别维护以下构建：
 
-- [v0.11.45](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.45): fixes transformed Uproar still showing and executing its original two-hit damage. It now only randomly auto-plays the highest-cost Attack in the draw pile, or two distinct highest-cost Attacks when upgraded, and no longer requires an enemy target. Android v103, Android v110.1 and PC v107.1 packages were built independently with zero compilation errors.
+- Android v0.103.2
+- Android v0.110.1
+- PC v0.107.1
 
-- [v0.11.43](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.43): changes transformed Lightning Rod to grant 5 Block, or 8 when upgraded. Its immediate Lightning channel and delayed next-turn Lightning channel are unchanged. PC v107.1, Android v103, and Android v110.1 were built independently with zero errors, and the focused source/binary audit passes on all three targets.
+三个版本引用的游戏接口不同，必须下载文件名与平台相符的安装包，不能交换 DLL。每个 Release ZIP 都包含可直接安装的 `BetterDefect` 文件夹。
 
-- [v0.11.42](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.42): changes transformed Steam Barrier to grant 8 Block, or 12 when upgraded. Each play still reduces its current-combat Block value by 1. The PC, Android v103, and Android v110.1 builds and card behavior are synchronized.
+## 安装与使用
 
-- [v0.11.40](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.40): removes the transformed Loop one-orb trigger restriction. The visual left and right orb positions are triggered independently, so a single orb triggers twice; stacked Loop copies repeat that two-edge behavior. Android v103, Android v110.1 and PC v107.1 compile with zero errors, and the focused source audit confirms both passive calls remain without the old queue-membership guard.
+1. 从 [GitHub Releases](https://github.com/Yummn/sts2-better-defect/releases) 下载对应平台的 ZIP。
+2. 手机启动器可以直接导入完整 ZIP；手动安装时，把其中的 `BetterDefect` 文件夹复制到游戏的 `mods` 目录。
+3. 进入百科大全查看恢复卡牌和改造选项。改造选择会保存到游戏用户数据目录，更新 MOD 时无需重新选择。
 
-- [v0.11.41](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.41): changes the transformed Streamline damage to 15, or 20 when upgraded. The encyclopedia summary, dynamic values, upgrade handling, and Android v103, Android v110.1, and PC v107.1 packages are synchronized. The focused regression audit passes 39/39.
+这个项目改动的卡牌和兼容分支较多，更新前建议保留一份存档与 MOD 数据备份。
 
-- [v0.11.39](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.39): limits transformed Uproar to Attack cards while preserving its 5 damage twice and highest-current-cost random selection behavior. The Chinese card text now uses native upgrade-aware wording; Loop no longer displays its obsolete one-orb restriction, and transformed Synthesis describes its upgraded selection behavior directly. PC v107.1, Android v103 and Android v110.1 compile independently; Uproar passes 37/37 source/binary checks, all behavior-changing card-face overrides pass the 9/9 description audit, and Compact/Fuel remains green at 12/12.
+## 从源码构建
 
-- [v0.11.38](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.38): fixes Fuel created by transformed Compact on Android v110.1. Fuel no longer reads a missing `Cards` dynamic variable; its draw count is resolved from Compact's transformation state and Fuel's normal upgrade level. Base Fuel now gains 1 Energy and draws 1 card, while Fuel+ gains 1 Energy and draws 2 cards, with matching Chinese card text. All three targets compile independently; focused Fuel and Uproar regression audits pass, and an Android v110.1 live test confirmed the exact Compact+ -> Fuel+ path, 3 -> 4 Energy, two cards drawn and no `Cards` exception.
+源码位于 `src/`。准备好目标版本的游戏程序集后运行：
 
-- [v0.11.37](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.37): changes transformed Uproar to deal 5 damage twice at both upgrade levels, then randomly auto-play 1 card, or 2 distinct cards when upgraded, from the current highest-energy-cost tier in the draw pile. Attack, Skill and Power cards are all eligible; Unplayable cards are excluded, ties use the run shuffle RNG, combat cost modifiers are respected and X cost is ranked by current available energy. PC v107.1, Android v103 and Android v110.1 compile independently; the focused source/binary audit passes 37/37 checks.
+```powershell
+dotnet build src/BetterDefect.csproj -c Release
+```
 
-- [v0.11.36](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.36): adds the Defect-only Ancient card `偏差认知*改` and makes Darv's Dusty Tome choose it instead of vanilla Biased Cognition. The card grants 4 (5) Focus, applies a 2-Focus turn-start loss, and reduces every negative Focus change by 1, including its own upkeep and temporary-Focus rollback from cards such as Hotfix. Dusty Tome's native obtain route upgrades the card before adding it to the deck, so Darv always grants the 5-Focus version. PC v107.1, Android v103 and Android v110.1 compile independently; the focused source/binary audit passes 46/46 checks.
-
-- [v0.11.35](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.35): removes dynamic reward odds, card disabling, grey masks and probability controls from BetterDefect. Existing transformation selections migrate to the dedicated `BetterDefect.CardUpgrades.state.dat` store and the 50-point budget now counts transformations only. Card disabling is handled by the standalone DynamicCardOdds mod without consuming points. Android v103, Android v110.1 and PC v107.1 binaries compile separately and pass the split-assembly audit.
-
-- [v0.11.34](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.34): adds a dedicated Android v0.110.1 compatibility target while retaining Android v0.103.2 and PC v0.107.1 builds. The compatibility layer adapts the new `CardPlay` damage context, `CardLocation` return hook, orb passive event/activation API and protected command entry points. REDMI K80 Pro v0.110.1 validation loaded all 38/38 patch classes, injected all 26/26 restored cards and reported no interface/resource errors.
-
-- [v0.11.33](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.33): fixes transformed cards displaying the Innate term twice. Transformed Storm and upgraded transformed Static Discharge now rely only on their real `CardKeyword.Innate`; the redundant handwritten Innate line was removed from localization. A PC v0.107.1 live regression confirmed both cards retain exactly one Innate keyword and show exactly one Innate term in final card text. Android v0.103.2 and PC builds pass 233/233 offline checks; REDMI K80 Pro loaded v0.11.33 with all 37/37 Android patch classes installed.
-
-- [v0.11.32](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.32): adds Retain to the restored first-generation Force Field while keeping its existing 4-cost, 12 (16) Block and Power-play cost-reduction behavior. A PC v0.107.1 live regression confirmed the generated card contains `CardKeyword.Retain` and reports `ShouldRetainThisTurn=True`. Android v0.103.2 and PC builds pass 232/232 offline checks; REDMI K80 Pro loaded v0.11.32 with all 37/37 Android patch classes installed.
-
-- [v0.11.31](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.31): changes restored Auto Shields to channel one Frost orb first, then grant 10 Block (15 when upgraded) only if the player has no Block after the channel resolves. A PC v0.107.1 live regression confirmed zero Block produces Frost plus 10 (15) Block, while existing Block still permits Frost generation but suppresses only the conditional Block gain. Android v0.103.2 and PC builds pass 232/232 offline checks; REDMI K80 Pro loaded v0.11.31 with all 37/37 Android patch classes installed.
-
-- [v0.11.30](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.30): changes transformed Multi-Cast to repeat X times, or X+1 when upgraded. Every repetition double-evokes the current visual-rightmost orb and then re-channels the same orb type at the queue tail; accumulated Dark evoke damage is preserved. A PC v0.107.1 live regression used upgraded X=2 and observed three repetitions, with Dark, Frost and Lightning each evoked exactly twice (six total), all three types restored, and Dark remaining at 12. Android v0.103.2 and PC builds pass 232/232 offline checks.
-
-- [v0.11.29](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.29): fixes normal and transformed Recursion resetting an accumulated Dark orb to its default 6 evoke damage after re-channeling. Recursion now captures the selected Dark orb's current `EvokeVal` before evoking it and restores that value on the mutable replacement orb. A PC v0.107.1 live regression accumulated Dark from 6 to 12, double-evoked only the visual-left orb, and confirmed the replacement remained at 12; the Android v0.103.2 and PC builds pass 229/229 offline checks.
-
-- [v0.11.28](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.28): fixes Darv freezing while generating the Dusty Tome option when transformed Biased Cognition is enabled. Biased Cognition is Defect's only original Ancient-rarity Dusty Tome candidate; changing it to Rare left vanilla `DustyTome.SetupForPlayer` selecting from an empty sequence and throwing `NullReferenceException`. The compatibility patch uses its original Ancient identity only for Dusty Tome while preserving its transformed Rare reward rarity. The original REDMI K80 Pro v0.103.2 stuck save now enters Darv normally with all four options visible; Android installed 37/37 patch classes and the dual-platform offline audit passes 228/228.
-
-- [v0.11.27](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.27): adds the approved optional transformations for Reprogram, Static Discharge, Bulk Up, Helix Drill, Reinforced Body, Synthesis, Sunder, Melter, Bullseye, Rip and Tear, Scrape, Hyperbeam and Spinner. The new combat routes include orb removal/evocation, X-value doubling, persistent in-combat Sunder cost reduction, Bullseye Lightning/Dark priority, temporary Scrape Strength and non-decaying Glass passives. Android v0.103.2 reached the main menu with all 36/36 delayed patch classes installed, restored all 26 old cards and rebuilt the 114-card Defect pool; the dual-platform offline audit passes 226/226.
-
-- [v0.11.26](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.26): fixes the four hidden v103 first-generation Defect cards retaining the green Event-rarity presentation on Android. BetterDefect now directly normalizes Hello World and Rip and Tear to Uncommon, and Rebound and Stack to Common, without relying on the Android-disabled virtual-property detour. REDMI K80 Pro v0.103.2 live validation reports `normalizedV103Rarities=4/4`, 114 Defect cards and all 26 restored cards in canonical rarity order; dual-platform binary audit passes 213/213.
-
-- [v0.11.25](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.25): fixes the Encyclopedia card snapshot retaining the restored-card append order. BetterDefect now mirrors the game's vanilla pool, rarity and card-ID comparer, detects a complete-but-misordered cache and rebuilds it before reapplying the active filters. Android v0.103.2 live validation verified 597 total cards, 114 Defect cards and all 26 restored cards in canonical order; dual-platform offline audit passes 212/212.
-
-- [v0.11.24](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.24): changes transformed Consuming Shadow to generate 1 Dark orb before its normal upgrade and 2 afterward, while the non-transformed original remains 2 (3). Its end-of-turn effect still triggers every Dark-orb passive once. Android v0.103.2 and PC v0.107.1 compile separately; dual-platform offline audit passes 212/212.
-
-- [v0.11.23](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.23): fixes transformed Feral making a returned zero-cost Power transparent or deleting its hand visual. Power-card fly VFX normally scales and frees the real card node; Feral now marks cards being returned, keeps the real hand-bound node intact, and runs the fly animation on a distinct visual clone. PC v0.107.1 live regression returned a zero-cost Defragment with the same valid node, exactly one matching hand node, full scale, full opacity and no pending deletion; dual-platform offline audit passes 212/212.
-
-- [v0.11.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.22): fixes restored Electrodynamics so Lightning passive and evoke damage hit every hittable enemy on both Android v103 and PC v107.1. The old implementation detoured `LightningOrb.ApplyLightningDamage`, and Android explicitly skipped that ARM64-unsafe detour, leaving mobile single-target only. The new route uses stable power lifecycle hooks, marks passive Lightning resolutions and spreads only to missing opponents with a recursion guard. PC live regression in a four-enemy fight recorded `passive=[3,3,3,3]` and `evoke=[8,8,8,8]`; dual-platform offline audit passes 210/210.
-
-- [v0.11.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.21): fixes transformed Recursion identifying the orb-queue front as the visual left edge. The game's orb layout renders queue index 0 on the right and the queue tail on the left, so the transformed route now uses `Last`/`EvokeLast` while vanilla Recursion keeps `First`/`EvokeNext`. PC v0.107.1 live regression used Lightning/Frost/Dark and confirmed only the visual-left Dark orb was evoked twice and re-channeled; dual-platform offline audit passes 209/209.
-
-- [v0.11.20](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.20): fixes the remaining Android v0.103.2 restored-card disappearance. The 26 restored cards were already injected, but Android installed the localization lifecycle hooks after `LocManager.Initialize`; encyclopedia sorting then threw on `BD_CONSUME.title`. v0.11.20 explicitly merges 45 card and 15 power localization entries when the delayed queue completes, and replaces any already-created `NCardLibraryGrid` snapshot that still holds pre-repair card instances. REDMI K80 Pro live validation shows 114 Defect cards, 26/26 restored models and no `LocException`.
-
-- [v0.11.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.19): completes the Android v0.103.2 restored-card repair. The v0.11.18 cache rebuild exposed that the encyclopedia filters with `card.Pool is DefectCardPool`; rebuilding the global list after `ModelDb.Preload` could therefore leave the Defect filter empty. v0.11.19 preserves the preloaded global snapshot, explicitly binds all 114 cards to the Defect pool, merges the rebuilt pool back into `ModelDb.AllCards`, and logs `globalDefect=114`.
-
-- [v0.11.18](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.18): fixes Android v0.103.2 showing only the vanilla 88 Defect cards after the startup-safe delayed Harmony queue. Once all 32 patch classes are installed, BetterDefect now re-injects the 26 restored cards, rebuilds the cached Defect pool and refreshes the global card enumeration. The mobile startup log confirms a 114-card pool with 26/26 restored cards.
-
-- [v0.11.17](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.17): fixes Android v0.103.2 combat action queues becoming stuck after transformed Iteration finishes drawing and exhausting a Status. The previous mobile asset accidentally contained the PC v0.107.1 DLL and referenced Android-missing `ICombatState`, causing a `TypeLoadException`. Mobile and PC are now independently compiled against their exact APIs, and the release audit rejects PC-only metadata in mobile binaries. REDMI K80 Pro live validation loaded 32/32 patches and successfully played Strike followed by Defend; offline audit passes 205/205.
-
-- [v0.11.16](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.16): adds an optional transformed Recycle as a Common Skill costing 1 (0), Exhausting itself and one selected hand card to gain one Orb slot instead of refunding energy. PC v0.107.1 live regression confirmed cost, rarity, both exhaust moves, 3 to 4 Orb slots, no energy refund and the zero-cost normal upgrade. Rarity-changing transformation odds migration is also corrected; dual-platform binary regression audit passes 204/204.
-
-- [v0.11.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.15): stabilizes Android v0.103.2 startup by consolidating persisted-state/upgrade hooks and replacing native card-pool/rarity getter detours with direct data updates. The Android queue is now 32 classes and completed 3/3 repeated cold starts plus a final production start after restoring the user's save/settings. Transformed Consuming Shadow+ was also played through the phone's real command path and produced three Dark orbs. Dual-platform binary regression audit passes 198/198.
-
-- [v0.11.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.14): improves transformed Consuming Shadow's normal upgrade from 1 (2) to 1 (3) Dark orbs while keeping its end-of-turn trigger for every Dark-orb passive unchanged. PC v0.107.1 live regression upgraded and actually played the card, producing three Dark orbs; source, behavior-route, manifest and compiled-binary offline audit passes 194/194.
-
-- [v0.11.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.13): removes transformed Loop's one-trigger restriction when only one orb is present. A sole orb now counts as both leftmost and rightmost, so every Loop stack triggers it twice; multi-orb behavior is unchanged. PC v0.107.1 live regression measured two production passive calls on the same sole Frost orb; Android v0.103.2 compiles separately; dual-platform offline audit passes 194/194.
-
-- [v0.11.12](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.12): fixes transformed cards reverting to vanilla gameplay values after restart while the Encyclopedia still reports them enabled. Android now reapplies persisted transformations to canonical models and all loaded card piles after its delayed AOT-safe patch queue, full run loading and player synchronization. PC v0.107.1 live regression restored a stale enabled Cold Snap from 1 cost / 6 damage to 2 cost / 12 damage; Android v0.103.2 compiles separately; dual-platform offline audit passes 193/193.
-
-- [v0.11.11](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.11): fixes transformed Chaos being unable to generate Glass. Its random-orb selector now uses the complete five-orb pool instead of `ModelDb.Orbs`, while preserving missing-type priority. PC v0.107.1 live regression forced Glass to be the only missing type, selected `GlassOrb` and channeled it through the real `OrbCmd.Channel` path; Android v0.103.2 compiles separately; dual-platform offline audit passes 187/187.
-
-- [v0.11.10](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.10): fixes card transformations overriding enchantment-owned properties after cloning, loading or normal upgrades. BetterDefect now treats transformations as the base rule set and reapplies the game's official enchantment refresh route last, preserving enchantment changes to Exhaust and energy cost. PC v0.107.1 live regression passed both a remove-Exhaust enchantment on transformed Double Energy and official Tezcatara's Ember on transformed Feral; Android v0.103.2 compiles separately; dual-binary offline audit passes 187/187.
-
-- [v0.11.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.9): synchronizes transformed Hailstorm's card face, combat power-bar text and gameplay. Every Frost orb now creates its own 2 (3) damage event instead of combining all Frost damage into one hit. The transformed power-bar descriptions for Feral, Iteration, Loop, Smokestack and Subroutine are also corrected; Storm and the previously covered rare Powers were audited and already matched. PC v0.107.1 live regression confirmed two Frost orbs create two independent 2-damage events; Android v0.103.2 compiles separately; dual-binary offline audit passes 185/185.
-
-- [v0.11.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.8): fixes transformed Iteration leaving a transparent, unselectable card or stale hand slot on slower Android devices. After the full nested draw and exhaust animation complete, BetterDefect now waits one Godot process frame and removes only empty or no-longer-valid hand holders. PC v0.107.1 live regression confirmed Dazed exhaust, extra draws, zero ghost holders/nodes and a subsequent Zap; Android v0.103.2 compiles separately; offline audit passes 178/178.
-
-- [v0.11.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.7): fixes stacked transformed powers whose secondary effects were still hardcoded to one activation. Two transformed Smokestacks now deal 8 damage and draw 2 cards on the first Status generation each turn; two Subroutines grant 2 energy and draw 2 cards on their first Power trigger; two Loops trigger the left and right edge orb passives four times total. PC v0.107.1 live regression passed all three cases. PC and Android v0.103.2 binaries compile separately; offline audit passes 178/178.
-
-- [v0.11.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.6): fixes transformed Iteration locking the combat action queue after drawing its first Status card. The old hook exhausted that Status from inside `IterationPower.AfterCardDrawn`, before the game's draw command could run `CardModel.InvokeDrawn()` and finish its visual/action lifecycle. The new route waits for the full outer draw task—including Iteration's extra draws—to complete, then exhausts the first Status only if it is still in hand. PC v0.107.1 live regression confirmed Iteration, Dazed exhaustion, its extra draws and a subsequent Zap all resolve normally. PC and Android v0.103.2 binaries compile separately; offline audit passes 174/174.
-
-- [v0.11.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.5): fixes cards becoming unplayable on Android v0.103.2. The v0.11.4 bridge called a `Func<CardModel, ..., Task>.Invoke` specialization missing from the Android AOT image, so every card ended in `MissingMethodException`. The bridge now stores a `MethodInfo`, uses the AOT-safe non-generic reflection entrypoint only to ask BetterDefect whether it owns the card, and falls back to the game's native virtual `OnPlay` for ordinary cards. Live REDMI K80 Pro validation confirmed both Ball Lightning and Strike spend energy, leave the hand and deal their expected 7/6 damage without play-action exceptions. Offline audit passes 173/173.
-
-- [v0.11.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.4): fixes the remaining Android v0.103.2 random startup crash. Mobile transformed-card execution now uses a detour-free core bridge supplied by the companion stable-bridge APK, while the remaining 34 Harmony classes install one at a time with a conservative 250 ms interval. REDMI K80 Pro completed 5/5 repeated cold starts plus one final v0.11.4 cold start; every run reached the main menu, completed the 34/34 patch queue and produced no SIGSEGV/SIGABRT. PC and Android builds succeed and the offline behavior audit passes 170/170.
-
-- [v0.11.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.2): raises the shared disabled-card/transformation budget from 35 to 50 points. The Encyclopedia HUD now contains 25 blue Normal points, 10 yellow Overclock points and 15 red Overload points, with visible gaps between tiers and a matching stage label. Both Android v0.103.2 and PC v0.107.1 compile; the dual-binary offline regression audit passes 172/172, and REDMI K80 Pro startup validation loads v0.11.2 with BetterDefect initialization complete.
-
-- [v0.11.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.1): fixes Android v0.103.2 startup crashes introduced by the v0.11.0 rare-card transformation set. The seven rare-card play hooks are split into independently diagnosable patches, while the redundant Android unlocked-card-pool hook and two non-gameplay tooltip hooks are omitted to reduce ARM64 MonoMod trampolines. All v0.11.0 transformations remain available. Both targets compile, the offline regression audit passes 166/166, and REDMI K80 Pro live validation reaches the main menu with all BetterDefect and rare-card hooks initialized.
-
-- [v0.11.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.0): adds the approved 17-card rare transformation set. Adaptive Strike, All for One, Buffer, Consuming Shadow, Coolant, Creative AI, Echo Form, Flak Cannon, Meteor Strike, Multi-Cast and Rainbow gain their requested optional combat rewrites; Genetic Algorithm, Ice Lance and Defragment can become Uncommon, while Biased Cognition can become Rare; Thunder Strike+ costs 2 and Core Surge+ gains Innate. Rarity changes migrate saved dynamic odds into the new rarity pool. Android v0.103.2 and PC v0.107.1 compile successfully; offline regression audit 163/163, and PC startup reaches the main menu with every new Harmony route attached.
-
-- [v0.10.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.13): adds an optional transformed Coolheaded: 1 energy, draw 2, then channel 1 Frost; the base card Exhausts and its normal upgrade removes Exhaust. Transformed Chaos now costs 1, channels 2 random orbs with missing orb types preferred, Exhausts at base, and removes Exhaust when upgraded. Android v0.103.2 starts successfully with all relevant Harmony patches attached; dual-target offline regression audit 151/151.
-
-- [v0.10.12](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.12): removes the restored rare card Amplify because Signal Boost now covers the same role, and restores the Slay the Spire 1 rare skill Seek. Seek costs 0, exhausts, and moves 1 card from the draw pile to the hand (2 when upgraded). Existing Amplify dynamic-odds, disabled and historical-upgrade state is purged so the removed card cannot consume the shared 35-point budget. Android v0.103.2 live validation confirmed the selection grid, draw-pile transfer and exhaust behavior; dual-target offline regression audit 144/144.
-
-- [v0.10.11](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.11): enhances transformed Beam Cell. It remains zero-cost, now deals 3 damage (4 when upgraded), then applies 1 Lock-On (2 when upgraded), while still replacing the vanilla Vulnerable effect. Values, combat behavior, transformation summary and Chinese card description are synchronized. Both targets compile successfully; offline regression audit 146/146 and PC startup validation reports no BetterDefect errors.
-
-- [v0.10.10](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.10): fixes restored Self Repair not healing after combat. Combat powers are removed before `AfterCombatVictory`, so its heal now runs from `AfterCombatEnd` while the power is still registered. Android v0.103.2 and PC v0.107.1 use the same lifecycle. Both targets compile successfully; offline regression audit 144/144, and PC startup validation reports no BetterDefect errors.
-
-- [v0.10.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.9): fixes transformed Smokestack and Subroutine not drawing on Android v0.103.2. Their Harmony patches now consume the original callback arguments by position, covering Android's `bool addedByPlayer` Smokestack callback and the parameter-name differences between Android v103 and PC v107.1. Both targets compile successfully; offline regression audit 143/143, and PC startup confirms both patches attach without errors.
-
-- [v0.10.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.8): changes transformed Barrage to gain 2 temporary Focus (3 when upgraded), trigger every orb passive once, then remove exactly that temporary Focus. The cleanup directly modifies Focus so Artifact cannot make the bonus permanent. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 141/141.
-
-- [v0.10.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.7): changes transformed Lightning Rod to grant 5 Block, or 6 when upgraded. PC v0.107.1 and Android v0.103.2 compile successfully; dual-binary offline audit 138/138.
-
-- [v0.10.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.6): changes transformed Feral to cost 2 energy (1 when upgraded). Its first zero-energy card each turn now returns to hand regardless of card type; upgrading no longer increases the number of returned cards. PC v0.107.1 and Android v0.103.2 builds pass the 120-check offline audit.
-
-- [v0.10.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.5): fixes encyclopedia controls remaining over the card-detail overlay. Upgrade and disable controls are removed while details are open and restored on return; Android uses the lightweight library watcher instead of fragile redundant native UI detours. Verified live on PC v0.107.1 and REDMI K80 Pro / Android v0.103.2.
-
-- [v0.10.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.10.0): adds 16 user-approved optional uncommon-card transformations for Chaos, Double Energy, Fight Through, Skim, Tempest, White Noise, FTL, Null, Refract, Feral, Hailstorm, Iteration, Loop, Smokestack, Storm and Subroutine. Base/upgraded values, combat behavior and Chinese descriptions are synchronized. PC v0.107.1 and Android v0.103.2 compile successfully; offline regression audit 135/135.
-
-- [v0.9.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.4): fixes transformed Tesla Coil text. Normal: 3 damage and trigger every Lightning passive once. Upgraded: 4 damage and trigger every Lightning passive twice. Behavior is unchanged and matches the corrected text.
-
-- [v0.9.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.3): fixes encyclopedia upgrade/odds controls leaking into combat, shop, deck and pile screens after visiting the encyclopedia. It requires current-scene ownership and synchronously strips controls from pooled card nodes on exit. Card art remains active. Offline audit 117/117; Android v0.103.2 startup and encyclopedia transition verified.
-
-- [v0.9.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.2): fixes restored StS1 power status icons showing the red `NOPE` placeholder, adds smart descriptions for all six custom powers, and uses an Android-specific final-texture hook to remain stable on v103 ARM64. Verified 115/115 offline, PC v0.107.1, and REDMI K80 Pro / Android v0.103.2.
-
-- [v0.9.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.1): fixes Tesla Coil and Shatter descriptions to match their actual orb behavior, and fixes Reprogram+ so Focus loss remains 1. Dual-target audit 96/96; PC v0.107.1 encyclopedia validation passed.
-
-- [v0.9.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.9.0): adds 12 optional `??????` transformations for Barrage, Beam Cell, Charge Battery, Cold Snap, Go for the Eyes, Gunk Up, Leap, Lightning Rod, Sweeping Beam, Uproar, Recursion and Streamline. They use the existing persistent 35-point encyclopedia budget. PC v0.107.1 live startup/UI validation passed; dual-target source/binary audit 96/96.
-
-- [v0.8.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.8): fixes encyclopedia-only disable/upgrade controls leaking into card details and later non-encyclopedia screens. Controls now require the exact active `NCardLibraryGrid`, hide synchronously before pooled-card reuse, and restore when returning to the encyclopedia list. Verified on PC v0.107.1 and REDMI K80 Pro / Android v0.103.2; offline audit 81/81.
-
-- [v0.8.7](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.7): fixes `Shatter / 打碎` on Android v103 by removing the PC-only `ICombatState` metadata dependency from all-opponent targeting. The mobile build passed 76/76 offline checks, contains zero `ICombatState` type references, and was live-tested on v0.103.2: Shatter dealt its 11 damage, evoked Lightning twice for 8+8, completed normally, and produced no crash.
-
-## History
-
-- [v0.8.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.6): merged duplicate `ModelDb.Init` detours to reduce intermittent Android ARM64 startup aborts.
-
-- [v0.2.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.2.1)
-- [v0.3.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.3.0)
-- [v0.4.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.4.0)
-- [v0.4.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.4.1)
-- [v0.5.1-v103-full](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.5.1-v103-full)
-- [v0.5.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.5.2)
-- [v0.5.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.5.9)
-- [v0.6.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.3): restored dynamic odds and card disabling.
-- [v0.6.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.4): disabled-card grey look and larger mobile touch button.
-- [v0.6.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.5): disable button uses CardBeautify-style UI.
-- [v0.6.6](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.6): added segmented disabled-card counter HUD.
-- [v0.6.8](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.8): fixed disabled-card progress bar visibility.
-- [v0.6.9](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.9): temporarily removed the in-game disable/enable option and disabled-card counter HUD.
-- [v0.6.13](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.13): restored the card-library disable/enable UI on mobile, fixed Chinese dynamic-odds text, restored the disabled-card grey mask, and showed a compact top segmented disabled-card counter HUD.
-- [v0.6.14](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.14): kept the disabled-card counter HUD visible only inside the encyclopedia/card-library screen and hid it on the main menu, loading, combat, shop, and other non-library screens. Verified on Android v103 via ADB screenshots.
-- [v0.6.15](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.15): limited the disable button, grey disabled mask, and dynamic-odds text strictly to the encyclopedia/card-library screen, and cleaned old UI from reused card nodes outside the library.
-- [v0.6.16](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.16): restored the starter-deck tweak that replaces one Defect Strike with Ball Lightning, while keeping the v0.6.15 encyclopedia-only UI cleanup.
-- [v0.6.17](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.17): Android performance pass for draw/play stutter. The hot `NCard.UpdateVisuals` path now returns before Defect checks/reflection/text cleanup outside the encyclopedia, and the disabled-card HUD stops full tree scans while hidden.
-- [v0.6.18](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.18): strictly gates card controls to the concrete `NCardLibrary` screen and excludes in-run/shop deck and pile inspection screens.
-- [v0.6.19](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.19): Android FPS/performance pass; removes the global `NCard.UpdateVisuals` UI hook, makes the UI event-driven from the card library grid, disables HUD polling, and adds small lookup caches.
-- [v0.6.21](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.21): keeps the Android-safe no-global-card-hook design, verifies controls against the actual `NCardLibrary` ancestor, and performs one-shot cleanup on card-library close so in-run/shop deck views stay clean.
-- [v0.6.22](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.6.22): caches restored-card portrait checks, card-type/key lookups, gameplay reflection and encyclopedia UI work to reduce Android frame spikes.
-- [v0.7.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.0): adds the 35-point historical card-version upgrade system; its first archive used a Windows backslash directory record and is superseded by v0.7.1 for Android settings-page importing.
-- [v0.7.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.7.1): rebuilds the archives with standard `/` ZIP paths and no ambiguous backslash directory entries.
-- [v0.8.0](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.0): audits and fixes restored-card behavior routes, including Electrodynamics, Recycle, Lock-On and Static Discharge.
-- [v0.8.1](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.1): fixes description/effect consistency for Rocket Punch, Tesla Coil, Fuel, Scrape, Fission, Core Surge and Amplify.
-- [v0.8.2](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.2): adds the Android v103 startup guard while retaining all v0.8.1 fixes.
-- [v0.8.3](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.3): fixes BetterDefect controls leaking into the in-run master-deck screen.
-- [v0.8.4](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.4): fixes the encyclopedia HUD lifecycle.
-- [v0.8.5](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.8.5): consolidates Android Pool/Rarity and card-version detours and removes unsafe redundant hooks.
-
-## v0.8.7 Android Shatter fix
-
-- Replaces Shatter's direct PC `AttackCommand.TargetingAllOpponents(ICombatState)` call with a runtime adapter that accepts Android v103's concrete `CombatState` signature and current PC builds' interface signature.
-- Uses the same cross-version opponent lookup for Electrodynamics' all-target Lightning behavior.
-- Keeps the v0.105 historical Shatter effect: 11 damage to all enemies, then evokes every orb twice.
-- REDMI K80 Pro / Android v0.103.2 live test: `SHATTER` played successfully, multi-target attack completed, one Lightning orb evoked twice for 8+8, process remained alive, and the crash buffer stayed empty.
-- Offline audit: 76/76. Compiled DLL audit: zero `MegaCrit.Sts2.Core.Combat.ICombatState` type references.
-
-## v0.8.6 Android startup stability
-
-- Merges the two `ModelDb.Init` postfixes into one native detour.
-- Keeps the required localization initialization hook, avoiding missing `BD_*` card text on v103.
-- Works with CardBeautify v0.4.9 and 败者食尘 v0.2.4, which also reduce Android startup detours.
-- Final REDMI K80 Pro / v0.103.2 verification: 5/5 cold starts, 0 SIGABRT/SIGSEGV, 26/26 restored models, 114 Defect cards, no `LocException`.
-- Offline regression audit: 71/71.
-
-## v0.8.4 card-library HUD lifecycle fix
-
-- Binds the segmented 35-point HUD to the exact `NCardLibrary` instance that requested it.
-- Follows `NSubmenu.OnScreenVisibilityChange`, so temporarily hidden libraries cannot leave the HUD above another screen and re-shown libraries restore it immediately.
-- Removes global scene-tree name/visibility scans and validates only the bound library, reducing extra Android traversal work.
-- Refreshes the title when disabled/upgraded counts change even if their combined point total stays the same.
-- Android v0.103.2 live test: main menu hidden, compendium landing page hidden, card library visible, leaving hidden, re-entry visible again.
-- Offline audit: 72/72. PC v107.1 and mobile v103 compile with 0 errors.
-
-## v0.8.3 in-run deck UI scope fix
-
-- Fixes the disable/enable button, historical-version button, dynamic-odds text and disabled grey mask appearing in the in-run master-deck view.
-- The in-run `NDeckViewScreen` and the encyclopedia share `NCardLibraryGrid`; the row-assignment hook now validates the owning screen instead of trusting the grid type alone.
-- The generic `NGridCardHolder.SetIsPreviewingUpgrade` refresh no longer re-injects library controls after a non-library cleanup.
-- Android v0.103.2 live test opened the Defect encyclopedia first, confirmed all library controls, then continued the current run and confirmed the master deck contained no BetterDefect controls.
-- Offline audit: 69/69. PC v107.1 and mobile v103 compile with 0 errors.
-
-## v0.8.2 Android startup guard
-
-- Android v103 compiles out the Harmony detour for `NCard.Model`'s setter; the encyclopedia continues to use concrete `NCardLibraryGrid` refresh hooks.
-- PC v107.1 retains the setter hook.
-- All v0.8.1 description/effect consistency fixes are retained.
-- Offline audit: 67/67. Both targets compile with 0 errors and were decompiled to confirm the platform-specific `Prepare()` result.
-- Android v0.103.2 live verification reached startup Stage 14 and showed 114 Defect cards, dynamic odds, disable controls/grey mask, art controls, historical-version controls and the segmented 35-point HUD.
-
-## v0.8.1 description/effect consistency audit
-
-- Rocket Punch text distinguishes the base “until played or this turn ends” behavior from the v0.100 “until played” behavior.
-- Tesla Coil only previews two Lightning triggers when the v0.105 historical switch and normal card upgrade are both active.
-- Fuel hides its draw line under Compact's v0.108 behavior and restores the 1/2-card line under the v0.99 switch.
-- Scrape explains whether it checks the card-local energy cost or the current final energy cost.
-- Fission shows only the current remove/evoke behavior; Fission and Core Surge no longer duplicate the engine-generated Exhaust line.
-- Amplify is removed at player-turn end and consumes one stack via `AfterModifyingCardPlayCount`, matching its “this turn” description.
-- The offline regression suite now contains 66 checks. Both target DLLs were separately compiled and decompiled; see `docs/reports/`.
-
-## v0.8.0 restored-card audit
-
-- Electrodynamics patches Lightning's shared `ApplyLightningDamage` method, so end-turn passive triggers and evokes both use all hittable opponents.
-- Recycle uses the native hand-selection flow and refunds an X-cost card using the player's current remaining energy.
-- Lock-On returns `1.5m` as a multiplier and ticks down once per enemy turn rather than once per orb hit.
-- Static Discharge filters out poison, orb/relic damage and other HP-loss effects.
-- The offline regression suite checks all 26 restored registrations, the defining values/effect routes of all 22 recreated cards, and all 14 historical-version mappings.
-- Current PC and v103 DLLs were separately compiled and decompiled. See `docs/reports/` for the 59/59 source audit and compiled-IL evidence.
-
-## v0.7.1 Android importer fix
-
-- The Android v103 settings importer normalizes `\\` to `/`, but checks `ZipEntry.isDirectory()` on the original entry name.
-- The v0.7.0 PowerShell archive contained `BetterDefect\\Data\\` as a directory entry. Android did not recognize that original backslash entry as a directory and attempted to open `mods/BetterDefect/Data/` as a file, producing the import failure.
-- v0.7.1 contains only file entries, all with standard forward-slash paths. An importer-equivalent extraction simulation now succeeds.
-- If v0.7.0 already failed once, remove the partial BetterDefect entry/folder in the settings page before importing v0.7.1.
-
-## v0.7.0 historical card-version system
-
-- The feature is available only in the encyclopedia card library and only for the 14 listed Defect cards.
-- Card disabling and historical-version switches share a persistent 35-point budget. One disabled card or one enabled historical switch costs one point.
-- The top hand-painted segmented bar shows `disabled X · upgraded Y`; 0-25 points are blue and 26-35 points are red.
-- Version switches, disabled states, card-art choices and dynamic odds survive restarts and DLL replacement.
-- These are global historical balance-version switches. Normal per-copy smithing upgrades still work independently.
-- Version targets: Hotfix + -> v0.99; Rocket Punch base v0.99 / switch v0.100; Voltaic -> v0.99; Hyperbeam -> v0.109; Shatter base v0.108 / switch v0.105; Tesla Coil -> v0.105; Uproar -> v0.105; Fusion -> v0.106; Synthesis -> v0.106; Compact base v0.108 / switch v0.99; Momentum Strike -> v0.108; Scrape -> v0.108; Sunder -> v0.109; Trash to Treasure base v0.109 / switch v0.99.
-- The v0.7.0 card-library refresh rebuilds the base game's cached upgraded preview, so switching `View Upgrades` immediately reflects the selected historical version instead of showing a stale card clone.
-
-## Core feature summary
-
-- Restores 26 old Defect cards to the Defect card pool and card library.
-- Defect starter deck replacement is back: one starting `StrikeDefect` is replaced by `BallLightning`, with a duplicate guard so the patch will not replace multiple Strikes if it runs again.
-- Mobile draw/play hot path optimized: outside the encyclopedia/card-library screen, `NCard.UpdateVisuals` no longer runs Defect-card pool checks, reflection-based description cleanup, dynamic-odds text injection, disable button creation, or grey-mask work.
-- The segmented point HUD is bound to the exact visible `NCardLibrary`; it follows submenu visibility events and never performs global scene-tree visibility scans.
-- Cross-run dynamic odds for Defect cards only: selected cards gain weight, exactly three-card Defect skip/reroll rewards subtract a total group weight, and each rarity is handled independently.
-- Encyclopedia/card-library UI shows `动态出率：x.xx` in Chinese without mojibake.
-- In the encyclopedia/card-library only, Defect cards have a mobile-sized `禁用出率` / `启用出率` button; disabled cards are excluded from reward replacement, show `0.00x（已禁用）`, and get a grey aligned mask.
-- Non-encyclopedia card views remove BetterDefect's disable button, grey mask, and dynamic-odds text. v0.6.18 also removes the old broad `CardLibrary` namespace/name fallback and explicitly excludes `NCardPileScreen`, deck, draw pile, discard pile, exhaust pile and shop deck views.
-- v0.6.22 keeps the v0.6.19 no-global `NCard.UpdateVisuals` design and the v0.6.21 strict `NCardLibrary` verification, while adding extra mobile caches for card art path checks, restored-card type checks, dynamic-odds card keys, PowerCmd/orb reflection and encyclopedia label/style work.
-- The HUD performs a low-frequency direct validity check only while visible, against its already-bound `NCardLibrary` instance.
-- The top segmented disabled-card counter shows 0-25 in blue and 26-35 in red, and remains visible only inside the encyclopedia/card-library screen.
-- `Data/Portraits/*.png` is included for CardBeautify's restored old Defect art.
-- Defect-card type checks and restored old-card list generation are cached to reduce repeated reflection/model lookups on Android.
-- Restored StS1 powers use valid built-in status textures instead of the red `NOPE` placeholder, with complete smart descriptions.
-- No BaseLib dependency.
-
-## Install
-
-Download `更好的故障机器人-v0.11.16-手机-v103.zip` for mobile v103 or `更好的故障机器人-v0.11.16-电脑-v107.1.zip` for PC v107.1, unzip/import it, and copy the included `BetterDefect` folder into the game's `mods` folder.
-
-Android v103 should first install the same release's `Slay-the-Spire-2-v0.103.2-Android-Harmony-Stable-Bridge.apk` with `adb install -r`. This preserves application data when the currently installed build uses the same AOSP testkey signature. Do not uninstall the game before updating.
-
-The repository now includes the C# source in `src/`, the offline regression checker in `tests/`, and the v103 compatibility source-preparation helper in `tools/`. Card portrait assets remain in the release archives.
-
-
-## v0.10.3
-
-- Fix Android v103 startup after the encyclopedia-control repair by skipping the ARM64-unsafe LightningOrb Electrodynamics detour on mobile.
-- Keeps the v103 Hailstorm turn-end hook, resilient per-hook initialization, and active encyclopedia grid hooks.
-- Verified on a connected Android v103 device: BetterDefect initializes, 26 old Defect cards inject, the 114-card Defect pool is restored, and the encyclopedia card-point HUD plus in-card controls are visible.
-
-## v0.10.1
-
-- Fix encyclopedia card-point HUD and enable/disable odds plus upgrade buttons disappearing.
-- Cause: v0.10.0 treated any visible card node outside the encyclopedia grid as a non-library context, so the real compendium could be rejected. The guard now validates only the exact NCardLibraryGrid owned by the active card library.
-- Keeps the v0.10.0 uncommon-card transformation set and the shared 35-point budget.
+可通过 MSBuild 属性指定本机游戏路径和输出目录。自动检查脚本、实机记录与历史排错资料分别保存在 `tests/`、`docs/` 和 `reports/`；详细版本变更以 [Releases](https://github.com/Yummn/sts2-better-defect/releases) 为准，不再在首页重复堆放完整日志。
