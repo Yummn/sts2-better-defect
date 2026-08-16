@@ -69,6 +69,9 @@ internal static class BdLocalization
         ["powers/BD_STATIC_DISCHARGE_POWER.title"] = "静电释放",
         ["powers/BD_STATIC_DISCHARGE_POWER.description"] = "每当你受到未被格挡的攻击伤害，充能 {Amount} 个闪电。",
         ["powers/BD_STATIC_DISCHARGE_POWER.smartDescription"] = "每当你受到未被格挡的攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球。",
+        ["powers/BD_STATIC_DISCHARGE_CHARGE_POWER.title"] = "静电增幅",
+        ["powers/BD_STATIC_DISCHARGE_CHARGE_POWER.description"] = "下一张攻击的每段伤害增加 {Amount} 点。",
+        ["powers/BD_STATIC_DISCHARGE_CHARGE_POWER.smartDescription"] = "下一张攻击的每段伤害增加[blue]{Amount}[/blue]点。",
         ["powers/BD_ELECTRODYNAMICS_POWER.title"] = "电动力学",
         ["powers/BD_ELECTRODYNAMICS_POWER.description"] = "闪电充能球的被动与激发伤害会命中所有敌人。",
         ["powers/BD_ELECTRODYNAMICS_POWER.smartDescription"] = "[gold]闪电[/gold]充能球的被动与激发伤害会命中所有敌人。",
@@ -369,7 +372,7 @@ internal static class BdLocalization
                 : "失去{Focus:diff()}点[gold]集中[/gold]。\n获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
 
             ["BD_STATIC_DISCHARGE.description"] = staticDischargeCustom
-                ? "每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold]{Amount:diff()}个[gold]闪电[/gold]充能球，并获得3点[gold]格挡[/gold]。"
+                ? "每当你[gold]生成[/gold]1个[gold]闪电[/gold]充能球，下一张攻击的每段伤害增加{Amount:diff()}点。"
                 : "每当你受到未被格挡的攻击伤害，[gold]充能[/gold]{Amount:diff()}个[gold]闪电[/gold]。",
 
             ["BULK_UP.description"] = bulkUpCustom
@@ -505,10 +508,10 @@ internal static class BdLocalization
                 ? "你每次打出能力牌时，获得{Amount:energyIcons()}。每回合第一次触发时，额外抽[blue]{Amount}[/blue]张牌。"
                 : "你每次打出能力牌时，都获得[blue]{Amount}[/blue]{Amount:energyIcons()}。",
             ["BD_STATIC_DISCHARGE_POWER.description"] = staticDischargeCustom
-                ? "每当你受到未被格挡的敌人攻击伤害，生成闪电并获得3点格挡。"
+                ? "每生成1个闪电，下一张攻击的每段伤害增加{Amount}点。"
                 : "每当你受到未被格挡的攻击伤害，充能{Amount}个闪电。",
             ["BD_STATIC_DISCHARGE_POWER.smartDescription"] = staticDischargeCustom
-                ? "每当你受到未被格挡的敌人攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球，并获得[blue]3[/blue]点[gold]格挡[/gold]。"
+                ? "每当你[gold]生成[/gold]1个[gold]闪电[/gold]充能球，下一张攻击的每段伤害增加[blue]{Amount}[/blue]点。"
                 : "每当你受到未被格挡的攻击伤害，[gold]生成[/gold][blue]{Amount}[/blue]个[gold]闪电[/gold]充能球。",
             ["CONSUMING_SHADOW_POWER.description"] = consumingShadowCustom
                 ? "你的回合结束时，触发所有黑暗充能球的被动一次。"

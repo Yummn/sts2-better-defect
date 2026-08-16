@@ -3,7 +3,7 @@
   "name": "更好的故障机器人 / Better Defect",
   "author": "Codex",
   "description": "v103/vPC/v110 compatible full build: restores 26 old Defect cards and adds the Ancient card 偏差认知*改 for Darv's Dusty Tome. Adds or updates transformations for Focused Strike, Synchronize, Auto Shields, Consume, Force Field, Hello World and Rainbow. Includes the Fission orb visual fix, starter Strike -> Ball Lightning option, 10 historical versions and 66 custom transformations with a persistent 50-point budget. Dynamic reward odds and card disabling live in the standalone DynamicCardOdds mod. No BaseLib.",
-  "version": "0.11.51",
+  "version": "0.11.52",
   "min_game_version": "0.103.2",
   "has_pck": false,
   "has_dll": true,

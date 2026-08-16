@@ -163,7 +163,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BD_CORE_SURGE"] = ("改造：自定义", "效果不变；普通升级后获得固有")
             ,
             ["CARD.BD_REPROGRAM"] = ("改造：自定义", "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷"),
-            ["CARD.BD_STATIC_DISCHARGE"] = ("改造：自定义", "1费能力，升级后固有；受未格挡攻击伤害时生成1(2)闪电并获得3格挡"),
+            ["CARD.BD_STATIC_DISCHARGE"] = ("改造：自定义", "每生成1个闪电，下一张攻击的每段伤害增加2(3)"),
             ["CARD.BULK_UP"] = ("改造：自定义", "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点"),
             ["CARD.HELIX_DRILL"] = ("改造：自定义", "X费造成7(9)伤害X次；最终X至少为4时次数翻倍"),
             ["CARD.BD_REINFORCED_BODY"] = ("改造：自定义", "X费获得7(9)格挡X次；最终X至少为4时次数翻倍"),
@@ -279,7 +279,7 @@ internal static class BdCardVersionUpgrades
         BdThunderStrike => "效果不变；普通升级后费用改为2",
         BdCoreSurge => "效果不变；普通升级后获得固有",
         BdReprogram => "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷",
-        BdStaticDischarge => "1费能力，升级后固有；受未格挡攻击伤害时生成1(2)闪电并获得3格挡",
+        BdStaticDischarge => "每生成1个闪电，下一张攻击的每段伤害增加2(3)",
         BulkUp => "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点",
         HelixDrill => "X费造成7(9)伤害X次；最终X至少为4时次数翻倍",
         BdReinforcedBody => "X费获得7(9)格挡X次；最终X至少为4时次数翻倍",
@@ -561,8 +561,8 @@ internal static class BdCardVersionUpgrades
 
             case BdStaticDischarge:
                 SetEnergy(card, 1);
-                SetDynamic(card, "Amount", upgradedVersion ? plus ? 2m : 1m : plus ? 2m : 1m);
-                SetKeyword(card, CardKeyword.Innate, upgradedVersion && plus);
+                SetDynamic(card, "Amount", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, false);
                 break;
 
             case BulkUp:
@@ -910,8 +910,8 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "DexterityPower", upgradedVersion ? 2m : 2m);
                 break;
             case BdStaticDischarge:
-                UpgradeDynamicTo(card, "Amount", 2m);
-                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                UpgradeDynamicTo(card, "Amount", upgradedVersion ? 3m : 2m);
+                SetKeyword(card, CardKeyword.Innate, false);
                 break;
             case BulkUp:
                 SetEnergy(card, upgradedVersion ? 1 : 2);
@@ -1176,8 +1176,8 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BD_STATIC_DISCHARGE":
                 SetEnergy(card, 1);
-                SetDynamic(card, "Amount", plus ? 2m : 1m);
-                SetKeyword(card, CardKeyword.Innate, upgradedVersion && plus);
+                SetDynamic(card, "Amount", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, false);
                 break;
             case "CARD.BULK_UP":
                 SetEnergy(card, upgradedVersion && plus ? 1 : 2);
@@ -1407,8 +1407,8 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "DexterityPower", 2m);
                 break;
             case "CARD.BD_STATIC_DISCHARGE":
-                UpgradeDynamicTo(card, "Amount", 2m);
-                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
+                UpgradeDynamicTo(card, "Amount", upgradedVersion ? 3m : 2m);
+                SetKeyword(card, CardKeyword.Innate, false);
                 break;
             case "CARD.BULK_UP":
                 if (upgradedVersion) SetEnergy(card, 1);

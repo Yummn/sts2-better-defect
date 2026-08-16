@@ -6,6 +6,8 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.52](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.52): redesigns transformed Static Discharge. Every Lightning orb generated while the power is active stores +2 (+3 when upgraded) damage for the next Attack; stacks from multiple Lightning orbs accumulate, and the full bonus applies to every hit of a multi-hit Attack before being consumed. Android v110.1 live combat regression generated two Lightning orbs and confirmed Sword Boomerang dealt 7/7/7 damage with a +4 charge, then removed the charge. Android v103, Android v110.1 and PC v107.1 builds compile successfully.
+
 - [v0.11.51](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.51): adds transformations for Focused Strike, Synchronize, Auto Shields, Consume, Force Field and Hello World; corrects transformed Rainbow orb order. Focused Strike becomes 8 (10) damage and 2 (3) temporary Focus; Synchronize follows v110 behavior; Auto Shields and Force Field preserve their original behavior outside transformation. Android v103, Android v110.1 and PC v107.1 builds compile successfully, and PC startup loading was verified.
 
 - [v0.11.50](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.50): changes transformed Recycle's normal upgrade from reducing its cost to 0 into removing Exhaust while keeping its cost at 1. The non-transformed restored Recycle remains 1 (0) energy with Exhaust. An Android v110.1 live combat test confirmed Recycle+ costs 1, exhausts the selected hand card, grants one Orb slot, and does not exhaust itself; Android v103, Android v110.1 and PC v107.1 compatibility builds compile successfully.
@@ -288,3 +290,4 @@ The repository now includes the C# source in `src/`, the offline regression chec
 - Fix encyclopedia card-point HUD and enable/disable odds plus upgrade buttons disappearing.
 - Cause: v0.10.0 treated any visible card node outside the encyclopedia grid as a non-library context, so the real compendium could be rejected. The guard now validates only the exact NCardLibraryGrid owned by the active card library.
 - Keeps the v0.10.0 uncommon-card transformation set and the shared 35-point budget.
+
