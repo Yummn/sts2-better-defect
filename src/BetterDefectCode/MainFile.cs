@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.52: Android v103/v110 compatibility build; transformed Static Discharge stores per-Lightning multi-hit attack damage; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.53: Android v103/v110 compatibility build; transformed Claw converts scaling into persistent extra 2(3)-damage hits; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.52: PC v107.1 compatibility build; transformed Static Discharge stores per-Lightning multi-hit attack damage.");
+            Logger.Info("[BetterDefect] loaded v0.11.53: PC v107.1 compatibility build; transformed Claw converts scaling into persistent extra 2(3)-damage hits.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
@@ -322,6 +322,7 @@ internal partial class AndroidPatchInstaller : Node
         QueueFree();
     }
 }
+
 
 
 

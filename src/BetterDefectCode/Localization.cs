@@ -146,6 +146,7 @@ internal static class BdLocalization
         var barrageCustom = IsVersionEnabled<Barrage>();
         var beamCellCustom = IsVersionEnabled<BeamCell>();
         var chargeBatteryCustom = IsVersionEnabled<ChargeBattery>();
+        var clawCustom = IsVersionEnabled<Claw>();
         var coldSnapCustom = IsVersionEnabled<ColdSnap>();
         var focusedStrikeCustom = IsVersionEnabled<FocusedStrike>();
         var coolheadedCustom = IsVersionEnabled<Coolheaded>();
@@ -238,6 +239,10 @@ internal static class BdLocalization
             ["CHARGE_BATTERY.description"] = chargeBatteryCustom
                 ? "获得{Block:diff()}点[gold]格挡[/gold]。\n在下个回合获得{Energy:energyIcons()}并抽1张牌。"
                 : "获得{Block:diff()}点[gold]格挡[/gold]。\n在下个回合获得{Energy:energyIcons()}。",
+
+            ["CLAW.description"] = clawCustom
+                ? "造成{Damage:diff()}点伤害。\n每打出一张[gold]爪击[/gold]，本场战斗中所有[gold]爪击[/gold]额外造成一次{Increase:diff()}点伤害。"
+                : "造成{Damage:diff()}点伤害。\n本场战斗中所有[gold]爪击[/gold]的伤害提高{Increase:diff()}点。",
 
             ["COLD_SNAP.description"] = coldSnapCustom
                 ? "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]2个[gold]冰霜[/gold]充能球。"

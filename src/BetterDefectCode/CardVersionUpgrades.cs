@@ -67,7 +67,7 @@ internal static class BdCardVersionUpgrades
         // Custom common-card transformations selected by the user. These use
         // the same persistent 50-point system as historical versions, but are
         // deliberately labelled as custom transformations in the Encyclopedia.
-        typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
+        typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
         typeof(FocusedStrike),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
         typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
@@ -112,6 +112,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BARRAGE"] = ("改造：自定义", "获得2(3)点临时集中，然后触发所有充能球的被动一次"),
             ["CARD.BEAM_CELL"] = ("改造：自定义", "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤"),
             ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
+            ["CARD.CLAW"] = ("改造：自定义", "初始造成3(4)伤害；每打出一张爪击，使所有爪击本场战斗额外造成一次2(3)伤害"),
             ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
             ["CARD.FOCUSED_STRIKE"] = ("改造：自定义", "1费造成8(10)伤害并获得2(3)点临时集中"),
             ["CARD.COOLHEADED"] = ("改造：自定义", "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗"),
@@ -176,6 +177,7 @@ internal static class BdCardVersionUpgrades
     private static readonly FieldInfo? CardEnergyCostField = AccessTools.Field(typeof(CardModel), "_energyCost");
     private static readonly FieldInfo? KeywordsField = AccessTools.Field(typeof(CardModel), "_keywords");
     private static readonly FieldInfo? TargetTypeField = AccessTools.Field(typeof(CardModel), "<TargetType>k__BackingField");
+    internal static readonly FieldInfo? ClawExtraHitsField = AccessTools.Field(typeof(Claw), "_extraDamageFromClawPlays");
 
     internal static IEnumerable<Type> UpgradeMethodTypes => CustomUpgradeTypes;
 
@@ -202,7 +204,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "改造：自定义",
         Sunder => "改造：自定义",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine or
         BdReprogram or BdStaticDischarge or BulkUp or HelixDrill or BdReinforcedBody or BdMelter or BdBullseye or RipAndTear or Spinner or
         AdaptiveStrike or AllForOne or BufferCard or ConsumingShadow or Coolant or CreativeAi or EchoForm or FlakCannon or GeneticAlgorithm or IceLance or Defragment or BiasedCognition or
@@ -229,6 +231,7 @@ internal static class BdCardVersionUpgrades
         Barrage => "获得2(3)点临时集中，然后触发所有充能球的被动一次",
         BeamCell => "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤",
         ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
+        Claw => "初始造成3(4)伤害；每打出一张爪击，使所有爪击本场战斗额外造成一次2(3)伤害",
         ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
         FocusedStrike => "1费造成8(10)伤害并获得2(3)点临时集中",
         Coolheaded => "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗",
@@ -392,6 +395,14 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "Block", upgradedVersion
                     ? plus ? 9m : 6m
                     : plus ? 10m : 7m);
+                break;
+
+            case Claw:
+                // In the transformed route ExtraDamageFromClawPlays stores
+                // the number of extra hits, not a flat damage increase. Keep
+                // the visible initial hit fixed at 3 (4) throughout combat.
+                SetDynamic(card, "Damage", plus ? 4m : 3m);
+                SetDynamic(card, "Increase", plus ? 3m : 2m);
                 break;
 
             case ColdSnap:
@@ -803,6 +814,10 @@ internal static class BdCardVersionUpgrades
                 break;
             case ChargeBattery:
                 UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m);
+                break;
+            case Claw:
+                UpgradeDynamicTo(card, "Damage", 4m);
+                UpgradeDynamicTo(card, "Increase", 3m);
                 break;
             case ColdSnap:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m);
@@ -1720,7 +1735,7 @@ internal static class BdCustomCommonCardPlayPatch
     {
         Type[] types =
         [
-            typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
+            typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
             typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
@@ -1761,6 +1776,7 @@ internal static class BdCustomCommonCardPlayPatch
             Barrage typed => PlayBarrage(typed, choiceContext),
             BeamCell typed => PlayBeamCell(typed, choiceContext, cardPlay),
             ChargeBattery typed => PlayChargeBattery(typed, choiceContext, cardPlay),
+            Claw typed => PlayClaw(typed, choiceContext, cardPlay),
             ColdSnap typed => PlayColdSnap(typed, choiceContext, cardPlay),
             Coolheaded typed => PlayCoolheaded(typed, choiceContext),
             GoForTheEyes typed => PlayGoForTheEyes(typed, choiceContext, cardPlay),
@@ -1786,7 +1802,7 @@ internal static class BdCustomCommonCardPlayPatch
             Spinner typed => PlaySpinner(typed, choiceContext),
             _ => Task.CompletedTask
         };
-        return card is Barrage or BeamCell or ChargeBattery or ColdSnap or Coolheaded or
+        return card is Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or
             GoForTheEyes or GunkUp or Leap or LightningRod or Uproar or BdRecycle or Chaos or
             DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or
             BulkUp or HelixDrill or Synthesis or Sunder or RipAndTear or Hyperbeam or Spinner;
@@ -1845,6 +1861,36 @@ internal static class BdCustomCommonCardPlayPatch
             card.DynamicVars.Vulnerable.BaseValue,
             card.Owner.Creature,
             card);
+    }
+
+    private static async Task PlayClaw(Claw card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+
+        // Preserve vanilla Claw's ordering: this play uses the stacks earned
+        // before it, then grants one new stack to every Claw for future plays.
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
+            .BdFromCard(card, cardPlay)
+            .Targeting(cardPlay.Target)
+            .WithHitVfxNode(target => NScratchVfx.Create(target, goingRight: true))
+            .Execute(choiceContext);
+
+        var extraHits = Math.Max(0, BdCardVersionUpgrades.ClawExtraHitsField?.GetValue(card) is decimal stored ? (int)stored : 0);
+        var extraDamage = card.DynamicVars["Increase"].BaseValue;
+        for (var i = 0; i < extraHits; i++)
+        {
+            await DamageCmd.Attack(extraDamage)
+                .BdFromCard(card, cardPlay)
+                .Targeting(cardPlay.Target)
+                .WithHitVfxNode(target => NScratchVfx.Create(target, goingRight: true))
+                .Execute(choiceContext);
+        }
+
+        foreach (var claw in card.Owner.PlayerCombatState.AllCards.OfType<Claw>())
+        {
+            var previous = BdCardVersionUpgrades.ClawExtraHitsField?.GetValue(claw) is decimal priorStored ? priorStored : 0m;
+            BdCardVersionUpgrades.ClawExtraHitsField?.SetValue(claw, previous + 1m);
+        }
     }
 
     private static async Task PlayChargeBattery(ChargeBattery card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
@@ -3432,3 +3478,4 @@ internal static class BdCardVersionScrapePlayPatch
         }
     }
 }
+
