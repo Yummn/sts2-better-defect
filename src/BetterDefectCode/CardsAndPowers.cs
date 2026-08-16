@@ -662,15 +662,16 @@ public sealed class BdAggregate : CardModel
 public sealed class BdAutoShields : CardModel
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(10, ValueProp.Move) };
+    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(11, ValueProp.Move) };
     public BdAutoShields() : base(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
-        await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
+        if (BetterDefect.BdCardVersionUpgrades.IsVersionEnabled(this))
+            await OrbCmd.Channel<FrostOrb>(choiceContext, Owner);
         if (Owner.Creature.Block <= 0)
             await Bd.Block(this, cardPlay);
     }
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(5);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
 }
 
 public sealed class BdBlizzard : CardModel
@@ -741,7 +742,7 @@ public sealed class BdDoomAndGloom : CardModel
 public sealed class BdForceField : CardModel
 {
     public override bool GainsBlock => true;
-    public override IEnumerable<CardKeyword> CanonicalKeywords => new[] { CardKeyword.Retain };
+    public override IEnumerable<CardKeyword> CanonicalKeywords => Array.Empty<CardKeyword>();
     protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(12, ValueProp.Move) };
     public BdForceField() : base(4, CardType.Skill, CardRarity.Uncommon, TargetType.Self) { }
     protected override Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay) => Bd.Block(this, cardPlay);

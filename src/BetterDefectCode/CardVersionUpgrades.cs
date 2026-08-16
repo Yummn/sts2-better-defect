@@ -68,6 +68,7 @@ internal static class BdCardVersionUpgrades
         // the same persistent 50-point system as historical versions, but are
         // deliberately labelled as custom transformations in the Encyclopedia.
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(ColdSnap), typeof(Coolheaded),
+        typeof(FocusedStrike),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
         typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
 
@@ -76,6 +77,7 @@ internal static class BdCardVersionUpgrades
         typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
         typeof(Refract), typeof(Feral), typeof(Hailstorm), typeof(Iteration),
         typeof(Loop), typeof(Smokestack), typeof(Storm), typeof(Subroutine),
+        typeof(BdAutoShields), typeof(BdConsume), typeof(BdForceField), typeof(HelloWorld), typeof(Synchronize),
         typeof(BdReprogram), typeof(BdStaticDischarge), typeof(BulkUp), typeof(HelixDrill),
         typeof(BdReinforcedBody), typeof(Synthesis), typeof(Sunder), typeof(BdMelter),
         typeof(BdBullseye), typeof(RipAndTear), typeof(Scrape), typeof(Hyperbeam), typeof(Spinner),
@@ -111,6 +113,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BEAM_CELL"] = ("改造：自定义", "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤"),
             ["CARD.CHARGE_BATTERY"] = ("改造：自定义", "1费获得6(9)格挡；下回合获得1能量并抽1张牌"),
             ["CARD.COLD_SNAP"] = ("改造：自定义", "2费造成12(18)伤害并生成2个冰霜"),
+            ["CARD.FOCUSED_STRIKE"] = ("改造：自定义", "1费造成8(10)伤害并获得2(3)点临时集中"),
             ["CARD.COOLHEADED"] = ("改造：自定义", "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗"),
             ["CARD.GO_FOR_THE_EYES"] = ("改造：自定义", "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱"),
             ["CARD.GUNK_UP"] = ("改造：自定义", "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆"),
@@ -136,6 +139,11 @@ internal static class BdCardVersionUpgrades
             ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张"),
             ["CARD.STORM"] = ("改造：自定义", "1费固有；每打出能力牌生成1(2)个闪电球"),
             ["CARD.SUBROUTINE"] = ("改造：自定义", "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张"),
+            ["CARD.BD_AUTO_SHIELDS"] = ("改造：自定义", "生成1个冰霜；若没有格挡，获得10(15)格挡"),
+            ["CARD.BD_CONSUME"] = ("改造：自定义", "费用由2费改为1费；获得2(3)集中并失去1个球位"),
+            ["CARD.BD_FORCE_FIELD"] = ("改造：自定义", "获得保留；其余效果保持原版"),
+            ["CARD.HELLO_WORLD"] = ("改造：自定义", "每回合从3张随机普通牌中选择1张加入手牌"),
+            ["CARD.SYNCHRONIZE"] = ("改造：v0.110", "基础牌去除消耗；普通升级将每种不同充能球提供的临时集中提高到3"),
             ["CARD.ADAPTIVE_STRIKE"] = ("改造：自定义", "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆"),
             ["CARD.ALL_FOR_ONE"] = ("改造：自定义", "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌"),
             ["CARD.BUFFER"] = ("改造：自定义", "2费获得1(2)层缓冲和10点格挡"),
@@ -150,7 +158,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BIASED_COGNITION"] = ("改造：自定义", "稀有度改为金卡，效果不变"),
             ["CARD.METEOR_STRIKE"] = ("改造：自定义", "4费造成18(24)伤害并生成2个等离子"),
             ["CARD.MULTI_CAST"] = ("改造：自定义", "重复X(X+1)次：激发最右侧充能球2次，并重新生成相同充能球"),
-            ["CARD.RAINBOW"] = ("改造：自定义", "3费依次生成闪电、冰霜、黑暗、玻璃、等离子；基础消耗，升级移除消耗"),
+            ["CARD.RAINBOW"] = ("改造：自定义", "3费依次生成闪电、冰霜、玻璃、黑暗、等离子；基础消耗，升级移除消耗"),
             ["CARD.BD_THUNDER_STRIKE"] = ("改造：自定义", "效果不变；普通升级后费用改为2"),
             ["CARD.BD_CORE_SURGE"] = ("改造：自定义", "效果不变；普通升级后获得固有")
             ,
@@ -222,6 +230,7 @@ internal static class BdCardVersionUpgrades
         BeamCell => "0费造成3(4)点伤害并施加1(2)层锁定，不再施加易伤",
         ChargeBattery => "1费获得6(9)格挡；下回合获得1能量并抽1张牌",
         ColdSnap => "2费造成12(18)伤害并生成2个冰霜",
+        FocusedStrike => "1费造成8(10)伤害并获得2(3)点临时集中",
         Coolheaded => "1费抽2张牌并生成1个冰霜；基础牌消耗，普通升级移除消耗",
         GoForTheEyes => "造成3(4)伤害；无论敌人意图都施加1(2)层虚弱",
         GunkUp => "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆",
@@ -247,6 +256,11 @@ internal static class BdCardVersionUpgrades
         Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张",
         Storm => "1费固有；每打出能力牌生成1(2)个闪电球",
         Subroutine => "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张",
+        BdAutoShields => "生成1个冰霜；若没有格挡，获得10(15)格挡",
+        BdConsume => "费用由2费改为1费；获得2(3)集中并失去1个球位",
+        BdForceField => "获得保留；其余效果保持原版",
+        HelloWorld => "每回合从3张随机普通牌中选择1张加入手牌",
+        Synchronize => "基础牌去除消耗；普通升级将每种不同充能球提供的临时集中提高到3",
         AdaptiveStrike => "2费造成16(22)伤害；将一张0费、虚无的复制品加入抽牌堆",
         AllForOne => "1费造成6(9)伤害；从弃牌堆选择至多2(3)张当前为0费的牌加入手牌",
         BufferCard => "2费获得1(2)层缓冲和10点格挡",
@@ -261,7 +275,7 @@ internal static class BdCardVersionUpgrades
         BiasedCognition => "改为金卡，效果不变",
         MeteorStrike => "4费造成18(24)伤害并生成2个等离子",
         MultiCast => "激发X(X+1)个充能球，并在每次激发后重新生成相同类型的球",
-        Rainbow => "3费依次生成闪电、冰霜、黑暗、玻璃、等离子；基础消耗，升级移除消耗",
+        Rainbow => "3费依次生成闪电、冰霜、玻璃、黑暗、等离子；基础消耗，升级移除消耗",
         BdThunderStrike => "效果不变；普通升级后费用改为2",
         BdCoreSurge => "效果不变；普通升级后获得固有",
         BdReprogram => "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷",
@@ -387,6 +401,12 @@ internal static class BdCardVersionUpgrades
                     : plus ? 9m : 6m);
                 break;
 
+            case FocusedStrike:
+                SetEnergy(card, 1);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 10m : 8m : plus ? 11m : 9m);
+                SetDynamic(card, "FocusPower", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
+                break;
+
             case Coolheaded:
                 SetEnergy(card, 1);
                 SetDynamic(card, "Cards", upgradedVersion ? 2m : plus ? 2m : 1m);
@@ -495,6 +515,40 @@ internal static class BdCardVersionUpgrades
 
             case Subroutine:
                 SetEnergy(card, plus ? 0 : 1);
+                break;
+
+            case BdAutoShields:
+                SetEnergy(card, 1);
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 15m : 10m : plus ? 15m : 11m);
+                break;
+
+            case BdConsume:
+                SetEnergy(card, upgradedVersion ? 1 : 2);
+                SetDynamic(card, "Focus", plus ? 3m : 2m);
+                break;
+
+            case BdForceField:
+                SetEnergy(card, 4);
+                SetDynamic(card, "Block", plus ? 16m : 12m);
+                SetKeyword(card, CardKeyword.Retain, upgradedVersion);
+                break;
+
+            case HelloWorld:
+                SetEnergy(card, 1);
+                SetKeyword(card, CardKeyword.Innate, plus);
+                break;
+
+            case Synchronize:
+                SetEnergy(card, 1);
+                SetDynamic(card, "CalculationExtra", upgradedVersion
+                    ? plus ? 3m : 2m
+#if STS2_V110
+                    : plus ? 3m : 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
+#else
+                    : 2m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion ? false : !plus);
+#endif
                 break;
 
             case BdReprogram:
@@ -753,6 +807,10 @@ internal static class BdCardVersionUpgrades
             case ColdSnap:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m);
                 break;
+            case FocusedStrike:
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 10m : 11m);
+                UpgradeDynamicTo(card, "FocusPower", upgradedVersion ? 3m : 2m);
+                break;
             case Coolheaded:
                 UpgradeDynamicTo(card, "Cards", 2m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -824,6 +882,28 @@ internal static class BdCardVersionUpgrades
                 break;
             case Subroutine:
                 SetEnergy(card, 0);
+                break;
+            case BdAutoShields:
+                UpgradeDynamicTo(card, "Block", 15m);
+                break;
+            case BdConsume:
+                SetEnergy(card, upgradedVersion ? 1 : 2);
+                UpgradeDynamicTo(card, "Focus", 3m);
+                break;
+            case BdForceField:
+                UpgradeDynamicTo(card, "Block", 16m);
+                SetKeyword(card, CardKeyword.Retain, upgradedVersion);
+                break;
+            case HelloWorld:
+                SetKeyword(card, CardKeyword.Innate, true);
+                break;
+            case Synchronize:
+#if STS2_V110
+                UpgradeDynamicTo(card, "CalculationExtra", 3m);
+#else
+                UpgradeDynamicTo(card, "CalculationExtra", upgradedVersion ? 3m : 2m);
+#endif
+                SetKeyword(card, CardKeyword.Exhaust, false);
                 break;
             case BdReprogram:
                 UpgradeDynamicTo(card, "StrengthPower", upgradedVersion ? 2m : 2m);
@@ -984,6 +1064,11 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, upgradedVersion ? 2 : 1);
                 SetDynamic(card, "Damage", upgradedVersion ? plus ? 18m : 12m : plus ? 9m : 6m);
                 break;
+            case "CARD.FOCUSED_STRIKE":
+                SetEnergy(card, 1);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 10m : 8m : plus ? 11m : 9m);
+                SetDynamic(card, "FocusPower", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
+                break;
             case "CARD.COOLHEADED":
                 SetEnergy(card, 1);
                 SetDynamic(card, "Cards", upgradedVersion ? 2m : plus ? 2m : 1m);
@@ -1055,6 +1140,33 @@ internal static class BdCardVersionUpgrades
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case "CARD.SUBROUTINE": SetEnergy(card, plus ? 0 : 1); break;
+            case "CARD.BD_AUTO_SHIELDS":
+                SetEnergy(card, 1);
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 15m : 10m : plus ? 15m : 11m);
+                break;
+            case "CARD.BD_CONSUME":
+                SetEnergy(card, upgradedVersion ? 1 : 2);
+                SetDynamic(card, "Focus", plus ? 3m : 2m);
+                break;
+            case "CARD.BD_FORCE_FIELD":
+                SetEnergy(card, 4);
+                SetDynamic(card, "Block", plus ? 16m : 12m);
+                SetKeyword(card, CardKeyword.Retain, upgradedVersion);
+                break;
+            case "CARD.HELLO_WORLD":
+                SetEnergy(card, 1);
+                SetKeyword(card, CardKeyword.Innate, plus);
+                break;
+            case "CARD.SYNCHRONIZE":
+                SetEnergy(card, 1);
+#if STS2_V110
+                SetDynamic(card, "CalculationExtra", plus ? 3m : 2m);
+                SetKeyword(card, CardKeyword.Exhaust, false);
+#else
+                SetDynamic(card, "CalculationExtra", upgradedVersion && plus ? 3m : 2m);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion ? false : !plus);
+#endif
+                break;
             case "CARD.BD_REPROGRAM":
                 SetEnergy(card, 1);
                 SetDynamic(card, "Focus", 1m);
@@ -1220,6 +1332,10 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.CHARGE_BATTERY": UpgradeDynamicTo(card, "Block", upgradedVersion ? 9m : 10m); break;
             case "CARD.COLD_SNAP": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 18m : 9m); break;
+            case "CARD.FOCUSED_STRIKE":
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 10m : 11m);
+                UpgradeDynamicTo(card, "FocusPower", upgradedVersion ? 3m : 2m);
+                break;
             case "CARD.COOLHEADED":
                 UpgradeDynamicTo(card, "Cards", 2m);
                 SetKeyword(card, CardKeyword.Exhaust, false);
@@ -1268,6 +1384,24 @@ internal static class BdCardVersionUpgrades
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case "CARD.SUBROUTINE": SetEnergy(card, 0); break;
+            case "CARD.BD_AUTO_SHIELDS": UpgradeDynamicTo(card, "Block", 15m); break;
+            case "CARD.BD_CONSUME":
+                SetEnergy(card, upgradedVersion ? 1 : 2);
+                UpgradeDynamicTo(card, "Focus", 3m);
+                break;
+            case "CARD.BD_FORCE_FIELD":
+                UpgradeDynamicTo(card, "Block", 16m);
+                SetKeyword(card, CardKeyword.Retain, upgradedVersion);
+                break;
+            case "CARD.HELLO_WORLD": SetKeyword(card, CardKeyword.Innate, true); break;
+            case "CARD.SYNCHRONIZE":
+#if STS2_V110
+                UpgradeDynamicTo(card, "CalculationExtra", 3m);
+#else
+                UpgradeDynamicTo(card, "CalculationExtra", upgradedVersion ? 3m : 2m);
+#endif
+                SetKeyword(card, CardKeyword.Exhaust, false);
+                break;
             case "CARD.BD_REPROGRAM":
                 UpgradeDynamicTo(card, "StrengthPower", 2m);
                 UpgradeDynamicTo(card, "DexterityPower", 2m);
@@ -2315,8 +2449,8 @@ internal static class BdCustomRareCardPlay
         await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
         await OrbCmd.Channel<LightningOrb>(choiceContext, card.Owner);
         await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);
-        await OrbCmd.Channel<DarkOrb>(choiceContext, card.Owner);
         await OrbCmd.Channel<GlassOrb>(choiceContext, card.Owner);
+        await OrbCmd.Channel<DarkOrb>(choiceContext, card.Owner);
         await OrbCmd.Channel<PlasmaOrb>(choiceContext, card.Owner);
     }
 
@@ -2452,11 +2586,23 @@ internal static class BdCustomCoolantEndV103Patch
 [HarmonyPatch]
 internal static class BdCustomCreativeAiPowerPatch
 {
-    private static MethodBase? TargetMethod() => AccessTools.DeclaredMethod(typeof(CreativeAiPower), "BeforeHandDraw");
-
-    private static bool Prefix(CreativeAiPower __instance, object[] __args, ref Task __result)
+    private static IEnumerable<MethodBase> TargetMethods()
     {
-        if (!BdCardVersionUpgrades.IsVersionEnabled<CreativeAi>()) return true;
+        var creativeAi = AccessTools.DeclaredMethod(typeof(CreativeAiPower), "BeforeHandDraw");
+        if (creativeAi != null) yield return creativeAi;
+        var helloWorld = AccessTools.DeclaredMethod(typeof(HelloWorldPower), "BeforeHandDraw");
+        if (helloWorld != null) yield return helloWorld;
+    }
+
+    private static bool Prefix(PowerModel __instance, object[] __args, ref Task __result)
+    {
+        var customCreativeAi = __instance is CreativeAiPower &&
+                               BdCardVersionUpgrades.IsVersionEnabled<CreativeAi>();
+        var customHelloWorld = __instance is HelloWorldPower &&
+                               BdCardVersionUpgrades.IsVersionEnabled<HelloWorld>();
+        if (!customCreativeAi && !customHelloWorld)
+            return true;
+
         var player = __args.OfType<Player>().FirstOrDefault();
         var context = __args.OfType<PlayerChoiceContext>().FirstOrDefault();
         if (player == null || context == null || player != __instance.Owner.Player)
@@ -2464,11 +2610,21 @@ internal static class BdCustomCreativeAiPowerPatch
             __result = Task.CompletedTask;
             return false;
         }
-        __result = Trigger(__instance, player, context);
-        return false;
+
+        if (__instance is CreativeAiPower creativeAi && customCreativeAi)
+        {
+            __result = TriggerCreativeAi(creativeAi, player, context);
+            return false;
+        }
+        if (__instance is HelloWorldPower helloWorld && customHelloWorld)
+        {
+            __result = TriggerHelloWorld(helloWorld, player, context);
+            return false;
+        }
+        return true;
     }
 
-    private static async Task Trigger(CreativeAiPower power, Player player, PlayerChoiceContext choiceContext)
+    private static async Task TriggerCreativeAi(CreativeAiPower power, Player player, PlayerChoiceContext choiceContext)
     {
         for (var i = 0; i < power.Amount; i++)
         {
@@ -2482,6 +2638,23 @@ internal static class BdCustomCreativeAiPowerPatch
             var selected = await CardSelectCmd.FromChooseACardScreen(choiceContext, choices, player);
             if (selected == null) continue;
             selected.SetToFreeThisTurn();
+            CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(selected, PileType.Hand, player));
+        }
+    }
+
+    private static async Task TriggerHelloWorld(HelloWorldPower power, Player player, PlayerChoiceContext choiceContext)
+    {
+        for (var i = 0; i < power.AmountOnTurnStart; i++)
+        {
+            var choices = CardFactory.GetDistinctForCombat(
+                    player,
+                    player.Character.CardPool.GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint)
+                        .Where(card => card.Rarity == CardRarity.Common),
+                    3,
+                    player.RunState.Rng.CombatCardGeneration)
+                .ToList();
+            var selected = await CardSelectCmd.FromChooseACardScreen(choiceContext, choices, player);
+            if (selected == null) continue;
             CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(selected, PileType.Hand, player));
         }
     }

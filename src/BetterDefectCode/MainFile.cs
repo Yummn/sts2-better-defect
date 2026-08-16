@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.50: Android v103/v110 compatibility build; transformed Recycle+ stays at 1 energy and removes Exhaust; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.51: Android v103/v110 compatibility build; seven additional Defect transformations and corrected Rainbow order; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.50: PC v107.1 compatibility build; transformed Recycle+ stays at 1 energy and removes Exhaust.");
+            Logger.Info("[BetterDefect] loaded v0.11.51: PC v107.1 compatibility build; seven additional Defect transformations and corrected Rainbow order.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

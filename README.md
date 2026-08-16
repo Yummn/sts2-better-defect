@@ -6,6 +6,8 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.51](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.51): adds transformations for Focused Strike, Synchronize, Auto Shields, Consume, Force Field and Hello World; corrects transformed Rainbow orb order. Focused Strike becomes 8 (10) damage and 2 (3) temporary Focus; Synchronize follows v110 behavior; Auto Shields and Force Field preserve their original behavior outside transformation. Android v103, Android v110.1 and PC v107.1 builds compile successfully, and PC startup loading was verified.
+
 - [v0.11.50](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.50): changes transformed Recycle's normal upgrade from reducing its cost to 0 into removing Exhaust while keeping its cost at 1. The non-transformed restored Recycle remains 1 (0) energy with Exhaust. An Android v110.1 live combat test confirmed Recycle+ costs 1, exhausts the selected hand card, grants one Orb slot, and does not exhaust itself; Android v103, Android v110.1 and PC v107.1 compatibility builds compile successfully.
 
 - [v0.11.49](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.49): completes the Recursion card-task fix. Evocation now mirrors the native model stack, includes the native inter-evoke wait, keeps the transformed leftmost orb object stable across both activations, and preserves accumulated Dark evoke damage. A live Android v110.1 combat test passed and, five seconds after play, confirmed Recursion had left the hand and entered the discard pile instead of remaining in midair. Android v103 and PC v107.1 compatibility builds compile with zero errors.

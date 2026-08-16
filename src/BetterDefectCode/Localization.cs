@@ -21,7 +21,7 @@ internal static class BdLocalization
         ["cards/BD_AGGREGATE.title"] = "汇集",
         ["cards/BD_AGGREGATE.description"] = "抽牌堆中每有 {Divisor:diff()} 张牌，获得 1 点[gold]能量[/gold]。",
         ["cards/BD_AUTO_SHIELDS.title"] = "自动护盾",
-        ["cards/BD_AUTO_SHIELDS.description"] = "[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。\n如果你没有[gold]格挡[/gold]，获得{Block:diff()}点[gold]格挡[/gold]。",
+        ["cards/BD_AUTO_SHIELDS.description"] = "如果你没有[gold]格挡[/gold]，获得{Block:diff()}点[gold]格挡[/gold]。",
         ["cards/BD_BLIZZARD.title"] = "暴雪",
         ["cards/BD_BLIZZARD.description"] = "本场战斗每充能过 1 个[gold]冰霜[/gold]，对所有敌人造成 {Damage:diff()} 点伤害。",
         ["cards/BD_BULLSEYE.title"] = "瞄准靶心",
@@ -144,6 +144,7 @@ internal static class BdLocalization
         var beamCellCustom = IsVersionEnabled<BeamCell>();
         var chargeBatteryCustom = IsVersionEnabled<ChargeBattery>();
         var coldSnapCustom = IsVersionEnabled<ColdSnap>();
+        var focusedStrikeCustom = IsVersionEnabled<FocusedStrike>();
         var coolheadedCustom = IsVersionEnabled<Coolheaded>();
         var goForTheEyesCustom = IsVersionEnabled<GoForTheEyes>();
         var gunkUpCustom = IsVersionEnabled<GunkUp>();
@@ -170,6 +171,11 @@ internal static class BdLocalization
         var smokestackCustom = IsVersionEnabled<Smokestack>();
         var stormCustom = IsVersionEnabled<Storm>();
         var subroutineCustom = IsVersionEnabled<Subroutine>();
+        var autoShieldsCustom = IsVersionEnabled<Cards.BdAutoShields>();
+        var consumeCustom = IsVersionEnabled<Cards.BdConsume>();
+        var forceFieldCustom = IsVersionEnabled<Cards.BdForceField>();
+        var helloWorldCustom = IsVersionEnabled<HelloWorld>();
+        var synchronizeCustom = IsVersionEnabled<Synchronize>();
         var reprogramCustom = IsVersionEnabled<Cards.BdReprogram>();
         var staticDischargeCustom = IsVersionEnabled<Cards.BdStaticDischarge>();
         var bulkUpCustom = IsVersionEnabled<BulkUp>();
@@ -233,6 +239,10 @@ internal static class BdLocalization
             ["COLD_SNAP.description"] = coldSnapCustom
                 ? "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]2个[gold]冰霜[/gold]充能球。"
                 : "造成{Damage:diff()}点伤害。\n[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。",
+
+            ["FOCUSED_STRIKE.description"] = focusedStrikeCustom
+                ? "造成{Damage:diff()}点伤害。\n本回合获得{FocusPower:diff()}点[gold]集中[/gold]。"
+                : "造成{Damage:diff()}点伤害。\n本回合获得{FocusPower:diff()}点[gold]集中[/gold]。",
 
             ["COOLHEADED.description"] = coolheadedCustom
                 ? "抽{Cards:diff()}张牌。\n[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。"
@@ -338,6 +348,22 @@ internal static class BdLocalization
                 ? "当你打出一张能力牌时，每层获得{energyPrefix:energyIcons(1)}。每层在每回合第一次触发时，额外抽1张牌。"
                 : "当你打出一张能力牌时，获得{energyPrefix:energyIcons(1)}。",
 
+            ["BD_AUTO_SHIELDS.description"] = autoShieldsCustom
+                ? "[gold]生成[/gold]1个[gold]冰霜[/gold]充能球。\n如果你没有[gold]格挡[/gold]，获得{Block:diff()}点[gold]格挡[/gold]。"
+                : "如果你没有[gold]格挡[/gold]，获得{Block:diff()}点[gold]格挡[/gold]。",
+
+            ["BD_CONSUME.description"] = "获得{Focus:diff()}点[gold]集中[/gold]。失去1个充能球栏位。",
+
+            ["BD_FORCE_FIELD.description"] = "获得{Block:diff()}点[gold]格挡[/gold]。\n本场战斗每打出1张能力牌，费用减少1。",
+
+            ["HELLO_WORLD.description"] = helloWorldCustom
+                ? "每回合开始时，从3张随机普通牌中选择1张加入你的[gold]手牌[/gold]。"
+                : "每回合开始时，将1张随机普通牌加入你的[gold]手牌[/gold]。",
+
+            ["SYNCHRONIZE.description"] = synchronizeCustom
+                ? "本回合每有一种不同的充能球，获得{CalculationExtra:diff()}点[gold]集中[/gold]。"
+                : "本回合每有一种不同的充能球，获得{CalculationExtra:diff()}点[gold]集中[/gold]。",
+
             ["BD_REPROGRAM.description"] = reprogramCustom
                 ? "{IfUpgraded:show:[gold]激发[/gold]所有充能球。|移除所有充能球但不激发。}\n失去1点[gold]集中[/gold]。获得2点[gold]力量[/gold]和2点[gold]敏捷[/gold]。"
                 : "失去{Focus:diff()}点[gold]集中[/gold]。\n获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
@@ -428,7 +454,7 @@ internal static class BdLocalization
                 : "[gold]激发[/gold]下一个充能球{IfUpgraded:show:X+1|X}次。",
 
             ["RAINBOW.description"] = rainbowCustom
-                ? "依次[gold]生成[/gold]闪电、冰霜、黑暗、玻璃和等离子充能球。"
+                ? "依次[gold]生成[/gold]闪电、冰霜、玻璃、黑暗和等离子充能球。"
                 : "依次[gold]生成[/gold]闪电、冰霜和黑暗充能球。",
         };
 
@@ -436,6 +462,12 @@ internal static class BdLocalization
 
         var powerDescriptions = new Dictionary<string, string>
         {
+            ["HELLO_WORLD_POWER.description"] = helloWorldCustom
+                ? "每回合开始时，从3张随机普通牌中选择1张加入手牌。"
+                : "每回合开始时，将1张随机普通牌加入手牌。",
+            ["HELLO_WORLD_POWER.smartDescription"] = helloWorldCustom
+                ? "每回合开始时，每层从3张随机普通牌中选择1张加入手牌。"
+                : "每回合开始时，将[blue]{Amount}[/blue]张随机普通牌加入手牌。",
             ["FERAL_POWER.description"] = feralCustom
                 ? "每回合你第一次打出0{energyPrefix:energyIcons(1)}牌时，将其放回你的[gold]手牌[/gold]中。"
                 : "每回合你第一次打出0{energyPrefix:energyIcons(1)}攻击牌时，将其放回你的[gold]手牌[/gold]中。",
