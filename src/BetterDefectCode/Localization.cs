@@ -414,7 +414,7 @@ internal static class BdLocalization
                 : "随机造成{Damage:diff()}点伤害两次。",
 
             ["HYPERBEAM.description"] = hyperbeamCustom
-                ? "对所有敌人造成{Damage:diff()}点伤害。每有一个充能球，失去1点[gold]集中[/gold]。"
+                ? "对所有敌人造成{Damage:diff()}点伤害。\n本回合失去{FocusPower:diff()}点[gold]集中[/gold]。"
                 : "对所有敌人造成{Damage:diff()}点伤害。失去{FocusPower:diff()}点[gold]集中[/gold]。",
 
             ["SPINNER.description"] = spinnerCustom

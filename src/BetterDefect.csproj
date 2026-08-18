@@ -19,6 +19,13 @@
     <DefineConstants>$(DefineConstants);STS2_V110</DefineConstants>
   </PropertyGroup>
 
+  <!-- PC v107.1 already uses the modern side-turn hook even though its public
+       version number predates Android v110. Keep that ABI distinction separate
+       from the other v110-only APIs. -->
+  <PropertyGroup Condition="'$(Sts2TargetVersion)' == ''">
+    <DefineConstants>$(DefineConstants);STS2_PC_MODERN</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup Condition="Exists('$(Sts2DataDir)')">
     <Reference Include="0Harmony"><HintPath>$(Sts2DataDir)/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="sts2"><HintPath>$(Sts2DataDir)/sts2.dll</HintPath><Private>false</Private></Reference>

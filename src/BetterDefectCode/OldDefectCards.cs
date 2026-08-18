@@ -419,7 +419,7 @@ internal static class OldDefectPowers
         typeof(BdHeatsinksPower), typeof(BdSelfRepairPower), typeof(BdStaticDischargePower),
         typeof(BdStaticDischargeChargePower),
         typeof(BdElectrodynamicsPower), typeof(BdLockOnPower), typeof(BdBulkUpPower),
-        typeof(BdScrapeTemporaryStrengthPower), typeof(BdBullseyeTargetPower),
+        typeof(BdScrapeTemporaryStrengthPower), typeof(BdHyperbeamTemporaryFocusDownPower), typeof(BdBullseyeTargetPower),
         typeof(BdSpinnerNoDecayPower), typeof(BdReworkedBiasedCognitionPower),
     };
 }

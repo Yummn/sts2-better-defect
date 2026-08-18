@@ -98,7 +98,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.HOTFIX"] = ("v0.99", "基础牌不再消耗；普通升级额外把集中从2提高到3"),
             ["CARD.ROCKET_PUNCH"] = ("v0.100", "生成状态牌后，0费持续到这张牌被打出，而不是只持续到回合结束"),
             ["CARD.VOLTAIC"] = ("v0.99", "耗能从3降为2；普通升级仍会移除消耗"),
-            ["CARD.HYPERBEAM"] = ("改造：自定义", "2费对全体造成30(38)伤害；每有一个充能球失去1点集中"),
+            ["CARD.HYPERBEAM"] = ("改造：v0.111", "2费对全体造成24(30)伤害；本回合失去3点集中"),
             ["CARD.SHATTER"] = ("v0.105", "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次"),
             ["CARD.TESLA_COIL"] = ("v0.105", "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次"),
             ["CARD.UPROAR"] = ("改造：自定义", "造成5(7)点伤害两次；随机打出抽牌堆中费用最高的1(2)张攻击牌"),
@@ -193,7 +193,7 @@ internal static class BdCardVersionUpgrades
         Hotfix => "v0.99",
         RocketPunch => "v0.100",
         Voltaic => "v0.99",
-        Hyperbeam => "改造：自定义",
+        Hyperbeam => "改造：v0.111",
         Shatter => "v0.105",
         TeslaCoil => "v0.105",
         Uproar => "改造：自定义",
@@ -217,7 +217,7 @@ internal static class BdCardVersionUpgrades
         Hotfix => "基础牌不再消耗；普通升级额外把集中从2提高到3",
         RocketPunch => "生成状态牌后，0费持续到这张牌被打出，而不是只持续到回合结束",
         Voltaic => "耗能从3降为2；普通升级仍会移除消耗",
-        Hyperbeam => "2费对全体造成30(38)伤害；每有一个充能球失去1点集中",
+        Hyperbeam => "2费对全体造成24(30)伤害；本回合失去3点集中",
         Shatter => "伤害由7(11)提高到11(15)，移除消耗；所有充能球仍激发两次",
         TeslaCoil => "基础：3伤并触发所有闪电被动1次；升级：4伤并触发2次",
         Uproar => "造成5(7)点伤害两次；随机打出抽牌堆中费用最高的1(2)张攻击牌",
@@ -673,8 +673,9 @@ internal static class BdCardVersionUpgrades
 
             case Hyperbeam:
                 SetDynamic(card, "Damage", upgradedVersion
-                    ? plus ? 38m : 30m
+                    ? plus ? 30m : 24m
                     : plus ? 34m : 26m);
+                SetDynamic(card, "FocusPower", 3m);
                 break;
 
             case Shatter:
@@ -989,7 +990,7 @@ internal static class BdCardVersionUpgrades
                 SetKeyword(card, CardKeyword.Exhaust, false);
                 break;
             case Hyperbeam:
-                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 38m : 34m);
+                UpgradeDynamicTo(card, "Damage", upgradedVersion ? 30m : 34m);
                 break;
             case Shatter:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 15m : 11m);
@@ -1269,7 +1270,8 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.HYPERBEAM":
                 SetEnergy(card, 2);
-                SetDynamic(card, "Damage", upgradedVersion ? plus ? 38m : 30m : plus ? 34m : 26m);
+                SetDynamic(card, "Damage", upgradedVersion ? plus ? 30m : 24m : plus ? 34m : 26m);
+                SetDynamic(card, "FocusPower", 3m);
                 break;
             case "CARD.SHATTER":
                 SetDynamic(card, "Damage", upgradedVersion ? plus ? 15m : 11m : plus ? 11m : 7m);
@@ -2236,11 +2238,12 @@ internal static class BdCustomCommonCardPlayPatch
         foreach (var enemy in Bd.Enemies(card))
             VfxCmd.PlayOnCreature(enemy, "vfx/vfx_attack_lightning");
         await Bd.DamageAll(choiceContext, card, card.DynamicVars.Damage);
-        var orbCount = card.Owner.PlayerCombatState.OrbQueue.Orbs.Count;
-        if (orbCount > 0)
-            await Bd.ApplyPower<FocusPower>(
-                choiceContext, card.Owner.Creature, -orbCount,
-                card.Owner.Creature, card);
+        await Bd.ApplyPower<BdHyperbeamTemporaryFocusDownPower>(
+            choiceContext,
+            card.Owner.Creature,
+            card.DynamicVars["FocusPower"].BaseValue,
+            card.Owner.Creature,
+            card);
     }
 
     private static async Task PlaySpinner(Spinner card, PlayerChoiceContext choiceContext)

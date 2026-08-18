@@ -1203,6 +1203,17 @@ public sealed class BdScrapeTemporaryStrengthPower : TemporaryStrengthPower
     public override AbstractModel OriginModel => ModelDb.Card<Scrape>();
 }
 
+/// <summary>
+/// v0.111 Hyperbeam's Focus loss. TemporaryFocusPower applies the negative
+/// Focus immediately, stacks repeated plays correctly, and restores the same
+/// amount at the end of the player's turn.
+/// </summary>
+public sealed class BdHyperbeamTemporaryFocusDownPower : TemporaryFocusPower
+{
+    public override AbstractModel OriginModel => ModelDb.Card<Hyperbeam>();
+    protected override bool IsPositive => false;
+}
+
 public sealed class BdBullseyeTargetPower : PowerModel
 {
     protected override bool IsVisibleInternal => false;
@@ -1540,7 +1551,11 @@ public sealed class BdLockOnPower : PowerModel
         return 1m;
     }
 
+#if STS2_V110 || STS2_PC_MODERN
     public override Task AfterSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)
+#else
+    public override Task AfterTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)
+#endif
     {
         // Lock-On is a duration measured in enemy turns, not charges consumed by
         // individual orb hits.

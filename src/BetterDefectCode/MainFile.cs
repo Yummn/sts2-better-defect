@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.54: Android v103/v110 compatibility build; transformed Hello World card choice can be skipped; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.55: Android v103/v110 compatibility build; transformed Hyperbeam uses v0.111 temporary Focus loss; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.54: PC v107.1 compatibility build; transformed Hello World card choice can be skipped.");
+            Logger.Info("[BetterDefect] loaded v0.11.55: PC v107.1 compatibility build; transformed Hyperbeam uses v0.111 temporary Focus loss.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
