@@ -15,7 +15,7 @@ internal static class BdCardUpgradeState
 {
     public const int NormalPointLimit = 25;
     public const int OverclockPointLimit = 35;
-    public const int MaxCardPointBudget = 50;
+    public const int MaxCardPointBudget = 60;
 
     private const string RuntimeFolderName = "BetterDefect";
     private const string StateFileName = "BetterDefect.CardUpgrades.state.dat";

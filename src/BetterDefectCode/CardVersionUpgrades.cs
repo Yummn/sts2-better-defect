@@ -46,7 +46,7 @@ internal static class BdAttackCommandCompatibility
 }
 
 /// <summary>
-/// The 50-point card-version upgrade system.  A point does not put a normal
+/// The 60-point card-version upgrade system.  A point does not put a normal
 /// smithing upgrade on every copy of a card; it switches that card to the
 /// requested historical balance version, while normal + upgrades continue to
 /// work on individual cards.
@@ -65,7 +65,7 @@ internal static class BdCardVersionUpgrades
         typeof(Compact), typeof(MomentumStrike), typeof(TrashToTreasure),
 
         // Custom common-card transformations selected by the user. These use
-        // the same persistent 50-point system as historical versions, but are
+        // the same persistent 60-point system as historical versions, but are
         // deliberately labelled as custom transformations in the Encyclopedia.
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
         typeof(FocusedStrike),

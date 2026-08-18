@@ -402,7 +402,7 @@ internal static partial class BdCardUpgradeStatsHud
             _title.SizeFlagsHorizontal = SizeFlags.ExpandFill;
             header.AddChild(_title);
 
-            _counter = MakeLabel("0/50", 13, HorizontalAlignment.Right);
+            _counter = MakeLabel($"0/{MaxPoints}", 13, HorizontalAlignment.Right);
             header.AddChild(_counter);
             header.AddChild(MakeOrnament("◆"));
 
