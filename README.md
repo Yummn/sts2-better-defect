@@ -6,6 +6,7 @@ Compatibility: Android v103, Android v110.1 and current PC builds. Download from
 
 ## Latest
 
+- [v0.11.54](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.54): transformed Hello World's three-common-card choice can now be skipped. Android v110.1 live combat verification observed `canSkip=true`; skipping kept the hand unchanged (5 -> 5). Android v103, Android v110.1 and PC v107.1 packages are provided.
 - [v0.11.53](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.53): adds the transformed Claw. It starts at 3 (4) damage; every Claw played grants every Claw one additional 2 (3)-damage hit for the rest of combat. The current play receives stacks earned before it, matching vanilla Claw ordering. Android v110.1 live combat verification resolved three consecutive plays as [3], [3,2], and upgraded [4,3,3]. Android v103, Android v110.1 and PC v107.1 builds compile successfully.
 
 - [v0.11.52](https://github.com/Yummn/sts2-better-defect/releases/tag/v0.11.52): redesigns transformed Static Discharge. Every Lightning orb generated while the power is active stores +2 (+3 when upgraded) damage for the next Attack; stacks from multiple Lightning orbs accumulate, and the full bonus applies to every hit of a multi-hit Attack before being consumed. Android v110.1 live combat regression generated two Lightning orbs and confirmed Sword Boomerang dealt 7/7/7 damage with a +4 charge, then removed the charge. Android v103, Android v110.1 and PC v107.1 builds compile successfully.

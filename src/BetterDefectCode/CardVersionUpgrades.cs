@@ -2699,7 +2699,7 @@ internal static class BdCustomCreativeAiPowerPatch
                     3,
                     player.RunState.Rng.CombatCardGeneration)
                 .ToList();
-            var selected = await CardSelectCmd.FromChooseACardScreen(choiceContext, choices, player);
+            var selected = await CardSelectCmd.FromChooseACardScreen(choiceContext, choices, player, canSkip: true);
             if (selected == null) continue;
             CardCmd.PreviewCardPileAdd(await Bd.AddGeneratedCardToCombat(selected, PileType.Hand, player));
         }
