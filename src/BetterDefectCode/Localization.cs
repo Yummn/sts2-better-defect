@@ -154,6 +154,7 @@ internal static class BdLocalization
         var gunkUpCustom = IsVersionEnabled<GunkUp>();
         var leapCustom = IsVersionEnabled<Leap>();
         var lightningRodCustom = IsVersionEnabled<LightningRod>();
+        var reboundCustom = IsVersionEnabled<Rebound>();
         var sweepingBeamCustom = IsVersionEnabled<SweepingBeam>();
         var uproarCustom = IsVersionEnabled<Uproar>();
         var recursionCustom = IsVersionEnabled<Cards.BdRecursion>();
@@ -206,6 +207,10 @@ internal static class BdLocalization
 
         var descriptions = new Dictionary<string, string>
         {
+            ["REBOUND.selectionScreenPrompt"] = "选择1张牌放到抽牌堆顶部。",
+            ["REBOUND.description"] = reboundCustom
+                ? "造成{Damage:diff()}点伤害。\n从你的[gold]弃牌堆[/gold]中选择1张牌，放到[gold]抽牌堆[/gold]顶部。"
+                : "造成{Damage:diff()}点伤害。\n下一张打出的牌放到你的[gold]抽牌堆[/gold]顶部。",
             ["ROCKET_PUNCH.description"] = rocketV100
                 ? "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能将在下一次打出前降为0{energyPrefix:energyIcons(1)}。"
                 : "造成{Damage:diff()}点伤害。\n抽{Cards:diff()}张牌。\n每当你生成状态牌时，此牌的耗能降为0{energyPrefix:energyIcons(1)}，直到打出或当前回合结束。",

@@ -70,7 +70,7 @@ internal static class BdCardVersionUpgrades
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
         typeof(FocusedStrike),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-        typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
+        typeof(Rebound), typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
 
         // User-approved uncommon-card transformations.
         typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough), typeof(Skim),
@@ -120,6 +120,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.GUNK_UP"] = ("改造：自定义", "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆"),
             ["CARD.LEAP"] = ("改造：自定义", "获得8(11)格挡；打出后本场战斗变为0费"),
             ["CARD.LIGHTNING_ROD"] = ("改造：自定义", "获得5(8)格挡；立即生成1闪电，下回合再生成1闪电"),
+            ["CARD.REBOUND"] = ("改造：自定义", "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
             ["CARD.BD_RECYCLE"] = ("改造：自定义", "1费；消耗1张手牌并获得1个充能球栏位；基础牌消耗，普通升级移除消耗；稀有度改为白卡"),
@@ -204,7 +205,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "改造：自定义",
         Sunder => "改造：自定义",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine or
         BdReprogram or BdStaticDischarge or BulkUp or HelixDrill or BdReinforcedBody or BdMelter or BdBullseye or RipAndTear or Spinner or
         AdaptiveStrike or AllForOne or BufferCard or ConsumingShadow or Coolant or CreativeAi or EchoForm or FlakCannon or GeneticAlgorithm or IceLance or Defragment or BiasedCognition or
@@ -239,6 +240,7 @@ internal static class BdCardVersionUpgrades
         GunkUp => "造成4(5)伤害三次；黏液加入手牌而不是弃牌堆",
         Leap => "获得8(11)格挡；打出后本场战斗变为0费",
         LightningRod => "获得5(8)格挡；立即生成1闪电，下回合再生成1闪电",
+        Rebound => "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部",
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
         BdRecycle => "1费；消耗1张手牌并获得1个充能球栏位；基础牌消耗，普通升级移除消耗；稀有度改为白卡",
@@ -1739,7 +1741,7 @@ internal static class BdCustomCommonCardPlayPatch
         [
             typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-            typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
+            typeof(Rebound), typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
             typeof(BulkUp), typeof(HelixDrill), typeof(Synthesis), typeof(Sunder),
             typeof(RipAndTear), typeof(Hyperbeam), typeof(Spinner)
@@ -1785,6 +1787,7 @@ internal static class BdCustomCommonCardPlayPatch
             GunkUp typed => PlayGunkUp(typed, choiceContext, cardPlay),
             Leap typed => PlayLeap(typed, cardPlay),
             LightningRod typed => PlayLightningRod(typed, choiceContext, cardPlay),
+            Rebound typed => PlayRebound(typed, choiceContext, cardPlay),
             Uproar typed => PlayUproar(typed, choiceContext, cardPlay),
             BdRecycle typed => PlayRecycle(typed, choiceContext),
             Chaos typed => PlayChaos(typed, choiceContext),
@@ -1805,7 +1808,7 @@ internal static class BdCustomCommonCardPlayPatch
             _ => Task.CompletedTask
         };
         return card is Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or
-            GoForTheEyes or GunkUp or Leap or LightningRod or Uproar or BdRecycle or Chaos or
+            GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or Uproar or BdRecycle or Chaos or
             DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or
             BulkUp or HelixDrill or Synthesis or Sunder or RipAndTear or Hyperbeam or Spinner;
     }
@@ -1956,6 +1959,35 @@ internal static class BdCustomCommonCardPlayPatch
         await CreatureCmd.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardPlay);
         await OrbCmd.Channel<LightningOrb>(choiceContext, card.Owner);
         await Bd.ApplyPower<LightningRodPower>(choiceContext, card.Owner.Creature, 1m, card.Owner.Creature, card);
+    }
+
+    private static async Task PlayRebound(Rebound card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    {
+        MainFile.Logger.Info($"[BetterDefect][Rebound] transformed play entered; upgraded={card.IsUpgraded} damage={card.DynamicVars.Damage.IntValue}.");
+        ArgumentNullException.ThrowIfNull(cardPlay.Target, nameof(cardPlay.Target));
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
+            .BdFromCard(card, cardPlay)
+            .Targeting(cardPlay.Target)
+            .WithHitFx("vfx/vfx_attack_slash")
+            .Execute(choiceContext);
+
+        var discard = PileType.Discard.GetPile(card.Owner).Cards.ToList();
+        MainFile.Logger.Info($"[BetterDefect][Rebound] discard selection opened with {discard.Count} card(s).");
+        if (discard.Count == 0)
+            return;
+
+        var selected = (await CardSelectCmd.FromSimpleGrid(
+            choiceContext,
+            discard,
+            card.Owner,
+            new CardSelectorPrefs(
+                new MegaCrit.Sts2.Core.Localization.LocString("cards", "REBOUND.selectionScreenPrompt"),
+                1))).FirstOrDefault();
+        if (selected is not null)
+        {
+            await CardPileCmd.Add(selected, PileType.Draw, CardPilePosition.Top);
+            MainFile.Logger.Info($"[BetterDefect][Rebound] selected {selected.Id.Entry} and placed it on draw-pile top.");
+        }
     }
 
     private static async Task PlayUproar(Uproar card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
