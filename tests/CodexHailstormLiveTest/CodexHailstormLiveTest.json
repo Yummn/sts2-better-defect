@@ -1,0 +1,12 @@
+{
+  "id": "CodexHailstormLiveTest",
+  "name": "Codex Hailstorm Live Test",
+  "author": "Codex",
+  "description": "Temporary Android v110 regression test for transformed Hailstorm 3(4) damage events and status text.",
+  "version": "0.1.0",
+  "min_game_version": "0.110.1",
+  "has_pck": false,
+  "has_dll": true,
+  "dependencies": ["BetterDefect"],
+  "affects_gameplay": false
+}

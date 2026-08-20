@@ -136,7 +136,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.NULL"] = ("改造：自定义", "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个"),
             ["CARD.REFRACT"] = ("改造：自定义", "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费"),
             ["CARD.FERAL"] = ("改造：自定义", "2(1)费；每回合第一次打出的0费牌返回手牌"),
-            ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每个冰霜分别对所有敌人造成2(3)伤害"),
+            ["CARD.HAILSTORM"] = ("改造：自定义", "1费；回合结束时每个冰霜分别对所有敌人造成3(4)伤害"),
             ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
             ["CARD.LOOP"] = ("改造：自定义", "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次"),
             ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张"),
@@ -257,7 +257,7 @@ internal static class BdCardVersionUpgrades
         Null => "2费造成10(13)伤害，施加2(3)层虚弱并生成黑暗；目标原有虚弱则再生成1个",
         Refract => "3费造成9(12)伤害两次并生成2个玻璃；栏位中有玻璃球时变为2费",
         Feral => "2(1)费；每回合第一次打出的0费牌返回手牌",
-        Hailstorm => "1费；回合结束时每个冰霜分别对所有敌人造成2(3)伤害",
+        Hailstorm => "1费；回合结束时每个冰霜分别对所有敌人造成3(4)伤害",
         Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
         Loop => "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次",
         Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张",
@@ -504,7 +504,7 @@ internal static class BdCardVersionUpgrades
 
             case Hailstorm:
                 SetDynamic(card, "HailstormPower", upgradedVersion
-                    ? plus ? 3m : 2m
+                    ? plus ? 4m : 3m
                     : plus ? 8m : 6m);
                 break;
 
@@ -890,7 +890,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "FeralPower", 1m);
                 break;
             case Hailstorm:
-                UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m);
+                UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 4m : 8m);
                 break;
             case Iteration:
                 UpgradeDynamicTo(card, "IterationPower", 3m);
@@ -1154,7 +1154,7 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "FeralPower", 1m);
                 break;
             case "CARD.HAILSTORM":
-                SetDynamic(card, "HailstormPower", upgradedVersion ? plus ? 3m : 2m : plus ? 8m : 6m);
+                SetDynamic(card, "HailstormPower", upgradedVersion ? plus ? 4m : 3m : plus ? 8m : 6m);
                 break;
             case "CARD.ITERATION": SetDynamic(card, "IterationPower", plus ? 3m : 2m); break;
             case "CARD.LOOP":
@@ -1405,7 +1405,7 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, 1);
                 UpgradeDynamicTo(card, "FeralPower", 1m);
                 break;
-            case "CARD.HAILSTORM": UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 3m : 8m); break;
+            case "CARD.HAILSTORM": UpgradeDynamicTo(card, "HailstormPower", upgradedVersion ? 4m : 8m); break;
             case "CARD.ITERATION": UpgradeDynamicTo(card, "IterationPower", 3m); break;
             case "CARD.LOOP":
                 if (upgradedVersion) SetEnergy(card, 0);

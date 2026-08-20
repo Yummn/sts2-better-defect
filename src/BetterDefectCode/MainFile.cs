@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.59: Android v103/v110 compatibility build; transformed Storm now stores 2(3) damage per Lightning for every hit of the next Attack, while transformed Static Discharge restores its retaliatory Lightning and Block behavior; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.60: Android v103/v110 compatibility build; transformed Hailstorm now deals 3(4) damage to all enemies separately for every Frost orb; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.59: PC v107.1 compatibility build; transformed Storm and Static Discharge effects exchanged as requested.");
+            Logger.Info("[BetterDefect] loaded v0.11.60: PC v107.1 compatibility build; transformed Hailstorm damage raised to 3(4) per Frost orb.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()
