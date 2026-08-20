@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.61: Android v103/v110 compatibility build; transformed Bulk Up now loses 1 orb slot and grants Strength and Dexterity equal to the remaining slot count; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.62: Android v103/v110 compatibility build; transformed Stack inherits the former Recycle orb-slot effect, while transformed Recycle refunds the exhausted card's current cost without exhausting itself; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.61: PC v107.1 compatibility build; transformed Bulk Up now grants Strength and Dexterity equal to the remaining orb slot count.");
+            Logger.Info("[BetterDefect] loaded v0.11.62: PC v107.1 compatibility build; transformed Stack and Recycle effects have been reassigned.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

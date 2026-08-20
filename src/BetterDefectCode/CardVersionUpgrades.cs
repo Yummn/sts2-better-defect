@@ -30,6 +30,7 @@ using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using BufferCard = MegaCrit.Sts2.Core.Models.Cards.Buffer;
+using StackCard = MegaCrit.Sts2.Core.Models.Cards.Stack;
 
 namespace BetterDefect;
 
@@ -70,7 +71,7 @@ internal static class BdCardVersionUpgrades
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
         typeof(FocusedStrike),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-        typeof(Rebound), typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdSteamBarrier), typeof(BdStreamline),
+        typeof(Rebound), typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(StackCard), typeof(BdSteamBarrier), typeof(BdStreamline),
 
         // User-approved uncommon-card transformations.
         typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough), typeof(Skim),
@@ -123,7 +124,8 @@ internal static class BdCardVersionUpgrades
             ["CARD.REBOUND"] = ("改造：自定义", "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
-            ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位；稀有度改为白卡"),
+            ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费；选择并消耗1张手牌，获得等同其当前能耗的能量；自身不消耗；稀有度改为白卡"),
+            ["CARD.STACK"] = ("改造：自定义", "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位"),
             ["CARD.BD_STEAM_BARRIER"] = ("改造：自定义", "0费获得8(12)格挡；每次打出后本场战斗格挡值减少1"),
             ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费"),
             ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
@@ -206,7 +208,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "改造：自定义",
         Sunder => "改造：自定义",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or SweepingBeam or BdRecursion or BdRecycle or BdSteamBarrier or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or SweepingBeam or BdRecursion or BdRecycle or StackCard or BdSteamBarrier or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine or
         BdReprogram or BdStaticDischarge or BulkUp or HelixDrill or BdReinforcedBody or BdMelter or BdBullseye or RipAndTear or Spinner or
         AdaptiveStrike or AllForOne or BufferCard or ConsumingShadow or Coolant or CreativeAi or EchoForm or FlakCannon or GeneticAlgorithm or IceLance or Defragment or BiasedCognition or
@@ -244,7 +246,8 @@ internal static class BdCardVersionUpgrades
         Rebound => "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部",
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
-        BdRecycle => "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位；稀有度改为白卡",
+        BdRecycle => "1(0)费；选择并消耗1张手牌，获得等同其当前能耗的能量；自身不消耗；稀有度改为白卡",
+        StackCard => "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位",
         BdSteamBarrier => "0费获得8(12)格挡；每次打出后本场战斗格挡值减少1",
         BdStreamline => "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费",
         Chaos => "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗",
@@ -753,7 +756,12 @@ internal static class BdCardVersionUpgrades
 
             case BdRecycle:
                 SetEnergy(card, plus ? 0 : 1);
-                SetKeyword(card, CardKeyword.Exhaust, true);
+                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                break;
+
+            case StackCard:
+                SetEnergy(card, upgradedVersion && plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion);
                 break;
 
             case BdSteamBarrier:
@@ -1052,7 +1060,14 @@ internal static class BdCardVersionUpgrades
                 break;
             case BdRecycle:
                 SetEnergy(card, 0);
-                SetKeyword(card, CardKeyword.Exhaust, true);
+                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                break;
+            case StackCard:
+                if (upgradedVersion)
+                {
+                    SetEnergy(card, 0);
+                    SetKeyword(card, CardKeyword.Exhaust, true);
+                }
                 break;
             case BdSteamBarrier:
                 UpgradeDynamicTo(card, "Block", upgradedVersion ? 12m : 8m);
@@ -1330,7 +1345,11 @@ internal static class BdCardVersionUpgrades
             case "CARD.BD_RECURSION": SetEnergy(card, plus ? 0 : 1); break;
             case "CARD.BD_RECYCLE":
                 SetEnergy(card, plus ? 0 : 1);
-                SetKeyword(card, CardKeyword.Exhaust, true);
+                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                break;
+            case "CARD.STACK":
+                SetEnergy(card, upgradedVersion && plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion);
                 break;
             case "CARD.BD_STEAM_BARRIER":
                 SetDynamic(card, "Block", upgradedVersion ? plus ? 12m : 8m : plus ? 8m : 6m);
@@ -1509,7 +1528,14 @@ internal static class BdCardVersionUpgrades
             case "CARD.BD_RECURSION": SetEnergy(card, 0); break;
             case "CARD.BD_RECYCLE":
                 SetEnergy(card, 0);
-                SetKeyword(card, CardKeyword.Exhaust, true);
+                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                break;
+            case "CARD.STACK":
+                if (upgradedVersion)
+                {
+                    SetEnergy(card, 0);
+                    SetKeyword(card, CardKeyword.Exhaust, true);
+                }
                 break;
             case "CARD.BD_STEAM_BARRIER":
                 UpgradeDynamicTo(card, "Block", upgradedVersion ? 12m : 8m);
@@ -1764,7 +1790,7 @@ internal static class BdCustomCommonCardPlayPatch
         [
             typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
             typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-            typeof(Rebound), typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
+            typeof(Rebound), typeof(Uproar), typeof(BdRecycle), typeof(StackCard), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
             typeof(BulkUp), typeof(HelixDrill), typeof(Synthesis), typeof(Sunder),
             typeof(RipAndTear), typeof(Hyperbeam), typeof(Spinner), typeof(Storm)
@@ -1813,6 +1839,7 @@ internal static class BdCustomCommonCardPlayPatch
             Rebound typed => PlayRebound(typed, choiceContext, cardPlay),
             Uproar typed => PlayUproar(typed, choiceContext, cardPlay),
             BdRecycle typed => PlayRecycle(typed, choiceContext),
+            StackCard typed => PlayStack(typed, choiceContext),
             Chaos typed => PlayChaos(typed, choiceContext),
             DoubleEnergy typed => PlayDoubleEnergy(typed, choiceContext),
             FightThrough typed => PlayFightThrough(typed, choiceContext, cardPlay),
@@ -1832,7 +1859,7 @@ internal static class BdCustomCommonCardPlayPatch
             _ => Task.CompletedTask
         };
         return card is Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or
-            GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or Uproar or BdRecycle or Chaos or
+            GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or Uproar or BdRecycle or StackCard or Chaos or
             DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or
             BulkUp or HelixDrill or Synthesis or Sunder or RipAndTear or Hyperbeam or Spinner or Storm;
     }
@@ -2052,6 +2079,25 @@ internal static class BdCustomCommonCardPlayPatch
     }
 
     private static async Task PlayRecycle(BdRecycle card, PlayerChoiceContext choiceContext)
+    {
+        var victim = (await CardSelectCmd.FromHand(
+            choiceContext,
+            card.Owner,
+            new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1),
+            null,
+            card)).FirstOrDefault();
+        if (victim is null)
+            return;
+        var energy = Bd.CostForEnergy(victim);
+        var energyBefore = card.Owner.PlayerCombatState.Energy;
+        await CardCmd.Exhaust(choiceContext, victim);
+        var energyBeforeRefund = card.Owner.PlayerCombatState.Energy;
+        card.Owner.PlayerCombatState.GainEnergy(energy);
+        MainFile.Logger.Info(
+            $"[BetterDefect][Recycle] exhausted={victim.Id.Entry} refunded={energy} energyBefore={energyBefore} afterExhaust={energyBeforeRefund} afterRefund={card.Owner.PlayerCombatState.Energy}");
+    }
+
+    private static async Task PlayStack(StackCard card, PlayerChoiceContext choiceContext)
     {
         var victim = (await CardSelectCmd.FromHand(
             choiceContext,

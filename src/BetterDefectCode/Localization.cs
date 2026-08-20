@@ -5,6 +5,7 @@ using System.Linq;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using StackCard = MegaCrit.Sts2.Core.Models.Cards.Stack;
 
 namespace BetterDefect;
 
@@ -162,6 +163,7 @@ internal static class BdLocalization
         var uproarCustom = IsVersionEnabled<Uproar>();
         var recursionCustom = IsVersionEnabled<Cards.BdRecursion>();
         var recycleCustom = IsVersionEnabled<Cards.BdRecycle>();
+        var stackCustom = IsVersionEnabled<StackCard>();
         var streamlineCustom = IsVersionEnabled<Cards.BdStreamline>();
         var chaosCustom = IsVersionEnabled<Chaos>();
         var doubleEnergyCustom = IsVersionEnabled<DoubleEnergy>();
@@ -293,8 +295,12 @@ internal static class BdLocalization
                 : "[gold]激发[/gold]最左侧充能球一次，然后重新充能同类型充能球。",
 
             ["BD_RECYCLE.description"] = recycleCustom
-                ? "选择并[gold]消耗[/gold]1张手牌。\n无论是否成功消耗，获得1个[gold]充能球栏位[/gold]。"
+                ? "选择并[gold]消耗[/gold]1张手牌，获得等同其当前费用的[gold]能量[/gold]。X费牌按当前X值计算。"
                 : "选择并[gold]消耗[/gold]1张手牌，获得等同其费用的[gold]能量[/gold]。X费牌按当前X值计算。",
+
+            ["STACK.description"] = stackCustom
+                ? "选择并[gold]消耗[/gold]1张手牌。\n无论是否成功消耗，获得1个[gold]充能球栏位[/gold]。"
+                : "获得{CalculatedBlock:diff()}点[gold]格挡[/gold]。",
 
             ["BD_STREAMLINE.description"] = streamlineCustom
                 ? "造成{Damage:diff()}点伤害。\n每次打出后，使本场战斗中所有[gold]精简改良[/gold]的费用减少1。"

@@ -1,0 +1,5 @@
+[application]
+config/name="CodexRecycleStackV01162Test"
+
+[dotnet]
+project/assembly_name="CodexRecycleStackV01162Test"
