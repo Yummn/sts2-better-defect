@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.60: Android v103/v110 compatibility build; transformed Hailstorm now deals 3(4) damage to all enemies separately for every Frost orb; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.61: Android v103/v110 compatibility build; transformed Bulk Up now loses 1 orb slot and grants Strength and Dexterity equal to the remaining slot count; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.60: PC v107.1 compatibility build; transformed Hailstorm damage raised to 3(4) per Frost orb.");
+            Logger.Info("[BetterDefect] loaded v0.11.61: PC v107.1 compatibility build; transformed Bulk Up now grants Strength and Dexterity equal to the remaining orb slot count.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

@@ -389,7 +389,7 @@ internal static class BdLocalization
                 : "每当你受到未被格挡的攻击伤害，[gold]充能[/gold]{Amount:diff()}个[gold]闪电[/gold]。",
 
             ["BULK_UP.description"] = bulkUpCustom
-                ? "失去1个充能球栏位。获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。此后每失去1个充能球栏位，再各获得1点。"
+                ? "失去1个充能球栏位。获得等同于当前充能球栏位数量的[gold]力量[/gold]和[gold]敏捷[/gold]。"
                 : "失去{OrbSlots:diff()}个充能球栏位。获得{StrengthPower:diff()}点[gold]力量[/gold]和{DexterityPower:diff()}点[gold]敏捷[/gold]。",
 
             ["HELIX_DRILL.description"] = helixDrillCustom

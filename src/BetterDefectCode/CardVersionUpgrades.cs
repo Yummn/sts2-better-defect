@@ -167,7 +167,7 @@ internal static class BdCardVersionUpgrades
             ,
             ["CARD.BD_REPROGRAM"] = ("改造：自定义", "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷"),
             ["CARD.BD_STATIC_DISCHARGE"] = ("改造：自定义", "1费；受到未被格挡的敌人攻击伤害时生成1(2)个闪电并获得3格挡；升级后固有"),
-            ["CARD.BULK_UP"] = ("改造：自定义", "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点"),
+            ["CARD.BULK_UP"] = ("改造：自定义", "2(1)费能力；失去1个充能球栏位，获得等同于当前充能球栏位数量的力量和敏捷"),
             ["CARD.HELIX_DRILL"] = ("改造：自定义", "X费造成7(9)伤害X次；最终X至少为4时次数翻倍"),
             ["CARD.BD_REINFORCED_BODY"] = ("改造：自定义", "X费获得7(9)格挡X次；最终X至少为4时次数翻倍"),
             ["CARD.BD_MELTER"] = ("改造：自定义", "移除全部格挡，造成10(14)伤害并施加1(2)层易伤"),
@@ -287,7 +287,7 @@ internal static class BdCardVersionUpgrades
         BdCoreSurge => "效果不变；普通升级后获得固有",
         BdReprogram => "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷",
         BdStaticDischarge => "1费；受到未被格挡的敌人攻击伤害时生成1(2)个闪电并获得3格挡；升级后固有",
-        BulkUp => "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点",
+        BulkUp => "2(1)费能力；失去1个充能球栏位，获得等同于当前充能球栏位数量的力量和敏捷",
         HelixDrill => "X费造成7(9)伤害X次；最终X至少为4时次数翻倍",
         BdReinforcedBody => "X费获得7(9)格挡X次；最终X至少为4时次数翻倍",
         BdMelter => "移除全部格挡，造成10(14)伤害并施加1(2)层易伤",
@@ -583,8 +583,8 @@ internal static class BdCardVersionUpgrades
             case BulkUp:
                 SetEnergy(card, upgradedVersion && plus ? 1 : 2);
                 SetDynamic(card, "OrbSlots", 1m);
-                SetDynamic(card, "StrengthPower", upgradedVersion ? plus ? 3m : 2m : plus ? 3m : 2m);
-                SetDynamic(card, "DexterityPower", upgradedVersion ? plus ? 3m : 2m : plus ? 3m : 2m);
+                SetDynamic(card, "StrengthPower", upgradedVersion ? 0m : plus ? 3m : 2m);
+                SetDynamic(card, "DexterityPower", upgradedVersion ? 0m : plus ? 3m : 2m);
                 break;
 
             case HelixDrill:
@@ -941,8 +941,11 @@ internal static class BdCardVersionUpgrades
                 break;
             case BulkUp:
                 SetEnergy(card, upgradedVersion ? 1 : 2);
-                UpgradeDynamicTo(card, "StrengthPower", 3m);
-                UpgradeDynamicTo(card, "DexterityPower", 3m);
+                if (!upgradedVersion)
+                {
+                    UpgradeDynamicTo(card, "StrengthPower", 3m);
+                    UpgradeDynamicTo(card, "DexterityPower", 3m);
+                }
                 break;
             case HelixDrill:
                 UpgradeDynamicTo(card, "Damage", upgradedVersion ? 9m : 5m);
@@ -1211,8 +1214,8 @@ internal static class BdCardVersionUpgrades
             case "CARD.BULK_UP":
                 SetEnergy(card, upgradedVersion && plus ? 1 : 2);
                 SetDynamic(card, "OrbSlots", 1m);
-                SetDynamic(card, "StrengthPower", plus ? 3m : 2m);
-                SetDynamic(card, "DexterityPower", plus ? 3m : 2m);
+                SetDynamic(card, "StrengthPower", upgradedVersion ? 0m : plus ? 3m : 2m);
+                SetDynamic(card, "DexterityPower", upgradedVersion ? 0m : plus ? 3m : 2m);
                 break;
             case "CARD.HELIX_DRILL":
                 SetXCost(card, upgradedVersion);
@@ -1445,8 +1448,11 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BULK_UP":
                 if (upgradedVersion) SetEnergy(card, 1);
-                UpgradeDynamicTo(card, "StrengthPower", 3m);
-                UpgradeDynamicTo(card, "DexterityPower", 3m);
+                if (!upgradedVersion)
+                {
+                    UpgradeDynamicTo(card, "StrengthPower", 3m);
+                    UpgradeDynamicTo(card, "DexterityPower", 3m);
+                }
                 break;
             case "CARD.HELIX_DRILL": UpgradeDynamicTo(card, "Damage", upgradedVersion ? 9m : 5m); break;
             case "CARD.BD_REINFORCED_BODY": UpgradeDynamicTo(card, "Block", 9m); break;
@@ -2182,23 +2188,15 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayBulkUp(BulkUp card, PlayerChoiceContext choiceContext)
     {
         await CreatureCmd.TriggerAnim(card.Owner.Creature, "PowerUp", card.Owner.Character.PowerUpAnimDelay);
-        var before = card.Owner.PlayerCombatState.OrbQueue.Capacity;
         OrbCmd.RemoveSlots(card.Owner, card.DynamicVars["OrbSlots"].IntValue);
-        var removed = Math.Max(0, before - card.Owner.PlayerCombatState.OrbQueue.Capacity);
-
-        // Existing copies trigger before this copy is installed: "thereafter"
-        // must not count the slot removed by the same Bulk Up that created it.
-        if (removed > 0)
-            await BdBulkUpPower.NotifySlotsLost(choiceContext, card.Owner, removed, card);
+        var currentSlots = Math.Max(0, card.Owner.PlayerCombatState.OrbQueue.Capacity);
 
         await Bd.ApplyPower<StrengthPower>(
-            choiceContext, card.Owner.Creature, card.DynamicVars.Strength.BaseValue,
+            choiceContext, card.Owner.Creature, currentSlots,
             card.Owner.Creature, card);
         await Bd.ApplyPower<DexterityPower>(
-            choiceContext, card.Owner.Creature, card.DynamicVars.Dexterity.BaseValue,
+            choiceContext, card.Owner.Creature, currentSlots,
             card.Owner.Creature, card);
-        await Bd.ApplyPower<BdBulkUpPower>(
-            choiceContext, card.Owner.Creature, 1m, card.Owner.Creature, card);
     }
 
     private static async Task PlayHelixDrill(HelixDrill card, PlayerChoiceContext choiceContext, CardPlay cardPlay)

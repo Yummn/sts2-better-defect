@@ -1,0 +1,5 @@
+[application]
+config/name="CodexBulkUpV01161Test"
+
+[dotnet]
+project/assembly_name="CodexBulkUpV01161Test"
