@@ -1853,7 +1853,7 @@ internal static class BdCustomCommonCardPlayPatch
             Synthesis typed => PlaySynthesis(typed, choiceContext, cardPlay),
             Sunder typed => PlaySunder(typed, choiceContext, cardPlay),
             RipAndTear typed => PlayRipAndTear(typed, choiceContext),
-            Hyperbeam typed => PlayHyperbeam(typed, choiceContext),
+            Hyperbeam typed => PlayHyperbeam(typed, choiceContext, cardPlay),
             Spinner typed => PlaySpinner(typed, choiceContext),
             Storm typed => PlayStorm(typed, choiceContext),
             _ => Task.CompletedTask
@@ -2324,12 +2324,38 @@ internal static class BdCustomCommonCardPlayPatch
         }
     }
 
-    private static async Task PlayHyperbeam(Hyperbeam card, PlayerChoiceContext choiceContext)
+    private static async Task PlayHyperbeam(Hyperbeam card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
-        await CreatureCmd.TriggerAnim(card.Owner.Creature, "Cast", card.Owner.Character.CastAnimDelay);
-        foreach (var enemy in Bd.Enemies(card))
-            VfxCmd.PlayOnCreature(enemy, "vfx/vfx_attack_lightning");
-        await Bd.DamageAll(choiceContext, card, card.DynamicVars.Damage);
+        // Keep the native Hyperbeam attack pipeline.  The previous transformed
+        // implementation replaced it with a generic lightning VFX, so the card
+        // resolved mechanically but never spawned the sweeping beam or its
+        // per-enemy impact animation.
+        await DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
+            .BdFromCard(card, cardPlay)
+            .TargetingAllOpponents(card.CombatState)
+            .WithAttackerAnim("Cast", 0.5f)
+            .BeforeDamage(async () =>
+            {
+                var enemies = card.CombatState.Enemies.Where(enemy => enemy.IsAlive).ToList();
+                if (enemies.Count == 0)
+                    return;
+
+                var beam = NHyperbeamVfx.Create(card.Owner.Creature, enemies[^1]);
+                if (beam != null)
+                {
+                    NCombatRoom.Instance?.CombatVfxContainer.AddChildSafely(beam);
+                    await Cmd.Wait(0.5f);
+                }
+
+                foreach (var enemy in enemies)
+                {
+                    var impact = NHyperbeamImpactVfx.Create(card.Owner.Creature, enemy);
+                    if (impact != null)
+                        NCombatRoom.Instance?.CombatVfxContainer.AddChildSafely(impact);
+                }
+            })
+            .Execute(choiceContext);
+
         await Bd.ApplyPower<BdHyperbeamTemporaryFocusDownPower>(
             choiceContext,
             card.Owner.Creature,
