@@ -1075,31 +1075,40 @@ public sealed class BdStaticDischargePower : PowerModel
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
 
-    public override async Task AfterOrbChanneled(PlayerChoiceContext choiceContext, Player player, OrbModel orb)
-    {
-        if (!BdCardVersionUpgrades.IsVersionEnabled<BdStaticDischarge>() ||
-            player.Creature != Owner || orb is not LightningOrb)
-            return;
-
-        // Each Lightning adds this power's full stacked value. The resulting
-        // charge is consumed by the next Attack card, after all of that card's
-        // hits have received the additive bonus.
-        await Bd.ApplyPower<BdStaticDischargeChargePower>(
-            choiceContext, Owner, Amount, Owner, null);
-        Owner.GetPower<BdStaticDischargeChargePower>()?.RecordNewCharge(Amount);
-        Flash();
-    }
-
     public override async Task AfterDamageReceived(PlayerChoiceContext choiceContext, Creature target, DamageResult result, ValueProp props, Creature? dealer, CardModel? cardSource)
     {
-        if (BdCardVersionUpgrades.IsVersionEnabled<BdStaticDischarge>())
-            return;
         // Only real attack/monster-move damage should trigger Static Discharge.
         // Poison, orb/relic damage and other HP-loss effects are Unpowered or
         // Unblockable and must not create Lightning.
         if (target != Owner || result.UnblockedDamage <= 0 || dealer == null) return;
         if ((props & ValueProp.Move) == 0 || (props & (ValueProp.Unpowered | ValueProp.Unblockable)) != 0) return;
         for (var i = 0; i < Amount; i++) await OrbCmd.Channel<LightningOrb>(choiceContext, Owner.Player);
+        if (BdCardVersionUpgrades.IsVersionEnabled<BdStaticDischarge>())
+            await CreatureCmd.GainBlock(Owner, 3m, ValueProp.Unpowered, null);
+        Flash();
+    }
+}
+
+/// <summary>
+/// Transformed Storm: each Lightning generated banks additive damage for every
+/// hit of the next Attack. Keeping this listener separate from Static Discharge
+/// prevents the two transformed powers from retaining one another's effects.
+/// </summary>
+public sealed class BdStormChargePower : PowerModel
+{
+    public override PowerType Type => PowerType.Buff;
+    public override PowerStackType StackType => PowerStackType.Counter;
+
+    public override async Task AfterOrbChanneled(PlayerChoiceContext choiceContext, Player player, OrbModel orb)
+    {
+        if (!BdCardVersionUpgrades.IsVersionEnabled<Storm>() ||
+            player.Creature != Owner || orb is not LightningOrb)
+            return;
+
+        await Bd.ApplyPower<BdStaticDischargeChargePower>(
+            choiceContext, Owner, Amount, Owner, null);
+        Owner.GetPower<BdStaticDischargeChargePower>()?.RecordNewCharge(Amount);
+        Flash();
     }
 }
 

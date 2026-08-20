@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.58: Android v103/v110 compatibility build; Steam Barrier's current 8(12) rule moved behind transformation and transformed Recycle now remains Exhaust at 1(0) cost; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.59: Android v103/v110 compatibility build; transformed Storm now stores 2(3) damage per Lightning for every hit of the next Attack, while transformed Static Discharge restores its retaliatory Lightning and Block behavior; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.58: PC v107.1 compatibility build; Steam Barrier and Recycle transformations updated.");
+            Logger.Info("[BetterDefect] loaded v0.11.59: PC v107.1 compatibility build; transformed Storm and Static Discharge effects exchanged as requested.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

@@ -1,0 +1,12 @@
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.csproj.AssemblyReference.cache
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.AssemblyInfoInputs.cache
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.AssemblyInfo.cs
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.csproj.CoreCompileInputs.cache
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-v01159-storm-test\CodexStormSwapLiveTest.deps.json
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-v01159-storm-test\CodexStormSwapLiveTest.dll
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.build-v01159-storm-test\CodexStormSwapLiveTest.pdb
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.dll
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\refint\CodexStormSwapLiveTest.dll
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\CodexStormSwapLiveTest.pdb
+C:\Users\yummn\Documents\Codex\2026-07-12\2-mod-50\.autotest\CodexStormSwapLiveTest\.godot\mono\temp\obj\Release\ref\CodexStormSwapLiveTest.dll

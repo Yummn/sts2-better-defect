@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "JKPIBghhWQ4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\yummn\\Documents\\Codex\\2026-07-12\\2-mod-50\\.autotest\\CodexStormSwapLiveTest\\CodexStormSwapLiveTest.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\yummn\\Documents\\Codex\\2026-07-12\\2-mod-50\\.nuget\\packages\\godot.sourcegenerators\\4.5.1\\godot.sourcegenerators.4.5.1.nupkg.sha512",
+    "C:\\Users\\yummn\\Documents\\Codex\\2026-07-12\\2-mod-50\\.nuget\\packages\\godotsharp\\4.5.1\\godotsharp.4.5.1.nupkg.sha512"
+  ],
+  "logs": []
+}

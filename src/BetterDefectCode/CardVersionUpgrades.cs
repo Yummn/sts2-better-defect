@@ -140,7 +140,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.ITERATION"] = ("改造：自定义", "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌"),
             ["CARD.LOOP"] = ("改造：自定义", "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次"),
             ["CARD.SMOKESTACK"] = ("改造：自定义", "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张"),
-            ["CARD.STORM"] = ("改造：自定义", "1费固有；每打出能力牌生成1(2)个闪电球"),
+            ["CARD.STORM"] = ("改造：自定义", "1费固有；每生成1个闪电，下一张攻击的每段伤害增加2(3)"),
             ["CARD.SUBROUTINE"] = ("改造：自定义", "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张"),
             ["CARD.BD_AUTO_SHIELDS"] = ("改造：自定义", "生成1个冰霜；若没有格挡，获得10(15)格挡"),
             ["CARD.BD_CONSUME"] = ("改造：自定义", "费用由2费改为1费；获得2(3)集中并失去1个球位"),
@@ -166,7 +166,7 @@ internal static class BdCardVersionUpgrades
             ["CARD.BD_CORE_SURGE"] = ("改造：自定义", "效果不变；普通升级后获得固有")
             ,
             ["CARD.BD_REPROGRAM"] = ("改造：自定义", "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷"),
-            ["CARD.BD_STATIC_DISCHARGE"] = ("改造：自定义", "每生成1个闪电，下一张攻击的每段伤害增加2(3)"),
+            ["CARD.BD_STATIC_DISCHARGE"] = ("改造：自定义", "1费；受到未被格挡的敌人攻击伤害时生成1(2)个闪电并获得3格挡；升级后固有"),
             ["CARD.BULK_UP"] = ("改造：自定义", "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点"),
             ["CARD.HELIX_DRILL"] = ("改造：自定义", "X费造成7(9)伤害X次；最终X至少为4时次数翻倍"),
             ["CARD.BD_REINFORCED_BODY"] = ("改造：自定义", "X费获得7(9)格挡X次；最终X至少为4时次数翻倍"),
@@ -261,7 +261,7 @@ internal static class BdCardVersionUpgrades
         Iteration => "1费；每回合首次抽到状态牌时抽2(3)张牌，然后消耗该状态牌",
         Loop => "1(0)费；每层在回合开始时分别触发最左侧与最右侧充能球被动一次",
         Smokestack => "1费；每生成状态牌对全体造成4(6)伤害，每层每回合首次触发额外抽1张",
-        Storm => "1费固有；每打出能力牌生成1(2)个闪电球",
+        Storm => "1费固有；每生成1个闪电，下一张攻击的每段伤害增加2(3)",
         Subroutine => "1(0)费；每层在打出能力牌时获得1能量，并在每回合首次触发时额外抽1张",
         BdAutoShields => "生成1个冰霜；若没有格挡，获得10(15)格挡",
         BdConsume => "费用由2费改为1费；获得2(3)集中并失去1个球位",
@@ -286,7 +286,7 @@ internal static class BdCardVersionUpgrades
         BdThunderStrike => "效果不变；普通升级后费用改为2",
         BdCoreSurge => "效果不变；普通升级后获得固有",
         BdReprogram => "1费消耗；移除（激发）全部充能球，失去1集中，获得2力量和2敏捷",
-        BdStaticDischarge => "每生成1个闪电，下一张攻击的每段伤害增加2(3)",
+        BdStaticDischarge => "1费；受到未被格挡的敌人攻击伤害时生成1(2)个闪电并获得3格挡；升级后固有",
         BulkUp => "2(1)费能力；失去1球位并获得2(3)力量和敏捷，之后每失去1球位再各获得1点",
         HelixDrill => "X费造成7(9)伤害X次；最终X至少为4时次数翻倍",
         BdReinforcedBody => "X费获得7(9)格挡X次；最终X至少为4时次数翻倍",
@@ -524,7 +524,7 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case Storm:
-                SetDynamic(card, "StormPower", plus ? 2m : 1m);
+                SetDynamic(card, "StormPower", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
 
@@ -576,8 +576,8 @@ internal static class BdCardVersionUpgrades
 
             case BdStaticDischarge:
                 SetEnergy(card, 1);
-                SetDynamic(card, "Amount", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
-                SetKeyword(card, CardKeyword.Innate, false);
+                SetDynamic(card, "Amount", plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion && plus);
                 break;
 
             case BulkUp:
@@ -903,7 +903,7 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "SmokestackPower", upgradedVersion ? 6m : 7m);
                 break;
             case Storm:
-                UpgradeDynamicTo(card, "StormPower", 2m);
+                UpgradeDynamicTo(card, "StormPower", upgradedVersion ? 3m : 2m);
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case Subroutine:
@@ -936,8 +936,8 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "DexterityPower", upgradedVersion ? 2m : 2m);
                 break;
             case BdStaticDischarge:
-                UpgradeDynamicTo(card, "Amount", upgradedVersion ? 3m : 2m);
-                SetKeyword(card, CardKeyword.Innate, false);
+                UpgradeDynamicTo(card, "Amount", 2m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case BulkUp:
                 SetEnergy(card, upgradedVersion ? 1 : 2);
@@ -1165,7 +1165,7 @@ internal static class BdCardVersionUpgrades
                 SetDynamic(card, "SmokestackPower", upgradedVersion ? plus ? 6m : 4m : plus ? 7m : 5m);
                 break;
             case "CARD.STORM":
-                SetDynamic(card, "StormPower", plus ? 2m : 1m);
+                SetDynamic(card, "StormPower", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case "CARD.SUBROUTINE": SetEnergy(card, plus ? 0 : 1); break;
@@ -1205,8 +1205,8 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BD_STATIC_DISCHARGE":
                 SetEnergy(card, 1);
-                SetDynamic(card, "Amount", upgradedVersion ? plus ? 3m : 2m : plus ? 2m : 1m);
-                SetKeyword(card, CardKeyword.Innate, false);
+                SetDynamic(card, "Amount", plus ? 2m : 1m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion && plus);
                 break;
             case "CARD.BULK_UP":
                 SetEnergy(card, upgradedVersion && plus ? 1 : 2);
@@ -1413,7 +1413,7 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.SMOKESTACK": UpgradeDynamicTo(card, "SmokestackPower", upgradedVersion ? 6m : 7m); break;
             case "CARD.STORM":
-                UpgradeDynamicTo(card, "StormPower", 2m);
+                UpgradeDynamicTo(card, "StormPower", upgradedVersion ? 3m : 2m);
                 SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case "CARD.SUBROUTINE": SetEnergy(card, 0); break;
@@ -1440,8 +1440,8 @@ internal static class BdCardVersionUpgrades
                 UpgradeDynamicTo(card, "DexterityPower", 2m);
                 break;
             case "CARD.BD_STATIC_DISCHARGE":
-                UpgradeDynamicTo(card, "Amount", upgradedVersion ? 3m : 2m);
-                SetKeyword(card, CardKeyword.Innate, false);
+                UpgradeDynamicTo(card, "Amount", 2m);
+                SetKeyword(card, CardKeyword.Innate, upgradedVersion);
                 break;
             case "CARD.BULK_UP":
                 if (upgradedVersion) SetEnergy(card, 1);
@@ -1761,7 +1761,7 @@ internal static class BdCustomCommonCardPlayPatch
             typeof(Rebound), typeof(Uproar), typeof(BdRecycle), typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough),
             typeof(Skim), typeof(Tempest), typeof(WhiteNoise), typeof(Ftl), typeof(Null),
             typeof(BulkUp), typeof(HelixDrill), typeof(Synthesis), typeof(Sunder),
-            typeof(RipAndTear), typeof(Hyperbeam), typeof(Spinner)
+            typeof(RipAndTear), typeof(Hyperbeam), typeof(Spinner), typeof(Storm)
         ];
         foreach (var type in types)
         {
@@ -1822,12 +1822,13 @@ internal static class BdCustomCommonCardPlayPatch
             RipAndTear typed => PlayRipAndTear(typed, choiceContext),
             Hyperbeam typed => PlayHyperbeam(typed, choiceContext),
             Spinner typed => PlaySpinner(typed, choiceContext),
+            Storm typed => PlayStorm(typed, choiceContext),
             _ => Task.CompletedTask
         };
         return card is Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or
             GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or Uproar or BdRecycle or Chaos or
             DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or
-            BulkUp or HelixDrill or Synthesis or Sunder or RipAndTear or Hyperbeam or Spinner;
+            BulkUp or HelixDrill or Synthesis or Sunder or RipAndTear or Hyperbeam or Spinner or Storm;
     }
 
     private static async Task PlayBarrage(Barrage card, PlayerChoiceContext choiceContext)
@@ -2302,6 +2303,16 @@ internal static class BdCustomCommonCardPlayPatch
             choiceContext, card.Owner.Creature,
             card.DynamicVars["SpinnerPower"].BaseValue,
             card.Owner.Creature, card);
+    }
+
+    private static Task PlayStorm(Storm card, PlayerChoiceContext choiceContext)
+    {
+        return Bd.ApplyPower<BdStormChargePower>(
+            choiceContext,
+            card.Owner.Creature,
+            card.DynamicVars["StormPower"].BaseValue,
+            card.Owner.Creature,
+            card);
     }
 
     private static int GetCurrentUproarEnergyCost(CardModel card)
