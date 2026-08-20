@@ -3,3 +3,5 @@ assets/
 src/.godot/
 src/bin/
 src/obj/
+
+**/.godot/
