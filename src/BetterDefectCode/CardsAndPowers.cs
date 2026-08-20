@@ -616,7 +616,7 @@ public sealed class BdRecursion : CardModel
 public sealed class BdSteamBarrier : CardModel
 {
     public override bool GainsBlock => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(8, ValueProp.Move) };
+    protected override IEnumerable<DynamicVar> CanonicalVars => new[] { new BlockVar(6, ValueProp.Move) };
     public BdSteamBarrier() : base(0, CardType.Skill, CardRarity.Common, TargetType.Self) { }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
@@ -671,7 +671,7 @@ public sealed class BdAutoShields : CardModel
         if (Owner.Creature.Block <= 0)
             await Bd.Block(this, cardPlay);
     }
-    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(4);
+    protected override void OnUpgrade() => DynamicVars.Block.UpgradeValueBy(2);
 }
 
 public sealed class BdBlizzard : CardModel

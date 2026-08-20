@@ -70,7 +70,7 @@ internal static class BdCardVersionUpgrades
         typeof(Barrage), typeof(BeamCell), typeof(ChargeBattery), typeof(Claw), typeof(ColdSnap), typeof(Coolheaded),
         typeof(FocusedStrike),
         typeof(GoForTheEyes), typeof(GunkUp), typeof(Leap), typeof(LightningRod),
-        typeof(Rebound), typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdStreamline),
+        typeof(Rebound), typeof(SweepingBeam), typeof(BdRecursion), typeof(BdRecycle), typeof(BdSteamBarrier), typeof(BdStreamline),
 
         // User-approved uncommon-card transformations.
         typeof(Chaos), typeof(DoubleEnergy), typeof(FightThrough), typeof(Skim),
@@ -123,7 +123,8 @@ internal static class BdCardVersionUpgrades
             ["CARD.REBOUND"] = ("改造：自定义", "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部"),
             ["CARD.SWEEPING_BEAM"] = ("改造：自定义", "对所有敌人造成6(9)伤害并抽1(2)张牌"),
             ["CARD.BD_RECURSION"] = ("改造：自定义", "激发最左侧充能球两次并重新生成；普通升级改为0费"),
-            ["CARD.BD_RECYCLE"] = ("改造：自定义", "1费；消耗1张手牌并获得1个充能球栏位；基础牌消耗，普通升级移除消耗；稀有度改为白卡"),
+            ["CARD.BD_RECYCLE"] = ("改造：自定义", "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位；稀有度改为白卡"),
+            ["CARD.BD_STEAM_BARRIER"] = ("改造：自定义", "0费获得8(12)格挡；每次打出后本场战斗格挡值减少1"),
             ["CARD.BD_STREAMLINE"] = ("改造：自定义", "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费"),
             ["CARD.CHAOS"] = ("改造：自定义", "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗"),
             ["CARD.DOUBLE_ENERGY"] = ("改造：自定义", "1(0)费消耗；将当前能量翻倍并抽1张牌"),
@@ -205,7 +206,7 @@ internal static class BdCardVersionUpgrades
         Scrape => "改造：自定义",
         Sunder => "改造：自定义",
         TrashToTreasure => "v0.99",
-        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or SweepingBeam or BdRecursion or BdRecycle or BdStreamline or
+        Barrage or BeamCell or ChargeBattery or Claw or ColdSnap or Coolheaded or GoForTheEyes or GunkUp or Leap or LightningRod or Rebound or SweepingBeam or BdRecursion or BdRecycle or BdSteamBarrier or BdStreamline or
         Chaos or DoubleEnergy or FightThrough or Skim or Tempest or WhiteNoise or Ftl or Null or Refract or Feral or Hailstorm or Iteration or Loop or Smokestack or Storm or Subroutine or
         BdReprogram or BdStaticDischarge or BulkUp or HelixDrill or BdReinforcedBody or BdMelter or BdBullseye or RipAndTear or Spinner or
         AdaptiveStrike or AllForOne or BufferCard or ConsumingShadow or Coolant or CreativeAi or EchoForm or FlakCannon or GeneticAlgorithm or IceLance or Defragment or BiasedCognition or
@@ -243,7 +244,8 @@ internal static class BdCardVersionUpgrades
         Rebound => "1费造成9(12)点伤害；从弃牌堆选择1张牌放到抽牌堆顶部",
         SweepingBeam => "对所有敌人造成6(9)伤害并抽1(2)张牌",
         BdRecursion => "激发最左侧充能球两次并重新生成；普通升级改为0费",
-        BdRecycle => "1费；消耗1张手牌并获得1个充能球栏位；基础牌消耗，普通升级移除消耗；稀有度改为白卡",
+        BdRecycle => "1(0)费，消耗；选择并消耗1张手牌，无论是否成功消耗均获得1个充能球栏位；稀有度改为白卡",
+        BdSteamBarrier => "0费获得8(12)格挡；每次打出后本场战斗格挡值减少1",
         BdStreamline => "造成15(20)伤害；每次打出使所有精简改良本场战斗少1费",
         Chaos => "1费生成2个随机充能球（包括玻璃），优先生成当前栏位中没有的种类；基础牌消耗，普通升级移除消耗",
         DoubleEnergy => "1(0)费消耗；将当前能量翻倍并抽1张牌",
@@ -750,8 +752,14 @@ internal static class BdCardVersionUpgrades
                 break;
 
             case BdRecycle:
-                SetEnergy(card, upgradedVersion ? 1 : plus ? 0 : 1);
-                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion ? !plus : true);
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+
+            case BdSteamBarrier:
+                SetDynamic(card, "Block", upgradedVersion
+                    ? plus ? 12m : 8m
+                    : plus ? 8m : 6m);
                 break;
 
             case BdStreamline:
@@ -1040,8 +1048,11 @@ internal static class BdCardVersionUpgrades
                 SetEnergy(card, 0);
                 break;
             case BdRecycle:
-                SetEnergy(card, upgradedVersion ? 1 : 0);
-                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                SetEnergy(card, 0);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+            case BdSteamBarrier:
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 12m : 8m);
                 break;
             case BdStreamline:
                 UpgradeDynamicTo(card, "Damage", 20m);
@@ -1315,8 +1326,11 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BD_RECURSION": SetEnergy(card, plus ? 0 : 1); break;
             case "CARD.BD_RECYCLE":
-                SetEnergy(card, upgradedVersion ? 1 : plus ? 0 : 1);
-                SetKeyword(card, CardKeyword.Exhaust, upgradedVersion ? !plus : true);
+                SetEnergy(card, plus ? 0 : 1);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+            case "CARD.BD_STEAM_BARRIER":
+                SetDynamic(card, "Block", upgradedVersion ? plus ? 12m : 8m : plus ? 8m : 6m);
                 break;
             case "CARD.BD_STREAMLINE":
                 SetDynamic(card, "Damage", upgradedVersion ? plus ? 20m : 15m : plus ? 20m : 15m);
@@ -1488,8 +1502,11 @@ internal static class BdCardVersionUpgrades
                 break;
             case "CARD.BD_RECURSION": SetEnergy(card, 0); break;
             case "CARD.BD_RECYCLE":
-                SetEnergy(card, upgradedVersion ? 1 : 0);
-                SetKeyword(card, CardKeyword.Exhaust, !upgradedVersion);
+                SetEnergy(card, 0);
+                SetKeyword(card, CardKeyword.Exhaust, true);
+                break;
+            case "CARD.BD_STEAM_BARRIER":
+                UpgradeDynamicTo(card, "Block", upgradedVersion ? 12m : 8m);
                 break;
             case "CARD.BD_STREAMLINE": UpgradeDynamicTo(card, "Damage", 20m); break;
             case "CARD.BD_MELTER": UpgradeDynamicTo(card, "Damage", 14m); break;
@@ -2035,10 +2052,8 @@ internal static class BdCustomCommonCardPlayPatch
             new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 1),
             null,
             card)).FirstOrDefault();
-        if (victim == null)
-            return;
-
-        await CardCmd.Exhaust(choiceContext, victim);
+        if (victim is not null)
+            await CardCmd.Exhaust(choiceContext, victim);
         await OrbCmd.AddSlots(card.Owner, 1);
     }
 

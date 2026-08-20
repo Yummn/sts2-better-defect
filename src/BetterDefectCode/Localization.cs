@@ -290,7 +290,7 @@ internal static class BdLocalization
                 : "[gold]激发[/gold]最左侧充能球一次，然后重新充能同类型充能球。",
 
             ["BD_RECYCLE.description"] = recycleCustom
-                ? "选择并[gold]消耗[/gold]1张手牌。\n获得1个[gold]充能球栏位[/gold]。"
+                ? "选择并[gold]消耗[/gold]1张手牌。\n无论是否成功消耗，获得1个[gold]充能球栏位[/gold]。"
                 : "选择并[gold]消耗[/gold]1张手牌，获得等同其费用的[gold]能量[/gold]。X费牌按当前X值计算。",
 
             ["BD_STREAMLINE.description"] = streamlineCustom
