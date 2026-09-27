@@ -44,6 +44,29 @@ internal static class Bd
     private static MethodInfo? EvokeOrbMethod;
     private static MethodInfo? ModifyPowerWithContext;
     private static MethodInfo? ModifyPowerWithoutContext;
+    private static readonly MethodInfo ExhaustCardMethod = typeof(CardCmd).GetMethod(
+        "Exhaust", BindingFlags.Public | BindingFlags.Static, null,
+        new[] { typeof(PlayerChoiceContext), typeof(CardModel), typeof(bool), typeof(bool) }, null)
+        ?? throw new MissingMethodException(typeof(CardCmd).FullName, "Exhaust");
+
+    // v111 returns Task<CardPileAddResult?> where v103/v110/PC107 return Task.
+    // A direct call encodes the return type in its MemberRef and kills the draw
+    // coroutine at JIT time even when Iteration is not present. Both return
+    // shapes derive from Task; resolve the method once without a return-type ABI.
+    public static Task Exhaust(PlayerChoiceContext context, CardModel card,
+        bool causedByEthereal = false, bool skipVisuals = false)
+    {
+        try
+        {
+            return (Task)(ExhaustCardMethod.Invoke(null, new object[] { context, card, causedByEthereal, skipVisuals })
+                ?? throw new InvalidOperationException("CardCmd.Exhaust returned no task."));
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            throw;
+        }
+    }
 #if STS2_V110
     private static readonly MethodInfo? ActivateOrbPassiveMethod =
         AccessTools.Method(typeof(OrbModel), "ActivatePassive");
@@ -803,7 +826,7 @@ public sealed class BdRecycle : CardModel
             this)).FirstOrDefault();
         if (victim == null) return;
         var energy = Bd.CostForEnergy(victim);
-        await CardCmd.Exhaust(choiceContext, victim);
+        await Bd.Exhaust(choiceContext, victim);
         Owner.PlayerCombatState.GainEnergy(energy);
     }
     protected override void OnUpgrade() => EnergyCost.UpgradeBy(-1);
@@ -1221,6 +1244,16 @@ public sealed class BdHyperbeamTemporaryFocusDownPower : TemporaryFocusPower
 {
     public override AbstractModel OriginModel => ModelDb.Card<Hyperbeam>();
     protected override bool IsPositive => false;
+}
+
+/// <summary>
+/// Barrage's transformed Focus lasts through the rest of the current turn.
+/// Using the native temporary power keeps existing Focus intact and lets the
+/// engine restore only this card's contribution at turn end.
+/// </summary>
+public sealed class BdBarrageTemporaryFocusPower : TemporaryFocusPower
+{
+    public override AbstractModel OriginModel => ModelDb.Card<Barrage>();
 }
 
 public sealed class BdBullseyeTargetPower : PowerModel

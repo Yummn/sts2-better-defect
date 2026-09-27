@@ -104,7 +104,7 @@ def main() -> int:
         "BdForceField": ("CardKeyword.Retain", "new BlockVar(12", "base(4, CardType.Skill", "PowerCardsPlayed", "Block.UpgradeValueBy(4)"),
         "BdHeatsinks": ('new DynamicVar("Draw", 1)', "ApplyPower<BdHeatsinksPower>", 'DynamicVars["Draw"].UpgradeValueBy(1)'),
         "BdMelter": ("new DamageVar(10", "CreatureCmd.LoseBlock", "Bd.Damage", "Damage.UpgradeValueBy(4)"),
-        "BdRecycle": ("CardSelectCmd.FromHand", "ExhaustSelectionPrompt", "Bd.CostForEnergy(victim)", "CardCmd.Exhaust", "GainEnergy(energy)", "EnergyCost.UpgradeBy(-1)"),
+        "BdRecycle": ("CardSelectCmd.FromHand", "ExhaustSelectionPrompt", "Bd.CostForEnergy(victim)", "Bd.Exhaust", "GainEnergy(energy)", "EnergyCost.UpgradeBy(-1)"),
         "BdReinforcedBody": ("HasEnergyCostX", "new BlockVar(7", "ResolveEnergyXValue", "Block.UpgradeValueBy(2)"),
         "BdReprogram": ('new DynamicVar("Focus", 1)', "new PowerVar<StrengthPower>(1)", "new PowerVar<DexterityPower>(1)", "-DynamicVars", "ApplyPower<StrengthPower>", "ApplyPower<DexterityPower>"),
         "BdSelfRepair": ("new HealVar(7)", "ApplyPower<BdSelfRepairPower>", "Heal.UpgradeValueBy(3)"),
@@ -204,7 +204,7 @@ def main() -> int:
         "Compact v0.99 Fuel draws cards without a synthetic DynamicVar": "ResolveFuelDrawCount(Fuel card)",
         "Scrape transformation uses all cost modifiers": "transformed ? CostModifiers.All : CostModifiers.Local",
         "Trash to Treasure v0.99 upgrade is Innate": "SetKeyword(card, CardKeyword.Innate, plus && upgradedVersion)",
-        "Barrage custom route applies temporary Focus": "var temporaryFocus = card.DynamicVars.Damage.BaseValue",
+        "Barrage custom route applies temporary Focus": "Bd.ApplyPower<BdBarrageTemporaryFocusPower>",
         "Beam Cell custom route applies BetterDefect Lock-On": "Bd.ApplyPower<BdLockOnPower>",
         "Charge Battery custom route draws next turn": "Bd.ApplyPower<DrawCardsNextTurnPower>",
         "Cold Snap custom route channels two Frost": "await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);\n        await OrbCmd.Channel<FrostOrb>(choiceContext, card.Owner);",
@@ -240,15 +240,14 @@ def main() -> int:
     barrage_start = barrage_play.find("private static async Task PlayBarrage")
     barrage_end = barrage_play.find("private static async Task PlayBeamCell", barrage_start)
     barrage_route = barrage_play[barrage_start:barrage_end]
-    gain_at = barrage_route.find("temporaryFocus,")
+    gain_at = barrage_route.find("Bd.ApplyPower<BdBarrageTemporaryFocusPower>")
     passive_at = barrage_route.find("OrbCmd.Passive")
     remove_at = barrage_route.find("Bd.ModifyPowerAmount")
     check(
-        "Barrage gains Focus, triggers each orb once, then removes Focus",
-        gain_at >= 0 and passive_at > gain_at and remove_at > passive_at
+        "Barrage gains turn-long temporary Focus, then triggers each orb once",
+        gain_at >= 0 and passive_at > gain_at and remove_at < 0
         and "foreach (var orb in orbs)" in barrage_route
-        and "GetPower<FocusPower>()" in barrage_route
-        and "-temporaryFocus" in barrage_route
+        and "BdBarrageTemporaryFocusPower" in barrage_route
         and "for (var repeat" not in barrage_route,
     )
     check(
@@ -723,7 +722,7 @@ def main() -> int:
         "GetRarityForVersionState(card, wasUpgraded)" in versions
         and "GetRarityForVersionState(card, !wasUpgraded)" in versions,
     )
-    check("manifest is v0.11.43", '"version": "0.11.43"' in manifest)
+    check("manifest is v0.11.65", '"version": "0.11.65"' in manifest)
     check(
         "Darv Dusty Tome compatibility preserves transformed Biased Cognition",
         "class BdDustyTomeAncientCardCompatibilityPatch" in patches
@@ -875,7 +874,7 @@ def main() -> int:
             )
 
     lines = [
-        "BetterDefect v0.11.43 offline audit",
+        "BetterDefect v0.11.65 offline audit",
         f"Timestamp: {dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
         "Mode: source/registry/behavior-route/binary checks only; game was not launched",
         f"Passed: {len(passed)}",

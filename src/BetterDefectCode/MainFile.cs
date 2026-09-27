@@ -126,7 +126,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.63: Android v103/v110 compatibility build; transformed Hyperbeam now uses the native sweeping beam and impact animation pipeline; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded v0.11.65: Android v103/v110/v111 compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +134,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.63: PC v107.1 compatibility build; transformed Hyperbeam now uses the native sweeping beam and impact animation pipeline.");
+            Logger.Info("[BetterDefect] loaded v0.11.65: PC v107.1 compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

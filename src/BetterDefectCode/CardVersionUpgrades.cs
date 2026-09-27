@@ -1867,42 +1867,18 @@ internal static class BdCustomCommonCardPlayPatch
     private static async Task PlayBarrage(Barrage card, PlayerChoiceContext choiceContext)
     {
         var temporaryFocus = card.DynamicVars.Damage.BaseValue;
-        var focusApplied = false;
         // Snapshot the queue before resolving passives. Every orb present when
         // Barrage was played triggers once, in visible left-to-right order,
         // while the temporary Focus is active.
         var orbs = card.Owner.PlayerCombatState.OrbQueue.Orbs.ToList();
-        try
-        {
-            await Bd.ApplyPower<FocusPower>(
-                choiceContext,
-                card.Owner.Creature,
-                temporaryFocus,
-                card.Owner.Creature,
-                card);
-            focusApplied = true;
-            foreach (var orb in orbs)
-                await OrbCmd.Passive(choiceContext, orb, null);
-        }
-        finally
-        {
-            if (focusApplied)
-            {
-                // Remove the temporary amount directly instead of applying
-                // negative Focus, so Artifact cannot turn it into permanent
-                // Focus. ModifyPowerAmount also preserves any Focus that was
-                // already present before Barrage was played.
-                var focus = card.Owner.Creature.GetPower<FocusPower>();
-                if (focus != null)
-                    await Bd.ModifyPowerAmount(
-                        choiceContext,
-                        focus,
-                        -temporaryFocus,
-                        card.Owner.Creature,
-                        card,
-                        silent: true);
-            }
-        }
+        await Bd.ApplyPower<BdBarrageTemporaryFocusPower>(
+            choiceContext,
+            card.Owner.Creature,
+            temporaryFocus,
+            card.Owner.Creature,
+            card);
+        foreach (var orb in orbs)
+            await OrbCmd.Passive(choiceContext, orb, null);
     }
 
     private static async Task PlayBeamCell(BeamCell card, PlayerChoiceContext choiceContext, CardPlay cardPlay)
@@ -2090,7 +2066,7 @@ internal static class BdCustomCommonCardPlayPatch
             return;
         var energy = Bd.CostForEnergy(victim);
         var energyBefore = card.Owner.PlayerCombatState.Energy;
-        await CardCmd.Exhaust(choiceContext, victim);
+        await Bd.Exhaust(choiceContext, victim);
         var energyBeforeRefund = card.Owner.PlayerCombatState.Energy;
         card.Owner.PlayerCombatState.GainEnergy(energy);
         MainFile.Logger.Info(
@@ -2106,7 +2082,7 @@ internal static class BdCustomCommonCardPlayPatch
             null,
             card)).FirstOrDefault();
         if (victim is not null)
-            await CardCmd.Exhaust(choiceContext, victim);
+            await Bd.Exhaust(choiceContext, victim);
         await OrbCmd.AddSlots(card.Owner, 1);
     }
 
@@ -2559,7 +2535,7 @@ internal static class BdCustomRareCardPlay
             .Where(c => c.Type == CardType.Status && c.Pile.Type != PileType.Exhaust)
             .ToList();
         foreach (var status in statuses)
-            await CardCmd.Exhaust(choiceContext, status);
+            await Bd.Exhaust(choiceContext, status);
 
         var hitCount = PileType.Exhaust.GetPile(card.Owner).Cards.Count;
         if (hitCount <= 0) return;
@@ -3193,7 +3169,7 @@ internal static class BdCustomIterationDrawCompletionPatch
         {
             if (firstStatus.Pile?.Type == PileType.Hand)
             {
-                await CardCmd.Exhaust(choiceContext, firstStatus);
+                await Bd.Exhaust(choiceContext, firstStatus);
 
                 // Exhausting a card in the same async continuation that
                 // completed its draw can leave the just-removed NCard or an
