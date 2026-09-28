@@ -1,0 +1,17 @@
+{
+  "id": "BetterDefect",
+  "name": "更好的故障机器人 / Better Defect",
+  "author": "Codex",
+  "description": "Android v0.111.0 build with RitsuLib card-play hook integration. Restores 26 Defect cards, adds 27 managed cards, and includes 69 persistent transformations with a 60-point budget. No BaseLib.",
+  "version": "0.11.66",
+  "min_game_version": "0.111.0",
+  "has_pck": false,
+  "has_dll": true,
+  "dependencies": [
+    {
+      "id": "STS2-RitsuLib",
+      "min_version": "0.6.2"
+    }
+  ],
+  "affects_gameplay": true
+}

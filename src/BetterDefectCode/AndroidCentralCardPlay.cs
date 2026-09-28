@@ -34,10 +34,22 @@ internal static class BdAndroidCentralCardPlayPatch
             typeof(BdAndroidCardPlayDispatcher),
             nameof(BdAndroidCardPlayDispatcher.OnPlay));
         var replaced = 0;
+        var candidates = new List<string>();
 
         foreach (var instruction in instructions)
         {
-            if (original is not null && replacement is not null && instruction.Calls(original))
+            // Android v0.111's Harmony importer may reconstruct the call
+            // operand as a distinct MethodInfo even though its declaring type
+            // and signature are still CardModel.OnPlay. Harmony's Calls()
+            // compares method identity and missed that call entirely.
+            if (instruction.operand is MethodInfo method && method.Name == "OnPlay")
+                candidates.Add($"{method.DeclaringType?.FullName}({string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName))})");
+            if (replacement is not null && instruction.operand is MethodInfo called &&
+                called.Name == "OnPlay" &&
+                called.DeclaringType?.FullName == typeof(CardModel).FullName &&
+                called.GetParameters() is [{ ParameterType.FullName: var first }, { ParameterType.FullName: var second }] &&
+                first == typeof(PlayerChoiceContext).FullName &&
+                second == typeof(CardPlay).FullName)
             {
                 instruction.opcode = OpCodes.Call;
                 instruction.operand = replacement;
@@ -47,7 +59,9 @@ internal static class BdAndroidCentralCardPlayPatch
         }
 
         if (replaced != 1)
-            throw new InvalidOperationException($"Expected one CardModel.OnPlay call in OnPlayWrapper state machine, replaced {replaced}.");
+            throw new InvalidOperationException(
+                $"Expected one CardModel.OnPlay call in OnPlayWrapper state machine, replaced {replaced}; " +
+                $"resolved={original}; candidates=[{string.Join("; ", candidates)}].");
     }
 }
 

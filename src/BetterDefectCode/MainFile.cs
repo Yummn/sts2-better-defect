@@ -14,6 +14,11 @@ namespace BetterDefect;
 public partial class MainFile : Node
 {
     public const string ModId = "BetterDefect";
+#if STS2_V111
+    private const string BuildVersion = "v0.11.66";
+#else
+    private const string BuildVersion = "v0.11.65";
+#endif
     public static MegaCrit.Sts2.Core.Logging.Logger Logger { get; } = new(ModId, LogType.Generic);
 
     public static void Initialize()
@@ -21,6 +26,11 @@ public partial class MainFile : Node
         var harmony = new Harmony(ModId);
         var android = IsAndroidRuntime();
         var androidCardBridgeInstalled = android && TryInstallAndroidCardPlayBridge();
+#if STS2_V111
+        var ritsuCardHookInstalled = android && BdRitsuCardOnPlayListener.TryRegister();
+#else
+        const bool ritsuCardHookInstalled = false;
+#endif
         var patchTypes = new List<Type>();
         foreach (var type in Assembly.GetExecutingAssembly().GetTypes()
                      .Where(t => t.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
@@ -107,9 +117,9 @@ public partial class MainFile : Node
                 // only needed to reduce ARM64 native detours on v103.
                 continue;
             }
-            if (android && androidCardBridgeInstalled && type == typeof(BdAndroidCentralCardPlayPatch))
+            if (android && (androidCardBridgeInstalled || ritsuCardHookInstalled) && type == typeof(BdAndroidCentralCardPlayPatch))
             {
-                Logger.Info("[BetterDefect] Android core card-play bridge active; Harmony async-state-machine transpiler is not needed.");
+                Logger.Info("[BetterDefect] Android card-play bridge active; Harmony async-state-machine transpiler is not needed.");
                 continue;
             }
             if (android && IsReplacedByAndroidCentralCardPlayPatch(type))
@@ -126,7 +136,7 @@ public partial class MainFile : Node
 
         if (android && TryScheduleAndroidPatches(harmony, patchTypes))
         {
-            Logger.Info($"[BetterDefect] loaded v0.11.65: Android v103/v110/v111 compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
+            Logger.Info($"[BetterDefect] loaded {BuildVersion}: Android compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus; startup-safe patch queue scheduled ({patchTypes.Count} classes).");
             return;
         }
 
@@ -134,7 +144,7 @@ public partial class MainFile : Node
         {
             PatchOne(harmony, type);
         }
-            Logger.Info("[BetterDefect] loaded v0.11.65: PC v107.1 compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus.");
+            Logger.Info($"[BetterDefect] loaded {BuildVersion}: PC v107.1 compatibility build; Exhaust return-type ABI resolved at runtime; transformed Barrage uses turn-long temporary Focus.");
     }
 
     private static bool TryInstallAndroidCardPlayBridge()

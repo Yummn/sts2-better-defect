@@ -18,6 +18,14 @@
   <PropertyGroup Condition="'$(Sts2TargetVersion)' == 'v110'">
     <DefineConstants>$(DefineConstants);STS2_V110</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Sts2TargetVersion)' == 'v111'">
+    <DefineConstants>$(DefineConstants);STS2_V110;STS2_V111</DefineConstants>
+    <RitsuLibRuntimePath Condition="'$(RitsuLibRuntimePath)' == ''">$(Sts2Path)/mods/STS2-RitsuLib/compat/0.111.0/STS2-RitsuLib.Runtime.dll</RitsuLibRuntimePath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BetterDefectManifest>BetterDefect.json</BetterDefectManifest>
+    <BetterDefectManifest Condition="'$(Sts2TargetVersion)' == 'v111'">BetterDefect-v111.json</BetterDefectManifest>
+  </PropertyGroup>
 
   <!-- PC v107.1 already uses the modern side-turn hook even though its public
        version number predates Android v110. Keep that ABI distinction separate
@@ -30,16 +38,21 @@
     <Reference Include="0Harmony"><HintPath>$(Sts2DataDir)/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="sts2"><HintPath>$(Sts2DataDir)/sts2.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
+  <ItemGroup Condition="'$(Sts2TargetVersion)' == 'v111'">
+    <Reference Include="STS2-RitsuLib.Runtime"><HintPath>$(RitsuLibRuntimePath)</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="BetterDefectCode\**\*.cs" />
     <None Include="BetterDefect.json" />
+    <None Include="BetterDefect-v111.json" />
     <None Include="project.godot" />
     <BetterDefectPortrait Include="BetterDefectData\Portraits\*.png" />
   </ItemGroup>
 
   <Target Name="CheckDependencyPaths">
     <Error Text="Slay the Spire 2 data not found at path '$(Sts2DataDir)'." Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')" />
+    <Error Text="v111 build requires STS2-RitsuLib.Runtime.dll at '$(RitsuLibRuntimePath)'." Condition="'$(Sts2TargetVersion)' == 'v111' and !Exists('$(RitsuLibRuntimePath)')" />
   </Target>
 
   <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build" Condition="Exists('$(Sts2Path)')">
@@ -47,7 +60,7 @@
     <MakeDir Directories="$(ModsPath)BetterDefect/" />
     <MakeDir Directories="$(ModsPath)BetterDefect/Data/Portraits/" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)BetterDefect/" />
-    <Copy SourceFiles="BetterDefect.json" DestinationFolder="$(ModsPath)BetterDefect/" />
+    <Copy SourceFiles="$(BetterDefectManifest)" DestinationFiles="$(ModsPath)BetterDefect/BetterDefect.json" />
     <Copy SourceFiles="@(BetterDefectPortrait)" DestinationFolder="$(ModsPath)BetterDefect/Data/Portraits/" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsPath)BetterDefect/" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
   </Target>
